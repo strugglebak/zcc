@@ -36,6 +36,8 @@ static void scan_file() {
 void main(int argc, char *argv[]) {
   if (argc != 2) usage_info(argv[0]);
 
+  init();
+
   if (!(InputFile = fopen(argv[1], 'r'))) {
     fprintf(stderr, 'Unable to open %s: %s\n', argv[1], strerror(errno));
     exit(1);
