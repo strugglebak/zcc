@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include "data.h"
 #include "definations.h"
@@ -6,7 +7,7 @@
 
 // 从文件中读取下一个字符
 static int next(void) {
-  int c = 0;
+  char c;
 
   if (PutBackBuffer) {
     c = PutBackBuffer;
@@ -15,7 +16,7 @@ static int next(void) {
   }
 
   c = fgetc(InputFile);
-  if ('\r\n' == c) {
+  if ('\n' == c) {
     Line ++;
   }
 
@@ -29,8 +30,7 @@ static void put_back(int c) {
 
 // 白名单，遇到如下的字符就跳过
 static int skip(void) {
-  int c = 0;
-  c = next();
+  char c = next();
 
   while (
     ' ' == c ||
@@ -50,16 +50,16 @@ static int get_the_position_of_the_charater(char *s, int c) {
   char *p;
 
   p = strchr(s, c);
-  // s = '0123456789'
+  // s = "0123456789"
   // s 这里是字符串的首地址，p 是返回这个字符在这个字符串的位置的地址
   // 相减就是对应的值
   return (p ? p - s : -1);
 }
 
 // 从输入的 file 中扫描并返回一个 integer 字符
-static int scan_integer(c) {
+static int scan_integer(char c) {
   int k, value = 0;
-  while ((k = get_the_position_of_the_charater('0123456789', c) >= 0)) {
+  while ((k = get_the_position_of_the_charater("0123456789", c) >= 0)) {
     value = value * 10 + k;
     c = next();
   }
@@ -70,10 +70,8 @@ static int scan_integer(c) {
 
 // 扫描 tokens
 int scan(struct token *t) {
-  int c = 0;
-
   // 去掉不需要的字符
-  c = skip();
+  char c = skip();
 
   switch (c) {
     case EOF:
@@ -95,7 +93,7 @@ int scan(struct token *t) {
         t->int_value = scan_integer(c);
         t->token = TOKEN_INTEGER_LITERAL;
       }
-      printf('Unrecognised character %c on line %d\r\n', c, Line);
+      printf("Unrecognised character %c on line %d\n", c, Line);
       exit(1);
       break;
   }
