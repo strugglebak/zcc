@@ -45,5 +45,7 @@ void main(int argc, char *argv[]) {
     exit(1);
   }
 
+  scan_file();
+
   exit(0);
 }

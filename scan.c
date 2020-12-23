@@ -92,10 +92,10 @@ int scan(struct token *t) {
       if (isdigit(c)) {
         t->int_value = scan_integer(c);
         t->token = TOKEN_INTEGER_LITERAL;
+        break;
       }
       printf("Unrecognised character %c on line %d\n", c, Line);
       exit(1);
-      break;
   }
 
   return (1);
