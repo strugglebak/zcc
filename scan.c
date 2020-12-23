@@ -59,7 +59,7 @@ static int get_the_position_of_the_charater(char *s, int c) {
 // 从输入的 file 中扫描并返回一个 integer 字符
 static int scan_integer(char c) {
   int k, value = 0;
-  while ((k = get_the_position_of_the_charater("0123456789", c) >= 0)) {
+  while (((k = get_the_position_of_the_charater("0123456789", c)) >= 0)) {
     value = value * 10 + k;
     c = next();
   }
