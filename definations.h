@@ -1,6 +1,6 @@
 struct token {
   int token;
-  int int_value;
+  int integer_value;
 };
 
 // + - * / [0-9]
