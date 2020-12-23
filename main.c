@@ -30,8 +30,9 @@ static void scan_file() {
   while (scan(&T)) {
     printf("Token %s", token_string[T.token]);
     if (TOKEN_INTEGER_LITERAL == T.token) {
-      printf(", value %d\n", T.integer_value);
+      printf(", value %d", T.integer_value);
     }
+    printf("\n");
   }
 }
 
