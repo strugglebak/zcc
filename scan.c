@@ -9,12 +9,14 @@
 static int next(void) {
   char c;
 
+  // 由于上一次读取到了不是数字的字符，所以这里相当于一个 buffer，直接返回上一次读取后的值即可
   if (PutBackBuffer) {
     c = PutBackBuffer;
     PutBackBuffer = 0;
     return c;
   }
 
+  // 返回了上一次读取后的值之后，再次从文件刚刚的位置的下一位读取
   c = fgetc(InputFile);
   if ('\n' == c) {
     Line ++;
@@ -40,6 +42,7 @@ static int skip(void) {
     '\r' == c ||
     '\f' == c
   ) {
+    // 遇到以上的字符就继续读取
     c = next();
   }
 
@@ -61,14 +64,20 @@ static int scan_integer(char c) {
   int k, value = 0;
   while (((k = get_the_position_of_the_charater("0123456789", c)) >= 0)) {
     value = value * 10 + k;
+    // 如果是数字，继续扫描
     c = next();
   }
 
+  // 如果不是数字，则将读取到的字符放到 put buffer 中
+  // 准备下一次读取
+  // put buffer 在这里可以理解为一个读取完一个 interger 之后的状态
   put_back(c);
   return value;
 }
 
 // 扫描 tokens
+// 只有扫描到文件尾时返回 0，表示扫描结束
+// 其他情况均在扫描中
 int scan(struct token *t) {
   // 去掉不需要的字符
   char c = skip();
@@ -91,6 +100,7 @@ int scan(struct token *t) {
     default:
       if (isdigit(c)) {
         t->token = TOKEN_INTEGER_LITERAL;
+        // 如果遇到数字，则继续扫描
         t->integer_value = scan_integer(c);
         break;
       }
