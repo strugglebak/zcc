@@ -27,6 +27,8 @@ static void usage_info(char *info) {
 static void scan_file() {
   struct token T;
 
+  // scan 的作用是碰到一个 token_string 里面包含的字符时才会返回 1
+  // 注意这个函数里面的 skip 函数
   while (scan(&T)) {
     printf("Token %s", token_string[T.token]);
     if (TOKEN_INTEGER_LITERAL == T.token) {
