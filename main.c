@@ -38,7 +38,7 @@ static void scan_file() {
   }
 }
 
-void main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
   if (argc != 2) usage_info(argv[0]);
 
   init();
@@ -51,4 +51,6 @@ void main(int argc, char *argv[]) {
   scan_file();
 
   exit(0);
+
+  return 0;
 }
