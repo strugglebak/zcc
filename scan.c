@@ -10,16 +10,16 @@ static int next(void) {
   char c;
 
   // 由于上一次读取到了不是数字的字符，所以这里相当于一个 buffer，直接返回上一次读取后的值即可
-  if (PutBackBuffer) {
-    c = PutBackBuffer;
-    PutBackBuffer = 0;
+  if (putback_buffer) {
+    c = putback_buffer;
+    putback_buffer = 0;
     return c;
   }
 
   // 返回了上一次读取后的值之后，再次从文件刚刚的位置的下一位读取
-  c = fgetc(InputFile);
+  c = fgetc(input_file);
   if ('\n' == c) {
-    Line ++;
+    line ++;
   }
 
   return c;
@@ -27,7 +27,7 @@ static int next(void) {
 
 // 把一个不需要的字符放回去
 static void put_back(int c) {
-  PutBackBuffer = c;
+  putback_buffer = c;
 }
 
 // 白名单，遇到如下的字符就跳过
@@ -104,7 +104,7 @@ int scan(struct token *t) {
         t->integer_value = scan_integer(c);
         break;
       }
-      printf("Unrecognised character %c on line %d\n", c, Line);
+      printf("Unrecognised character %c on line %d\n", c, line);
       exit(1);
   }
 

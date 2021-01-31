@@ -15,8 +15,8 @@
 const char *token_string[] = { "+", "-", "*", "/", "integer_literal" };
 
 static void init() {
-  Line = 1;
-  PutBackBuffer = '\n';
+  line = 1;
+  putback_buffer = '\n';
 }
 
 static void usage_info(char *info) {
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 
   init();
 
-  if (!(InputFile = fopen(argv[1], "r"))) {
+  if (!(input_file = fopen(argv[1], "r"))) {
     fprintf(stderr, "Unable to open %s: %s\n", argv[1], strerror(errno));
     exit(1);
   }
