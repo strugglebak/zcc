@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,21 +23,9 @@ static void usage_info(char *info) {
   exit(1);
 }
 
-static void scan_file() {
-  struct token T;
-
-  // scan 的作用是碰到一个 token_string 里面包含的字符时才会返回 1
-  // 注意这个函数里面的 skip 函数
-  while (scan(&T)) {
-    printf("Token %s", token_string[T.token]);
-    if (TOKEN_INTEGER_LITERAL == T.token) {
-      printf(", value %d", T.integer_value);
-    }
-    printf("\n");
-  }
-}
-
 int main(int argc, char *argv[]) {
+  struct ASTNode *node;
+
   if (argc != 2) usage_info(argv[0]);
 
   init();
@@ -48,7 +35,10 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  scan_file();
+  // 扫描文件中的字符串，并将其赋值给 token_from_file 这个全局变量
+  scan(&token_from_file);
+  // 开始在解析的过程中，把字符串转换成 ast
+  node = converse_token_2_ast();
 
   exit(0);
 

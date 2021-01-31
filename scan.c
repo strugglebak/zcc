@@ -78,7 +78,7 @@ static int scan_integer(char c) {
 // 扫描 tokens
 // 只有扫描到文件尾时返回 0，表示扫描结束
 // 其他情况均在扫描中
-int scan(struct token *t) {
+int scan(struct Token *t) {
   // 去掉不需要的字符
   char c = skip();
 

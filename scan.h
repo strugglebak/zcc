@@ -1,1 +1,1 @@
-int scan(struct token *t);
+int scan(struct Token *t);
