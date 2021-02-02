@@ -1,3 +1,7 @@
+
+#ifndef __AST_H__
+#define __AST_H__
+
 struct ASTNode *create_ast_node(
   int operation,
   struct ASTNode *left,
@@ -12,3 +16,5 @@ struct ASTNode *create_ast_left_node(
   struct ASTNode *left,
   int interger_value
 );
+
+#endif

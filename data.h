@@ -1,3 +1,7 @@
+
+#ifndef __DATA_H__
+#define __DATA_H__
+
 #include <stdio.h>
 #include "definations.h"
 
@@ -9,3 +13,5 @@ extern_ int line;
 extern_ int putback_buffer;
 extern_ FILE *input_file;
 extern_ struct Token token_from_file;
+
+#endif

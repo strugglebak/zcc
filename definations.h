@@ -1,3 +1,6 @@
+#ifndef __DEFINATIONS_H__
+#define __DEFINATIONS_H__
+
 struct Token {
   int token;
   int integer_value;
@@ -29,3 +32,5 @@ enum {
   AST_DIVIDE,
   AST_INTEGER_LITERAL,
 };
+
+#endif
