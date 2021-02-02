@@ -9,6 +9,8 @@
 
 #include "definations.h"
 #include "scan.h"
+#include "parser.h"
+#include "interpreter.h"
 
 // 声明 token 字符串数组
 const char *token_string[] = { "+", "-", "*", "/", "integer_literal" };
