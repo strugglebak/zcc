@@ -1,2 +1,3 @@
 *.o
 scanner
+parser
