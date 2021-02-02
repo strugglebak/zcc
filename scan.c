@@ -84,6 +84,7 @@ int scan(struct Token *t) {
 
   switch (c) {
     case EOF:
+      t->token = TOKEN_EOF;
       return (0);
     case '+':
       t->token = TOKEN_PLUS;
