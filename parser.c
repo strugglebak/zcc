@@ -104,7 +104,7 @@ struct ASTNode *converse_token_2_multiplicative_ast() {
 
   // 如果遇到 * / 这种符号
   // 则循环构建 ast
-  while(TOKEN_MINUS == node_operaion_type || TOKEN_DIVIDE == node_operaion_type) {
+  while(TOKEN_MULTIPLY == node_operaion_type || TOKEN_DIVIDE == node_operaion_type) {
     // 继续扫描
     scan(&token_from_file);
     // 开始构建右子树
