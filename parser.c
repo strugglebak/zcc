@@ -110,7 +110,7 @@ struct ASTNode *converse_token_2_multiplicative_ast() {
     // 开始构建右子树
     right = create_ast_node_from_expression();
     // 将 Token 操作符类型转换成 AST 操作符类型
-    node_operaion_type = convert_token_operation_2_ast_operation(token_from_file.token);
+    node_operaion_type = convert_token_operation_2_ast_operation(node_operaion_type);
     // 开始构建左子树
     left = create_ast_node(node_operaion_type, left, right, 0);
 
@@ -149,7 +149,7 @@ struct ASTNode *converse_token_2_additive_ast() {
     // 开始构建右子树
     right = converse_token_2_multiplicative_ast();
     // 将 Token 操作符类型转换成 AST 操作符类型
-    node_operaion_type = convert_token_operation_2_ast_operation(token_from_file.token);
+    node_operaion_type = convert_token_operation_2_ast_operation(node_operaion_type);
     // 开始构建左子树
     left = create_ast_node(node_operaion_type, left, right, 0);
 
