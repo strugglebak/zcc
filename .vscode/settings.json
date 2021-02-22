@@ -1,2 +1,8 @@
 {
+  "files.associations": {
+    "__tuple": "cpp",
+    "array": "cpp",
+    "definations.h": "c",
+    "data.h": "c"
+  }
 }
