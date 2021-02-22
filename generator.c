@@ -3,6 +3,7 @@
 #include <errno.h>
 #include "data.h"
 #include "ast.h"
+#include "generator_core.h"
 
 /**
  * 这里主要将 ast 中的代码取出来，然后用汇编的方式进行值的加减乘除

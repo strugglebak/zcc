@@ -128,7 +128,7 @@ int register_divide(int left_register, int right_register) {
   fprintf(output_file, "\tcqo\n");
   fprintf(output_file, "\tidivq\t%s\n", register_list[right_register]);
   fprintf(output_file, "\tmovq\t%%rax, %s\n", register_list[left_register]);
-  free_register(right_register);
+  clear_register(right_register);
   return(left_register);
 }
 
@@ -138,5 +138,5 @@ int register_divide(int left_register, int right_register) {
 int register_print(int register_index) {
   fprintf(output_file, "\tmovq\t%s, %%rdi\n", register_list[register_index]);
   fprintf(output_file, "\tcall\rregister_print\n");
-  free_register(register_index);
+  clear_register(register_index);
 }
