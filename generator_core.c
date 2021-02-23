@@ -137,6 +137,6 @@ int register_divide(int left_register, int right_register) {
 */
 int register_print(int register_index) {
   fprintf(output_file, "\tmovq\t%s, %%rdi\n", register_list[register_index]);
-  fprintf(output_file, "\tcall\rregister_print\n");
+  fprintf(output_file, "\tcall\tregister_print\n");
   clear_register(register_index);
 }
