@@ -135,7 +135,7 @@ int register_divide(int left_register, int right_register) {
 /**
  * 打印指定的寄存器
 */
-int register_print(int register_index) {
+void register_print(int register_index) {
   fprintf(output_file, "\tmovq\t%s, %%rdi\n", register_list[register_index]);
   fprintf(output_file, "\tcall\tregister_print\n");
   clear_register(register_index);

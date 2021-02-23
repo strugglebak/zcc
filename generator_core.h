@@ -10,6 +10,6 @@ int register_minus(int left_register, int right_register);
 int register_multiply(int left_register, int right_register);
 int register_divide(int left_register, int right_register);
 
-int register_print(int register_index);
+void register_print(int register_index);
 
 #endif
