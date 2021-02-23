@@ -56,14 +56,20 @@ void register_preamble() {
     "\tmovl\t%eax, %esi\n"
     "\tleaq	.LC0(%rip), %rdi\n"
     "\tmovl	$0, %eax\n"
-    "\tcall	printf@PLT\n"
+    // MacOS & iOS 不用 PLT
+    // https://stackoverflow.com/questions/59817831/unsupported-symbol-modifier-in-branch-relocation-call-printfplt
+    // "\tcall	_printf@PLT\n"
+    "\tcall	_printf\n"
     "\tnop\n"
     "\tleave\n"
     "\tret\n"
     "\n"
-    "\t.globl\tmain\n"
-    "\t.type\tmain, @function\n"
-    "main:\n"
+    "\t.globl\t_main\n"
+    // 如果是要编译成 Mach-O x86-64 的汇编，则不需要下面的这个指令，因为这个指令为一个调试用的指令，通常用来调用桢信息的
+    // 详情见
+    // https://stackoverflow.com/questions/19720084/what-is-the-difference-between-assembly-on-mac-and-assembly-on-linux/19725269#19725269
+    // "\t.type\tmain, @function\n"
+    "_main:\n"
     "\tpushq\t%rbp\n"
     "\tmovq	%rsp, %rbp\n",
     output_file
