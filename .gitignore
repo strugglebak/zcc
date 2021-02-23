@@ -1,4 +1,5 @@
 *.o
+*.s
 scanner
 parser
 parser.dSYM/

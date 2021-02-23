@@ -47,7 +47,7 @@ void register_preamble() {
     "\t.text\n"
     ".LC0:\n"
     "\t.string\t\"%d\\n\"\n"
-    "printint:\n"
+    "register_print:\n"
     "\tpushq\t%rbp\n"
     "\tmovq\t%rsp, %rbp\n"
     "\tsubq\t$16, %rsp\n"
