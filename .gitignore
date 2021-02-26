@@ -1,6 +1,7 @@
 *.o
 *.s
 out.s
+out
 scanner
 parser
 parser.dSYM/
