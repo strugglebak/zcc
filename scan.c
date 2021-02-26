@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 #include "data.h"
 #include "definations.h"
 #include "scan.h"
@@ -75,6 +76,42 @@ static int scan_integer(char c) {
   return value;
 }
 
+// 扫描标识符，并将其存入 buffer 中，最终返回是这个标识符的长度
+// 这个标识符是类似于 printf 之类的函数名称或者其他的变量
+static int scan_identifier(int c, char *buffer, int limit_length) {
+  int length = 0;
+
+  // 如果是 字母 | 数字 | _
+  while(isalpha(c) || isdigit(c) || '_' == c) {
+    if (length >= limit_length - 1) {
+      printf("identifier too long on line %d\n");
+      exit(1);
+    }
+    buffer[length ++] = c;
+    c = next();
+  }
+
+  // 跳出循环时，最后一个通过 next 得到的 c 是无效的，所以这里需要 put_back
+  put_back(c);
+
+  // 在最后要加结尾符
+  buffer[length] = '\0';
+
+  return length;
+}
+
+// 这里只做简单的判断，如果首字母是对应关键字的首字母，则直接返回关键字
+static int get_keyword(char *s) {
+  switch (*s) {
+    case 'p':
+      if (!strcmp(s, "print")) {
+        return TOKEN_PRINT;
+      }
+      break;
+  }
+  return 0;
+}
+
 // 扫描 tokens
 // 只有扫描到文件尾时返回 0，表示扫描结束
 // 其他情况均在扫描中
@@ -98,12 +135,26 @@ int scan(struct Token *t) {
     case '/':
       t->token = TOKEN_DIVIDE;
       break;
+    case ';':
+      t->token = TOKEN_SEMICOLON;
+      break;
     default:
       if (isdigit(c)) {
         t->token = TOKEN_INTEGER_LITERAL;
         // 如果遇到数字，则继续扫描
         t->integer_value = scan_integer(c);
         break;
+      } else if (isalpha(c) || '_' == c) {
+        // 如果遇到是一个字母开头的，则将其视为标识符扫描
+        scan_identifier(c, text_buffer, TEXT_LENGTH);
+
+        int token = get_keyword(text_buffer);
+        if (token) {
+          t->token = token;
+          break;
+        }
+        printf("Unrecognised symbol %c on line %d\n", c, line);
+        exit(1);
       }
       printf("Unrecognised character %c on line %d\n", c, line);
       exit(1);

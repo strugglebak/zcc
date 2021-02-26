@@ -1,6 +1,9 @@
 #ifndef __GENERATOR_CORE_H__
 #define __GENERATOR_CORE_H__
 
+
+void clear_all_registers();
+
 void register_preamble();
 void register_postamble();
 

@@ -21,7 +21,9 @@ enum {
   TOKEN_MULTIPLY,
   TOKEN_DIVIDE,
   TOKEN_INTEGER_LITERAL,
-  TOKEN_EOF
+  TOKEN_EOF,
+  TOKEN_PRINT, // 关键字 print
+  TOKEN_SEMICOLON // 分号 ;
 };
 
 // AST 节点类型

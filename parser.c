@@ -75,7 +75,8 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
 
   // 到这里说明已经遍历到文件尾，可以直接 return
   node_operaion_type = token_from_file.token;
-  if (TOKEN_EOF == node_operaion_type) return left;
+  // 如果遇到分号，也可以直接 return
+  if (TOKEN_SEMICOLON == node_operaion_type || TOKEN_EOF == node_operaion_type) return left;
 
   // 如果这次扫描得到的操作符比之前的优先级高，则进行树的循环构建
   while(operation_precedence(node_operaion_type) > previous_token_precedence) {
@@ -89,7 +90,7 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
     left = create_ast_node(node_operaion_type, left, right, 0);
 
     node_operaion_type = token_from_file.token;
-    if (TOKEN_EOF == node_operaion_type) break;
+    if (TOKEN_SEMICOLON == node_operaion_type || TOKEN_EOF == node_operaion_type) break;
   }
 
   // 返回这颗构建的树

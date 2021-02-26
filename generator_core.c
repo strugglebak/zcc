@@ -7,7 +7,7 @@
 static int free_registers[4] = { 1 };
 static char *register_list[4] = { "%r8", "%r9", "%r10", "%r11" };
 
-static void clear_all_registers() {
+void clear_all_registers() {
   free_registers[0] = free_registers[1] = free_registers[2] = free_registers[3] = 1;
 }
 

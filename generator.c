@@ -9,7 +9,7 @@
  * 这里主要将 ast 中的代码取出来，然后用汇编的方式进行值的加减乘除
  * 这里加减乘除后返回的是寄存器的标识
 */
-static int interpret_ast_with_register(struct ASTNode *node) {
+int interpret_ast_with_register(struct ASTNode *node) {
   int left_register, right_register;
 
   if (node->left) {
@@ -45,4 +45,20 @@ void generate_code(struct ASTNode *node) {
   register_print(register_index);
   // 增加汇编后置代码
   register_postamble();
+}
+
+void generate_preamble_code() {
+  register_preamble();
+}
+
+void generate_postamble_code() {
+  register_postamble();
+}
+
+void generate_clearable_registers() {
+  clear_all_registers();
+}
+
+void generate_printable_code(int register_index) {
+  register_print(register_index);
 }

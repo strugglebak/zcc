@@ -3,6 +3,8 @@
     "__tuple": "cpp",
     "array": "cpp",
     "definations.h": "c",
-    "data.h": "c"
+    "data.h": "c",
+    "generator.h": "c",
+    "stdio.h": "c"
   }
 }
