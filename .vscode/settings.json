@@ -5,6 +5,7 @@
     "definations.h": "c",
     "data.h": "c",
     "generator.h": "c",
-    "stdio.h": "c"
+    "stdio.h": "c",
+    "statement.h": "c"
   }
 }

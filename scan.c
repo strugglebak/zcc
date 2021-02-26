@@ -84,7 +84,7 @@ static int scan_identifier(int c, char *buffer, int limit_length) {
   // 如果是 字母 | 数字 | _
   while(isalpha(c) || isdigit(c) || '_' == c) {
     if (length >= limit_length - 1) {
-      printf("identifier too long on line %d\n");
+      printf("identifier too long on line %d\n", line);
       exit(1);
     }
     buffer[length ++] = c;

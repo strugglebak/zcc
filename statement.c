@@ -1,3 +1,4 @@
+#include "parser.h"
 #include "definations.h"
 #include "generator.h"
 #include "helper.h"
