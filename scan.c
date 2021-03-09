@@ -108,6 +108,11 @@ static int get_keyword(char *s) {
         return TOKEN_PRINT;
       }
       break;
+    case 'i':
+      if (!strcmp(s, "int")) {
+        return TOKEN_INT;
+      }
+      break;
   }
   return 0;
 }
@@ -138,6 +143,9 @@ int scan(struct Token *t) {
     case ';':
       t->token = TOKEN_SEMICOLON;
       break;
+    case '=':
+      t->token = TOKEN_EQUALS;
+      break;
     default:
       if (isdigit(c)) {
         t->token = TOKEN_INTEGER_LITERAL;
@@ -153,6 +161,8 @@ int scan(struct Token *t) {
           t->token = token;
           break;
         }
+        // 如果都不是关键字，则只能说明是个标识符
+        t->token = TOKEN_IDENTIFIER;
         printf("Unrecognised symbol %c on line %d\n", c, line);
         exit(1);
       }

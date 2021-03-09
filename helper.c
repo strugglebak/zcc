@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include "scan.h"
 #include "data.h"
 #include "definations.h"
@@ -18,4 +19,24 @@ void verify_token_and_fetch_next_token(int token, char *wanted_identifier) {
 
 void verify_semicolon() {
   verify_token_and_fetch_next_token(TOKEN_SEMICOLON, ";");
+}
+
+void error(char *string) {
+  fprintf(stderr, "%s on line %d\n", string, line);
+  exit(1);
+}
+
+void error_with_message(char *string, char *message) {
+  fprintf(stderr, "%s:%s on line %d\n", string, message, line);
+  exit(1);
+}
+
+void error_with_digital(char *string, int digital) {
+  fprintf(stderr, "%s:%d on line %d\n", string, digital, line);
+  exit(1);
+}
+
+void error_with_character(char *string, char character) {
+  fprintf(stderr, "%s:%c on line %d\n", string, character, line);
+  exit(1);
 }

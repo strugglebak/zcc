@@ -1,5 +1,5 @@
-parser: parser.c interpreter.c main.c scan.c ast.c generator.c generator_core.c statement.c helper.c
-	cc -o parser -g parser.c interpreter.c main.c scan.c ast.c generator.c generator_core.c statement.c helper.c
+parser: parser.c interpreter.c main.c scan.c ast.c generator.c generator_core.c statement.c helper.c symbol_table.c
+	cc -o parser -g parser.c interpreter.c main.c scan.c ast.c generator.c generator_core.c statement.c helper.c symbol_table.c
 
 clean:
 	rm -f parser *.o *.s out
