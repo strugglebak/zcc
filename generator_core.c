@@ -146,3 +146,18 @@ void register_print(int register_index) {
   fprintf(output_file, "\tcall\tregister_print\n");
   clear_register(register_index);
 }
+
+/**
+ * 将寄存器中的值保存到一个变量中
+*/
+void register_store_value_2_variable(int register_index, char *identifier) {
+  fprintf(output_file, "\tmovq\t%s, %s(\%%rip)\n", register_list[register_index], identifier);
+  return (register_index);
+}
+
+/**
+ * 创建全局变量
+*/
+void register_generate_global_symbol(char *symbol_string) {
+  fprintf(output_file, "\t.comm\t%s,8,8\n", symbol_string);
+}

@@ -62,3 +62,7 @@ void generate_clearable_registers() {
 void generate_printable_code(int register_index) {
   register_print(register_index);
 }
+
+void generate_global_symbol_table_code(char *symbol_string) {
+  register_generate_global_symbol(symbol_string);
+}

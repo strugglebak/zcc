@@ -21,6 +21,10 @@ void verify_semicolon() {
   verify_token_and_fetch_next_token(TOKEN_SEMICOLON, ";");
 }
 
+void verify_identifier() {
+  verify_token_and_fetch_next_token(TOKEN_IDENTIFIER, "identifier");
+}
+
 void error(char *string) {
   fprintf(stderr, "%s on line %d\n", string, line);
   exit(1);
