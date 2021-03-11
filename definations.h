@@ -11,7 +11,10 @@ struct ASTNode {
   int operation;
   struct ASTNode *left;
   struct ASTNode *right;
-  int interger_value;
+  union {
+    int interger_value;
+    int symbol_table_index;
+  } value;
 };
 
 // 符号表，目前作用是支持变量
@@ -42,6 +45,9 @@ enum {
   AST_MULTIPLY,
   AST_DIVIDE,
   AST_INTEGER_LITERAL,
+  AST_LVALUE_IDENTIFIER, // 左值
+  AST_RVALUE_IDENTIFIER, // 右值
+  AST_ASSIGNMENT_STATEMENT // 赋值语句
 };
 
 #endif

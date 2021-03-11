@@ -29,7 +29,7 @@ int interpret_ast_with_register(struct ASTNode *node) {
   case AST_DIVIDE:
     return register_divide(left_register, right_register);
   case AST_INTEGER_LITERAL:
-    return register_load_interger_literal(node->interger_value);
+    return register_load_interger_literal(node->value.interger_value);
   default:
     fprintf(stderr, "Unknown AST operator %d\n", node->operation);
     exit(1);
