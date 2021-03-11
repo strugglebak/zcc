@@ -58,8 +58,6 @@ int convert_token_operation_2_ast_operation(int operation_in_token) {
       return AST_MULTIPLY;
     case TOKEN_DIVIDE:
       return AST_DIVIDE;
-    case TOKEN_IDENTIFIER:
-      return AST_IDENTIFIER;
     default:
       fprintf(stderr, "Unknown token in function convert_token_operation_2_ast_operation on line %d\n", line);
       exit(1);
