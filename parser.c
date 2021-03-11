@@ -5,6 +5,8 @@
 #include "data.h"
 #include "ast.h"
 #include "scan.h"
+#include "helper.h"
+#include "symbol_table.h"
 
 // + - * / EOF INTEGER_LITERAL
 static int operation_precedence_array[] = {10, 10, 20, 20, 0, 0};
@@ -22,17 +24,27 @@ static int operation_precedence(int operation_in_token) {
 // 逐个字的读取文件，并将文件中读取到的数字字符构建成一颗树
 static struct ASTNode *create_ast_node_from_expression() {
   struct ASTNode *node;
+  int symbol_table_index;
 
   switch (token_from_file.token) {
   case TOKEN_INTEGER_LITERAL:
     node = create_ast_leaf(AST_INTEGER_LITERAL, token_from_file.integer_value);
-    // 扫描下一个，继续判断
-    scan(&token_from_file);
-    return node;
+    break;
+  case TOKEN_IDENTIFIER:
+    // 检查标识符是否存在
+    if ((symbol_table_index = find_global_symbol_table_index(text_buffer)) == -1) {
+      error_with_message("Unknown variable", text_buffer);
+    }
+    node = create_ast_leaf(AST_IDENTIFIER, symbol_table_index);
+    break;
   default:
-    fprintf(stderr, "Syntax error on line %d\n", line);
-    exit(1);
+    error_with_digital("Syntax error on line", line);
   }
+
+  // 扫描下一个，继续判断
+  scan(&token_from_file);
+
+  return node;
 }
 
 // 将 token 中的 + - * / 转换成 ast 中的类型
