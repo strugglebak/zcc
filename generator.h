@@ -1,7 +1,7 @@
 #ifndef __GENERATOR_H__
 #define __GENERATOR_H__
 
-int interpret_ast_with_register(struct ASTNode *node);
+int interpret_ast_with_register(struct ASTNode *node, int register_index);
 void generate_code(struct ASTNode *node);
 void generate_preamble_code();
 void generate_postamble_code();

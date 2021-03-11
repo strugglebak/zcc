@@ -6,6 +6,7 @@
     "data.h": "c",
     "generator.h": "c",
     "stdio.h": "c",
-    "statement.h": "c"
+    "statement.h": "c",
+    "generator_core.h": "c"
   }
 }

@@ -135,7 +135,7 @@ int register_divide(int left_register, int right_register) {
   fprintf(output_file, "\tidivq\t%s\n", register_list[right_register]);
   fprintf(output_file, "\tmovq\t%%rax, %s\n", register_list[left_register]);
   clear_register(right_register);
-  return(left_register);
+  return left_register;
 }
 
 /**
@@ -148,11 +148,20 @@ void register_print(int register_index) {
 }
 
 /**
+ * 将一个变量的值保存到寄存器中
+*/
+int register_load_value_from_variable(char *identifier) {
+  int register_index = allocate_register();
+  fprintf(output_file, "\tmovq\t%s(\%%rip), %s\n", identifier, register_list[register_index]);
+  return register_index;
+}
+
+/**
  * 将寄存器中的值保存到一个变量中
 */
-void register_store_value_2_variable(int register_index, char *identifier) {
+int register_store_value_2_variable(int register_index, char *identifier) {
   fprintf(output_file, "\tmovq\t%s, %s(\%%rip)\n", register_list[register_index], identifier);
-  return (register_index);
+  return register_index;
 }
 
 /**

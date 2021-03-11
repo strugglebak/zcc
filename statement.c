@@ -15,7 +15,7 @@ void parse_print_statement() {
 
   // 解析带 print 的 statement，并创建汇编代码
   tree = converse_token_2_ast(0);
-  register_index = interpret_ast_with_register(tree);
+  register_index = interpret_ast_with_register(tree, -1);
 
   generate_printable_code(register_index);
   generate_clearable_registers();
@@ -41,21 +41,21 @@ void parse_var_declaration_statement() {
 
 void parse_assignment_statement() {
   struct ASTNode *tree, *left, *right;
-  int id;
+  int symbol_table_index;
 
   // 先解析是不是一个标识符
   verify_identifier();
 
   // 找下这个标识符有没有重复定义过
   // 如果没被定义就用了，抛出异常
-  if (id = find_global_symbol_table_index(text_buffer) == -1) {
+  if (symbol_table_index = find_global_symbol_table_index(text_buffer) == -1) {
     error_with_message("Undeclared variable", text_buffer);
   }
 
   // 创建右节点
   // 这里将左值塞到右节点的目的是在将值保存到变量之前，优先计算 statement 的值
   // 注意我们这里的左节点的操作优先级高于右节点
-  right = create_ast_leaf(AST_LVALUE_IDENTIFIER, id);
+  right = create_ast_leaf(AST_LVALUE_IDENTIFIER, symbol_table_index);
 
   // 解析 statement 中是否有 = 号
   verify_token_and_fetch_next_token(TOKEN_EQUALS, "=");
@@ -67,7 +67,7 @@ void parse_assignment_statement() {
   tree = create_ast_node(AST_ASSIGNMENT_STATEMENT, left, right, 0);
 
   // 生成对应汇编代码
-  interpret_ast_with_register(tree);
+  interpret_ast_with_register(tree, -1);
   generate_clearable_registers();
 
   // 最后解析是否带分号

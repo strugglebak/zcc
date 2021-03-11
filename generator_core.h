@@ -15,7 +15,8 @@ int register_divide(int left_register, int right_register);
 
 void register_print(int register_index);
 
-void register_store_value_2_variable(int register_index, char *identifier);
+int register_load_value_from_variable(char *identifier);
+int register_store_value_2_variable(int register_index, char *identifier);
 void register_generate_global_symbol(char *symbol_string);
 
 #endif

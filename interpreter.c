@@ -46,7 +46,7 @@ int interpret_ast(struct ASTNode *node) {
   case AST_DIVIDE:
     return left_value / right_value;
   case AST_INTEGER_LITERAL:
-    return node->interger_value;
+    return node->value.interger_value;
   default:
     fprintf(stderr, "Unknown AST operator %d\n", node->operation);
     exit(1);

@@ -20,7 +20,7 @@ struct ASTNode *create_ast_node(
   node->operation = operation;
   node->left = left;
   node->right = right;
-  node->interger_value = interger_value;
+  node->value.interger_value = interger_value;
 
   return node;
 }
