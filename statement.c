@@ -48,7 +48,7 @@ void parse_assignment_statement() {
 
   // 找下这个标识符有没有重复定义过
   // 如果没被定义就用了，抛出异常
-  if (symbol_table_index = find_global_symbol_table_index(text_buffer) == -1) {
+  if ((symbol_table_index = find_global_symbol_table_index(text_buffer)) == -1) {
     error_with_message("Undeclared variable", text_buffer);
   }
 
