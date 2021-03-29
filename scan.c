@@ -163,8 +163,7 @@ int scan(struct Token *t) {
         }
         // 如果都不是关键字，则只能说明是个标识符
         t->token = TOKEN_IDENTIFIER;
-        printf("Unrecognised symbol %c on line %d\n", c, line);
-        exit(1);
+        break;
       }
       printf("Unrecognised character %c on line %d\n", c, line);
       exit(1);
