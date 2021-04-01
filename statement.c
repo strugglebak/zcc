@@ -97,11 +97,11 @@ void parse_statements() {
       case TOKEN_INT:
         parse_var_declaration_statement();
         break;
-      case TOKEN_EQUALS:
+      case TOKEN_IDENTIFIER:
         parse_assignment_statement();
         break;
       case TOKEN_EOF:
-        break;
+        return;
       default:
         error_with_digital("Syntax error, token", token_from_file.token);
     }

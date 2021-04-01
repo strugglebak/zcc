@@ -35,7 +35,7 @@ int find_global_symbol_table_index(char *symbol_string) {
 */
 int add_global_symbol(char *symbol_string) {
   int index = 0;
-  if ((index = find_global_symbol_table_index(symbol_string)) != 1) {
+  if ((index = find_global_symbol_table_index(symbol_string)) != -1) {
     return index;
   }
 
