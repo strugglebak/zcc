@@ -1,10 +1,11 @@
-parser: parser.c interpreter.c main.c scan.c ast.c generator.c generator_core.c statement.c helper.c symbol_table.c
-	cc -o parser -g parser.c interpreter.c main.c scan.c ast.c generator.c generator_core.c statement.c helper.c symbol_table.c
+SRCS= parser.c interpreter.c main.c scan.c ast.c generator.c generator_core.c statement.c helper.c symbol_table.c
+parser: $(SRCS)
+	cc -o parser -g $(SRCS)
 
 clean:
 	rm -f parser *.o *.s out
 
-test: parser
+test: parser ./test/input02
 		# ./parser ./test/input01
 	  # cc -o out out.s
 		# ./out
