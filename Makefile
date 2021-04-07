@@ -5,23 +5,23 @@ parser: $(SRCS)
 clean:
 	rm -f parser *.o *.s out
 
-test: parser ./test/input02
-		# ./parser ./test/input01
-	  # cc -o out out.s
-		# ./out
+test: parser ./test/*
+		./parser ./test/input01
+	  cc -o out out.s
+		./out
 
 		./parser ./test/input02
 	  cc -o out out.s
 		./out
 
-		# ./parser ./test/input03
-	  # cc -o out out.s
-		# ./out
+		./parser ./test/input03
+	  cc -o out out.s
+		./out
 
-		# ./parser ./test/input04
-	  # cc -o out out.s
-		# ./out
+		./parser ./test/input04
+	  cc -o out out.s
+		./out
 
-		# ./parser ./test/input05
-	  # cc -o out out.s
-		# ./out
+		./parser ./test/input05
+	  cc -o out out.s
+		./out
