@@ -4,6 +4,17 @@
 #include "data.h"
 #include "definations.h"
 
+
+#ifdef _linux
+  #define CALL_PRINTF "\tcall	printf\n"
+  #define GLOBAL_MAIN "\t.globl\tmain\n"
+  #define MAIN "main:\n"
+#else
+  #define CALL_PRINTF "\tcall	_printf\n"
+  #define GLOBAL_MAIN "\t.globl\t_main\n"
+  #define MAIN "_main:\n"
+#endif
+
 static int free_registers[4] = { 1 };
 static char *register_list[4] = { "%r8", "%r9", "%r10", "%r11" };
 
@@ -59,17 +70,17 @@ void register_preamble() {
     // MacOS & iOS 不用 PLT
     // https://stackoverflow.com/questions/59817831/unsupported-symbol-modifier-in-branch-relocation-call-printfplt
     // "\tcall	_printf@PLT\n"
-    "\tcall	printf\n"
+    CALL_PRINTF
     "\tnop\n"
     "\tleave\n"
     "\tret\n"
     "\n"
-    "\t.globl\tmain\n"
+    GLOBAL_MAIN
     // 如果是要编译成 Mach-O x86-64 的汇编，则不需要下面的这个指令，因为这个指令为一个调试用的指令，通常用来调用桢信息的
     // 详情见
     // https://stackoverflow.com/questions/19720084/what-is-the-difference-between-assembly-on-mac-and-assembly-on-linux/19725269#19725269
     // "\t.type\tmain, @function\n"
-    "main:\n"
+    MAIN
     "\tpushq\t%rbp\n"
     "\tmovq	%rsp, %rbp\n",
     output_file
