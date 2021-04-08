@@ -19,4 +19,11 @@ int register_load_value_from_variable(char *identifier);
 int register_store_value_2_variable(int register_index, char *identifier);
 void register_generate_global_symbol(char *symbol_string);
 
+int register_compare_equal(int register_left, int register_right);
+int register_compare_not_equal(int register_left, int register_right);
+int register_compare_less_than(int register_left, int register_right);
+int register_compare_greater_than(int register_left, int register_right);
+int register_compare_less_equal(int register_left, int register_right);
+int register_compare_greater_equal(int register_left, int register_right);
+
 #endif

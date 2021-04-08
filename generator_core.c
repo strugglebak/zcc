@@ -17,6 +17,8 @@
 
 static int free_registers[4] = { 1 };
 static char *register_list[4] = { "%r8", "%r9", "%r10", "%r11" };
+static char *lower_8_bits_register_list[4] = { "%r8b", "%r9b", "%r10b", "%r11b" };
+
 
 void clear_all_registers() {
   free_registers[0] = free_registers[1] = free_registers[2] = free_registers[3] = 1;
@@ -47,6 +49,18 @@ static void clear_register(int index) {
     exit(1);
   }
   free_registers[index] = 1;
+}
+
+/**
+ * 比较两个寄存器值的大小
+ * 使用 cmpq 比较了大小之后，需要将一个 8 位的寄存器置位
+*/
+static int compare_register(int left_register, int right_register, char *set_instruction) {
+  fprintf(output_file, "\tcmpq\t%s, %s\n", register_list[right_register], register_list[left_register]);
+  fprintf(output_file, "\t%s\t%s\n", set_instruction, lower_8_bits_register_list[right_register]);
+  fprintf(output_file, "\tandq\t$255,%s\n", register_list[right_register]);
+  clear_register(left_register);
+  return right_register;
 }
 
 /**
@@ -180,4 +194,46 @@ int register_store_value_2_variable(int register_index, char *identifier) {
 */
 void register_generate_global_symbol(char *symbol_string) {
   fprintf(output_file, "\t.comm\t%s,8,8\n", symbol_string);
+}
+
+/**
+ * 比较 =
+*/
+int register_compare_equal(int register_left, int register_right) {
+  return compare_register(register_left, register_right, "sete");
+}
+
+/**
+ * 比较 !=
+*/
+int register_compare_not_equal(int register_left, int register_right) {
+  return compare_register(register_left, register_right, "setne");
+}
+
+/**
+ * 比较 <
+*/
+int register_compare_less_than(int register_left, int register_right) {
+  return compare_register(register_left, register_right, "setl");
+}
+
+/**
+ * 比较 >
+*/
+int register_compare_greater_than(int register_left, int register_right) {
+  return compare_register(register_left, register_right, "setg");
+}
+
+/**
+ * 比较 <=
+*/
+int register_compare_less_equal(int register_left, int register_right) {
+  return compare_register(register_left, register_right, "setle");
+}
+
+/**
+ * 比较 >=
+*/
+int register_compare_greater_equal(int register_left, int register_right) {
+  return compare_register(register_left, register_right, "setge");
 }
