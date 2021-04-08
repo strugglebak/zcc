@@ -28,6 +28,18 @@ int interpret_ast_with_register(struct ASTNode *node, int register_index) {
     return register_multiply(left_register, right_register);
   case AST_DIVIDE:
     return register_divide(left_register, right_register);
+  case AST_COMPARE_EQUALS:
+    return register_compare_equal(left_register, right_register);
+  case AST_COMPARE_NOT_EQUALS:
+    return register_compare_not_equal(left_register, right_register);
+  case AST_COMPARE_LESS_THAN:
+    return register_compare_less_than(left_register, right_register);
+  case AST_COMPARE_GREATER_THAN:
+    return register_compare_greater_than(left_register, right_register);
+  case AST_COMPARE_LESS_EQUALS:
+    return register_compare_less_equal(left_register, right_register);
+  case AST_COMPARE_GREATER_EQUALS:
+    return register_compare_greater_equal(left_register, right_register);
   case AST_INTEGER_LITERAL:
     return register_load_interger_literal(node->value.interger_value);
   case AST_IDENTIFIER:
