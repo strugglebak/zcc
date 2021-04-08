@@ -11,6 +11,10 @@ clean:
 	rm -f parser parser2 *.o *.s out
 
 test: parser ./test/*
+		./parser ./test/input00
+	  cc -o out out.s
+		./out
+
 		./parser ./test/input01
 	  cc -o out out.s
 		./out
@@ -32,6 +36,10 @@ test: parser ./test/*
 		./out
 
 test2: parser2 ./test/*
+		./parser2 ./test/input00
+	  cc -o out out.s
+		./out
+
 		./parser2 ./test/input01
 	  cc -o out out.s
 		./out
