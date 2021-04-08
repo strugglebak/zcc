@@ -8,8 +8,13 @@
 #include "helper.h"
 #include "symbol_table.h"
 
-// + - * / EOF INTEGER_LITERAL
-static int operation_precedence_array[] = {10, 10, 20, 20, 0, 0};
+static int operation_precedence_array[] = {
+  0, // TOKEN_EOF
+  10, 10, // + -
+  20, 20, // * /
+  30, 30, // == !=
+  40, 40, 40, 40 // < > <= >=
+};
 
 // 确定操作符的优先级
 static int operation_precedence(int operation_in_token) {
@@ -47,21 +52,12 @@ static struct ASTNode *create_ast_node_from_expression() {
   return node;
 }
 
-// 将 token 中的 + - * / 转换成 ast 中的类型
+// 将 token 中的 + - * / 等转换成 ast 中的类型
 int convert_token_operation_2_ast_operation(int operation_in_token) {
-  switch (operation_in_token) {
-    case TOKEN_PLUS:
-      return AST_PLUS;
-    case TOKEN_MINUS:
-      return AST_MINUS;
-    case TOKEN_MULTIPLY:
-      return AST_MULTIPLY;
-    case TOKEN_DIVIDE:
-      return AST_DIVIDE;
-    default:
-      fprintf(stderr, "Unknown token in function convert_token_operation_2_ast_operation on line %d\n", line);
-      exit(1);
+  if (operation_in_token > TOKEN_EOF && operation_in_token < TOKEN_INTEGER_LITERAL) {
+    return operation_in_token;
   }
+  error_with_digital("Syntax error, token", operation_in_token);
 }
 
 /**

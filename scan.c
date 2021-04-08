@@ -5,6 +5,7 @@
 #include "data.h"
 #include "definations.h"
 #include "scan.h"
+#include "helper.h"
 
 // 从文件中读取下一个字符
 static int next(void) {
@@ -144,7 +145,35 @@ int scan(struct Token *t) {
       t->token = TOKEN_SEMICOLON;
       break;
     case '=':
-      t->token = TOKEN_EQUALS;
+      if ((c = next()) == '=') {
+        t->token = TOKEN_COMPARE_EQUALS;
+      } else {
+        put_back(c);
+        t->token = TOKEN_EQUALS;
+      }
+      break;
+    case '!':
+      if ((c = next()) == '=') {
+        t->token = TOKEN_COMPARE_NOT_EQUALS;
+      } else {
+        error_with_character("Unrecognised character", c);
+      }
+      break;
+    case '<':
+      if ((c = next()) == '=') {
+        t->token = TOKEN_COMPARE_LESS_EQUALS;
+      } else {
+        put_back(c);
+        t->token = TOKEN_COMPARE_LESS_THAN;
+      }
+      break;
+    case '>':
+      if ((c = next()) == '=') {
+        t->token = TOKEN_COMPARE_GREATER_EQUALS;
+      } else {
+        put_back(c);
+        t->token = TOKEN_COMPARE_GREATER_THAN;
+      }
       break;
     default:
       if (isdigit(c)) {
