@@ -105,14 +105,14 @@ static int scan_identifier(int c, char *buffer, int limit_length) {
 static int get_keyword(char *s) {
   switch (*s) {
     case 'p':
-      if (!strcmp(s, "print")) {
-        return TOKEN_PRINT;
-      }
+      if (!strcmp(s, "print")) return TOKEN_PRINT;
       break;
     case 'i':
-      if (!strcmp(s, "int")) {
-        return TOKEN_INT;
-      }
+      if (!strcmp(s, "if")) return TOKEN_IF;
+      else if (!strcmp(s, "int")) return TOKEN_INT;
+      break;
+    case 'e':
+      if (!strcmp(s, "else")) return TOKEN_ELSE;
       break;
   }
   return 0;

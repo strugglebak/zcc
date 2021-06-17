@@ -43,6 +43,14 @@ enum {
 
   TOKEN_PRINT, // 关键字 print
   TOKEN_INT, // 关键字 int
+
+  TOKEN_LEFT_BRACE, // {
+  TOKEN_RIGHT_BRACE, // }
+  TOKEN_LEFT_PAREN, // (
+  TOKEN_RIGHT_PAREN, // )
+
+  TOKEN_IF, // if
+  TOKEN_ELSE // else
 };
 
 // AST 节点类型
