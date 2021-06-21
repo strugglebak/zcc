@@ -13,6 +13,7 @@
 #include "interpreter.h"
 #include "generator.h"
 #include "statement.h"
+#include "helper.h"
 
 // 声明 token 字符串数组
 const char *token_string[] = { "+", "-", "*", "/", "integer_literal" };

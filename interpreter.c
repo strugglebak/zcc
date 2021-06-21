@@ -4,6 +4,8 @@
 #include "definations.h"
 #include "data.h"
 #include "ast.h"
+#include "helper.h"
+
 /**
  * 由于 converse_token_2_ast 得到的树结构对于要遍历它进行运算来说是没有优先级的，所以这里
  * 需要对这个构建好的树进行解释，然后得到一个准确的运算结果
@@ -48,7 +50,6 @@ int interpret_ast(struct ASTNode *node) {
   case AST_INTEGER_LITERAL:
     return node->value.interger_value;
   default:
-    fprintf(stderr, "Unknown AST operator %d\n", node->operation);
-    exit(1);
+    error_with_digital("Unknown AST operator", node->operation);
   }
 }

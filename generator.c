@@ -4,6 +4,7 @@
 #include "data.h"
 #include "ast.h"
 #include "generator_core.h"
+#include "helper.h"
 
 /**
  * 这里主要将 ast 中的代码取出来，然后用汇编的方式进行值的加减乘除
@@ -50,8 +51,7 @@ int interpret_ast_with_register(struct ASTNode *node, int register_index) {
     // 这里所有的生成汇编代码的工作已经结束，返回结果就好
     return right_register;
   default:
-    fprintf(stderr, "Unknown AST operator %d\n", node->operation);
-    exit(1);
+    error_with_digital("Unknown AST operator", node->operation);
   }
 }
 

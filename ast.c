@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include "definations.h"
+#include "helper.h"
 
 struct ASTNode *create_ast_node(
   int operation,
@@ -13,8 +14,7 @@ struct ASTNode *create_ast_node(
 
   node = (struct ASTNode *)malloc(sizeof(struct ASTNode));
   if (NULL == node) {
-    fprintf(stderr, "Unable to malloc in function make_ast_node\n");
-    exit(1);
+    error("Unable to malloc in function make_ast_node");
   }
 
   node->operation = operation;

@@ -85,8 +85,7 @@ static int scan_identifier(int c, char *buffer, int limit_length) {
   // 如果是 字母 | 数字 | _
   while(isalpha(c) || isdigit(c) || '_' == c) {
     if (length >= limit_length - 1) {
-      printf("identifier too long on line %d\n", line);
-      exit(1);
+      error("identifier too long on line");
     }
     buffer[length ++] = c;
     c = next();
@@ -194,7 +193,7 @@ int scan(struct Token *t) {
         t->token = TOKEN_IDENTIFIER;
         break;
       }
-      printf("Unrecognised character %c on line %d\n", c, line);
+      error_with_character("Unrecognised character", c);
       exit(1);
   }
 
