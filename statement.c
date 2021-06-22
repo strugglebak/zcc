@@ -7,7 +7,7 @@
 #include "symbol_table.h"
 #include "ast.h"
 
-void parse_print_statement() {
+struct ASTNode *parse_print_statement() {
   struct ASTNode *tree;
   int register_index = 0;
 
@@ -22,6 +22,8 @@ void parse_print_statement() {
 
   // 解析是否带了分号
   verify_semicolon();
+
+  return tree;
 }
 
 void parse_var_declaration_statement() {
@@ -39,7 +41,7 @@ void parse_var_declaration_statement() {
   verify_semicolon();
 }
 
-void parse_assignment_statement() {
+ struct ASTNode *parse_assignment_statement() {
   struct ASTNode *tree, *left, *right;
   int symbol_table_index;
 
@@ -64,7 +66,7 @@ void parse_assignment_statement() {
   left = converse_token_2_ast(0);
 
   // 根据左右节点创建一颗有关 statement 的 ast 树
-  tree = create_ast_node(AST_ASSIGNMENT_STATEMENT, left, right, 0);
+  tree = create_ast_node(AST_ASSIGNMENT_STATEMENT, left, NULL, right, 0);
 
   // 生成对应汇编代码
   interpret_ast_with_register(tree, -1);
@@ -72,38 +74,79 @@ void parse_assignment_statement() {
 
   // 最后解析是否带分号
   verify_semicolon();
+
+  return tree;
 }
 
 /**
  * 语句(statement) 的 BNF 为
+ * compound_statement: '{' '}'
+ *      |      '{' statement '}'
+ *      |      '{' statement statements '}'
+ *      ;
+ *
  * statements: statement
  *      |      statement statements
  *      ;
  *
- * statement: 'print' expression ';'
- *      |     'int'   identifier ';'
- *      |     identifier '=' expression ';'
+ * statement: print_statement
+ *      |     declaration_statement
+ *      |     assignment_statement
+ *      |     if_statement
+ *      ;
+ *
+ * print_statement: 'print' expression ';'
+ *      ;
+ * declaration_statement: 'int' identifier ';'
+ *      ;
+ * assignment_statement: identifier '=' expression ';'
+ *      ;
+ * if_statement: if_head
+ *      |        if_head 'else' compound_statement
+ *      ;
+ *
+ * if_head: 'if' '(' true_or_false_expression ')' compound_statement
  *      ;
  *
  * identifier: TOKEN_IDENTIFIER
  *      ;
 */
-void parse_statements() {
+void parse_compound_statement() {
+  struct ASTNode *left = NULL;
+  struct ASTNode *tree;
+
+  // 先解析左 {
+  parse_left_brace();
+
   while (1) {
     switch(token_from_file.token) {
       case TOKEN_PRINT:
-        parse_print_statement();
+        tree = parse_print_statement();
         break;
       case TOKEN_INT:
         parse_var_declaration_statement();
+        tree = NULL;
         break;
       case TOKEN_IDENTIFIER:
-        parse_assignment_statement();
+        tree = parse_assignment_statement();
         break;
+      case TOKEN_IF:
+        tree = parse_if_statement();
+        break;
+      case TOKEN_RIGHT_BRACE:
+        // 解析右 }
+        parse_right_brace();
+        return left;
       case TOKEN_EOF:
         return;
       default:
         error_with_digital("Syntax error, token", token_from_file.token);
     }
+
+    // 如果 tree 不为空，则更新对应的 left
+    if (!tree) continue;
+    left = left
+      ? create_ast_node(AST_GLUE, left, NULL, tree, 0)
+      : tree;
   }
 }

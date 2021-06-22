@@ -10,6 +10,7 @@ struct ASTNode {
   // 操作符  + - * /
   int operation;
   struct ASTNode *left;
+  struct ASTNode *root;
   struct ASTNode *right;
   union {
     int interger_value;
@@ -69,6 +70,8 @@ enum {
 
   AST_LVALUE_IDENTIFIER, // 左值
   AST_ASSIGNMENT_STATEMENT, // 赋值语句
+
+  AST_GLUE
 };
 
 #endif

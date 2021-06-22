@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
   // 生成汇编代码
   // 这里主要是测试有 print 的语句的情况
   generate_preamble_code();
-  parse_statements();
+  parse_compound_statement();
   generate_postamble_code();
 
   // 关闭文件

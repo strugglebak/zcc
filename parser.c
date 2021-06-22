@@ -95,7 +95,7 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
     // 将 Token 操作符类型转换成 AST 操作符类型
     node_operaion_type = convert_token_operation_2_ast_operation(node_operaion_type);
     // 开始构建左子树
-    left = create_ast_node(node_operaion_type, left, right, 0);
+    left = create_ast_node(node_operaion_type, left, NULL, right, 0);
 
     node_operaion_type = token_from_file.token;
     if (TOKEN_SEMICOLON == node_operaion_type || TOKEN_EOF == node_operaion_type) break;
