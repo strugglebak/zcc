@@ -6,6 +6,7 @@
 #include "helper.h"
 #include "symbol_table.h"
 #include "ast.h"
+#include "scan.h"
 
 struct ASTNode *parse_print_statement() {
   struct ASTNode *tree;
@@ -78,6 +79,33 @@ void parse_var_declaration_statement() {
   return tree;
 }
 
+struct ASTNode *parse_if_statement() {
+  struct ASTNode *conditionNode, *trueNode, *falseNode = NULL;
+
+  // 解析 statement 中是否有 if(
+  verify_if();
+  parse_left_brace();
+
+  conditionNode = converse_token_2_ast(0);
+
+  // 确保条件语句中出现的是正确的符号
+  if (conditionNode->operation < AST_COMPARE_EQUALS || conditionNode->operation > AST_COMPARE_GREATER_EQUALS) {
+    error('Bad comparison operator');
+  }
+  parse_right_brace();
+
+  // 为复合语句创建 ast
+  trueNode = parse_compound_statement();
+
+  // 如果解析到下一步发现有 else，直接跳过，并同时为复合语句创建 ast
+  if (token_from_file.token == TOKEN_ELSE) {
+    scan(&token_from_file);
+    falseNode = parse_compound_statement();
+  }
+
+  return create_ast_node(AST_IF, conditionNode, trueNode, falseNode, 0);
+}
+
 /**
  * 语句(statement) 的 BNF 为
  * compound_statement: '{' '}'
@@ -111,7 +139,7 @@ void parse_var_declaration_statement() {
  * identifier: TOKEN_IDENTIFIER
  *      ;
 */
-void parse_compound_statement() {
+struct ASTNode *parse_compound_statement() {
   struct ASTNode *left = NULL;
   struct ASTNode *tree;
 

@@ -4,6 +4,7 @@
 void verify_token_and_fetch_next_token(int token, char *wanted_identifier);
 void verify_semicolon();
 void verify_identifier();
+void verify_if();
 
 void error(char *string);
 void error_with_message(char *string, char *message);

@@ -71,7 +71,9 @@ enum {
   AST_LVALUE_IDENTIFIER, // 左值
   AST_ASSIGNMENT_STATEMENT, // 赋值语句
 
-  AST_GLUE
+  AST_GLUE,
+  AST_IF,
+  AST_ELSE
 };
 
 #endif

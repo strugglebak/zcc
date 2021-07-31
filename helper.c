@@ -25,6 +25,10 @@ void verify_identifier() {
   verify_token_and_fetch_next_token(TOKEN_IDENTIFIER, "identifier");
 }
 
+void verify_if() {
+  verify_token_and_fetch_next_token(TOKEN_IF, "if");
+}
+
 void error(char *string) {
   fprintf(stderr, "%s on line %d\n", string, line);
   exit(1);
