@@ -80,30 +80,30 @@ void parse_var_declaration_statement() {
 }
 
 struct ASTNode *parse_if_statement() {
-  struct ASTNode *conditionNode, *trueNode, *falseNode = NULL;
+  struct ASTNode *condition_node, *true_node, *false_node = NULL;
 
   // 解析 statement 中是否有 if(
   verify_if();
   parse_left_brace();
 
-  conditionNode = converse_token_2_ast(0);
+  condition_node = converse_token_2_ast(0);
 
   // 确保条件语句中出现的是正确的符号
-  if (conditionNode->operation < AST_COMPARE_EQUALS || conditionNode->operation > AST_COMPARE_GREATER_EQUALS) {
+  if (condition_node->operation < AST_COMPARE_EQUALS || condition_node->operation > AST_COMPARE_GREATER_EQUALS) {
     error('Bad comparison operator');
   }
   parse_right_brace();
 
   // 为复合语句创建 ast
-  trueNode = parse_compound_statement();
+  true_node = parse_compound_statement();
 
   // 如果解析到下一步发现有 else，直接跳过，并同时为复合语句创建 ast
   if (token_from_file.token == TOKEN_ELSE) {
     scan(&token_from_file);
-    falseNode = parse_compound_statement();
+    false_node = parse_compound_statement();
   }
 
-  return create_ast_node(AST_IF, conditionNode, trueNode, falseNode, 0);
+  return create_ast_node(AST_IF, condition_node, true_node, false_node, 0);
 }
 
 /**
@@ -173,6 +173,14 @@ struct ASTNode *parse_compound_statement() {
 
     // 如果 tree 不为空，则更新对应的 left
     if (!tree) continue;
+      // 变成如下的形式
+      //            A_GLUE
+      //         /  \
+      //     A_GLUE stmt4
+      //       /  \
+      //   A_GLUE stmt3
+      //     /  \
+      // stmt1  stmt2
     left = left
       ? create_ast_node(AST_GLUE, left, NULL, tree, 0)
       : tree;
