@@ -174,7 +174,7 @@ struct ASTNode *parse_compound_statement() {
     // 如果 tree 不为空，则更新对应的 left
     if (!tree) continue;
       // 变成如下的形式
-      //            A_GLUE
+      //          A_GLUE
       //         /  \
       //     A_GLUE stmt4
       //       /  \

@@ -7,7 +7,7 @@
 struct ASTNode *create_ast_node(
   int operation,
   struct ASTNode *left,
-  struct ASTNode *root,
+  struct ASTNode *middle,
   struct ASTNode *right,
   int interger_value
 ) {
@@ -20,7 +20,7 @@ struct ASTNode *create_ast_node(
 
   node->operation = operation;
   node->left = left;
-  node->root = root;
+  node->middle = middle;
   node->right = right;
   node->value.interger_value = interger_value;
 

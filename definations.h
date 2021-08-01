@@ -10,7 +10,7 @@ struct ASTNode {
   // 操作符  + - * /
   int operation;
   struct ASTNode *left;
-  struct ASTNode *root;
+  struct ASTNode *middle;
   struct ASTNode *right;
   union {
     int interger_value;
@@ -71,9 +71,14 @@ enum {
   AST_LVALUE_IDENTIFIER, // 左值
   AST_ASSIGNMENT_STATEMENT, // 赋值语句
 
+  AST_PRINT,
   AST_GLUE,
   AST_IF,
   AST_ELSE
 };
+
+// 如果在 generator.c 中的 interpret_ast_with_register
+// 函数没有 register id 返回了，就用这个标志位
+#define NO_REGISTER -1
 
 #endif

@@ -3,6 +3,7 @@
 #include <errno.h>
 #include "data.h"
 #include "definations.h"
+#include "helper.h"
 
 
 #ifdef _linux
@@ -19,6 +20,10 @@ static int free_registers[4] = { 1 };
 static char *register_list[4] = { "%r8", "%r9", "%r10", "%r11" };
 static char *lower_8_bits_register_list[4] = { "%r8b", "%r9b", "%r10b", "%r11b" };
 
+static char *compare_list[] =
+  { "sete", "setne", "setl", "setg", "setle", "setge" };
+
+static char *inverted_compare_list[] = { "jne", "je", "jge", "jle", "jg", "jl" };
 
 void clear_all_registers() {
   free_registers[0] = free_registers[1] = free_registers[2] = free_registers[3] = 1;
@@ -197,43 +202,67 @@ void register_generate_global_symbol(char *symbol_string) {
 }
 
 /**
- * 比较 =
+ * 比较两寄存器，如果是 true 则进行 set
 */
-int register_compare_equal(int register_left, int register_right) {
-  return compare_register(register_left, register_right, "sete");
+int register_compare_and_set(
+  int ast_operation,
+  int register_left,
+  int register_right
+) {
+  if (ast_operation < AST_COMPARE_EQUALS
+    || ast_operation > AST_COMPARE_GREATER_EQUALS)
+    error("Bad ast operaion in register_compare_and_set function");
+
+  fprintf(output_file, "\tcmpq\t%s, %s\n",
+    register_list[register_right],
+    register_list[register_left]);
+
+  fprintf(output_file, "\t%s\t%s\n",
+    compare_list[ast_operation - AST_COMPARE_EQUALS],
+    lower_8_bits_register_list[register_right]);
+
+  fprintf(output_file, "\tmovzbq\t%s, %s\n",
+    lower_8_bits_register_list[register_right],
+    register_list[register_right]);
+
+  clear_register(register_left);
+  return register_right;
 }
 
 /**
- * 比较 !=
+ * 比较俩寄存器，如果是 false 则进行 jmp
 */
-int register_compare_not_equal(int register_left, int register_right) {
-  return compare_register(register_left, register_right, "setne");
+int register_compare_and_jump(
+  int ast_operation,
+  int register_left,
+  int register_right,
+  int label
+) {
+  if (ast_operation < AST_COMPARE_EQUALS
+    || ast_operation > AST_COMPARE_GREATER_EQUALS)
+    error("Bad ast operaion in register_compare_and_jump function");
+
+  fprintf(output_file, "\tcmpq\t%s, %s\n",
+    register_list[register_right],
+    register_list[register_left]);
+  fprintf(output_file, "\t%s\tL%d\n",
+    inverted_compare_list[ast_operation - AST_COMPARE_EQUALS],
+    label);
+
+  clear_all_registers();
+  return NO_REGISTER;
 }
 
 /**
- * 比较 <
+ * 创建 label
 */
-int register_compare_less_than(int register_left, int register_right) {
-  return compare_register(register_left, register_right, "setl");
+void register_label(int label) {
+  fprintf(output_file, "L%d:\n", label);
 }
 
 /**
- * 比较 >
+ * 创建一个跳到 label 的 jmp
 */
-int register_compare_greater_than(int register_left, int register_right) {
-  return compare_register(register_left, register_right, "setg");
-}
-
-/**
- * 比较 <=
-*/
-int register_compare_less_equal(int register_left, int register_right) {
-  return compare_register(register_left, register_right, "setle");
-}
-
-/**
- * 比较 >=
-*/
-int register_compare_greater_equal(int register_left, int register_right) {
-  return compare_register(register_left, register_right, "setge");
+void register_jump(int label) {
+  fprintf(output_file, "\tjmp\tL%d\n", label);
 }
