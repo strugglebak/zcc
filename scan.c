@@ -156,7 +156,6 @@ int scan(struct Token *t) {
       t->token = TOKEN_RIGHT_BRACE;
       break;
 
-
     case '=':
       if ((c = next()) == '=') {
         t->token = TOKEN_COMPARE_EQUALS;
