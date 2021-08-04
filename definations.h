@@ -38,17 +38,17 @@ enum {
   TOKEN_COMPARE_GREATER_EQUALS,
 
   TOKEN_INTEGER_LITERAL,
-  TOKEN_IDENTIFIER, // 标识符
   TOKEN_SEMICOLON,// 分号 ;
   TOKEN_EQUALS, // 等号 =
-
-  TOKEN_PRINT, // 关键字 print
-  TOKEN_INT, // 关键字 int
+  TOKEN_IDENTIFIER, // 标识符
 
   TOKEN_LEFT_BRACE, // {
   TOKEN_RIGHT_BRACE, // }
   TOKEN_LEFT_PAREN, // (
   TOKEN_RIGHT_PAREN, // )
+
+  TOKEN_PRINT, // 关键字 print
+  TOKEN_INT, // 关键字 int
 
   TOKEN_IF, // if
   TOKEN_ELSE // else
@@ -73,8 +73,7 @@ enum {
 
   AST_PRINT,
   AST_GLUE,
-  AST_IF,
-  AST_ELSE
+  AST_IF
 };
 
 // 如果在 generator.c 中的 interpret_ast_with_register

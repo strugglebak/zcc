@@ -143,6 +143,20 @@ int scan(struct Token *t) {
     case ';':
       t->token = TOKEN_SEMICOLON;
       break;
+    case '(':
+      t->token = TOKEN_LEFT_PAREN;
+      break;
+    case ')':
+      t->token = TOKEN_RIGHT_PAREN;
+      break;
+    case '{':
+      t->token = TOKEN_LEFT_BRACE;
+      break;
+    case '}':
+      t->token = TOKEN_RIGHT_BRACE;
+      break;
+
+
     case '=':
       if ((c = next()) == '=') {
         t->token = TOKEN_COMPARE_EQUALS;
