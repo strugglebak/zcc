@@ -3,6 +3,7 @@
 #include <errno.h>
 #include "data.h"
 #include "ast.h"
+#include "generator.h"
 #include "generator_core.h"
 #include "helper.h"
 
@@ -136,7 +137,7 @@ void generate_code(struct ASTNode *node) {
 
   // 增加汇编前置代码
   register_preamble();
-  register_index = interpret_ast_with_register(node, -1);
+  register_index = interpret_ast_with_register(node, NO_REGISTER, node->operation);
   register_print(register_index);
   // 增加汇编后置代码
   register_postamble();

@@ -29,6 +29,23 @@ void verify_if() {
   verify_token_and_fetch_next_token(TOKEN_IF, "if");
 }
 
+void verify_left_paren() {
+  verify_token_and_fetch_next_token(TOKEN_LEFT_PAREN, "(");
+}
+
+void verify_right_paren() {
+  verify_token_and_fetch_next_token(TOKEN_RIGHT_PAREN, ")");
+}
+
+void verify_left_brace() {
+  verify_token_and_fetch_next_token(TOKEN_LEFT_BRACE, "{");
+}
+
+void verify_right_brace() {
+  verify_token_and_fetch_next_token(TOKEN_RIGHT_BRACE, "}");
+}
+
+
 void error(char *string) {
   fprintf(stderr, "%s on line %d\n", string, line);
   exit(1);

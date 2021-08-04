@@ -1,3 +1,4 @@
+#include "statement.h"
 #include "parser.h"
 #include "definations.h"
 #include "generator.h"
@@ -16,7 +17,7 @@ struct ASTNode *parse_print_statement() {
 
   // 解析带 print 的 statement，并创建汇编代码
   tree = converse_token_2_ast(0);
-  register_index = interpret_ast_with_register(tree, -1);
+  register_index = interpret_ast_with_register(tree, NO_REGISTER, tree->operation);
 
   generate_printable_code(register_index);
   generate_clearable_registers();
@@ -70,7 +71,7 @@ void parse_var_declaration_statement() {
   tree = create_ast_node(AST_ASSIGNMENT_STATEMENT, left, NULL, right, 0);
 
   // 生成对应汇编代码
-  interpret_ast_with_register(tree, -1);
+  interpret_ast_with_register(tree, NO_REGISTER, tree->operation);
   generate_clearable_registers();
 
   // 最后解析是否带分号
@@ -84,15 +85,15 @@ struct ASTNode *parse_if_statement() {
 
   // 解析 statement 中是否有 if(
   verify_if();
-  parse_left_brace();
+  verify_left_paren();
 
   condition_node = converse_token_2_ast(0);
 
   // 确保条件语句中出现的是正确的符号
   if (condition_node->operation < AST_COMPARE_EQUALS || condition_node->operation > AST_COMPARE_GREATER_EQUALS) {
-    error('Bad comparison operator');
+    error("Bad comparison operator");
   }
-  parse_right_brace();
+  verify_right_paren();
 
   // 为复合语句创建 ast
   true_node = parse_compound_statement();
@@ -144,7 +145,7 @@ struct ASTNode *parse_compound_statement() {
   struct ASTNode *tree;
 
   // 先解析左 {
-  parse_left_brace();
+  verify_left_brace();
 
   while (1) {
     switch(token_from_file.token) {
@@ -163,10 +164,8 @@ struct ASTNode *parse_compound_statement() {
         break;
       case TOKEN_RIGHT_BRACE:
         // 解析右 }
-        parse_right_brace();
+        verify_right_brace();
         return left;
-      case TOKEN_EOF:
-        return;
       default:
         error_with_digital("Syntax error, token", token_from_file.token);
     }
