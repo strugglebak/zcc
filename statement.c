@@ -17,10 +17,7 @@ struct ASTNode *parse_print_statement() {
 
   // 解析带 print 的 statement，并创建汇编代码
   tree = converse_token_2_ast(0);
-  register_index = interpret_ast_with_register(tree, NO_REGISTER, tree->operation);
-
-  generate_printable_code(register_index);
-  generate_clearable_registers();
+  tree = create_ast_left_node(AST_PRINT, tree, 0);
 
   // 解析是否带了分号
   verify_semicolon();
@@ -70,10 +67,6 @@ void parse_var_declaration_statement() {
   // 根据左右节点创建一颗有关 statement 的 ast 树
   tree = create_ast_node(AST_ASSIGNMENT_STATEMENT, left, NULL, right, 0);
 
-  // 生成对应汇编代码
-  interpret_ast_with_register(tree, NO_REGISTER, tree->operation);
-  generate_clearable_registers();
-
   // 最后解析是否带分号
   verify_semicolon();
 
@@ -90,7 +83,8 @@ struct ASTNode *parse_if_statement() {
   condition_node = converse_token_2_ast(0);
 
   // 确保条件语句中出现的是正确的符号
-  if (condition_node->operation < AST_COMPARE_EQUALS || condition_node->operation > AST_COMPARE_GREATER_EQUALS) {
+  if (condition_node->operation < AST_COMPARE_EQUALS ||
+    condition_node->operation > AST_COMPARE_GREATER_EQUALS) {
     error("Bad comparison operator");
   }
   verify_right_paren();

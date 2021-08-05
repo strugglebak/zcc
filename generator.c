@@ -12,7 +12,7 @@
 // 比如 jmp L1, jmp L2 之类去执行
 static int label() {
   static int id = 1;
-  return ++id;
+  return id++;
 }
 
 static int interpret_if_ast_with_register(struct ASTNode *node) {
@@ -123,7 +123,7 @@ int interpret_ast_with_register(
 
     case AST_PRINT:
       // 打印左子树的值
-      register_print(register_index);
+      register_print(left_register);
       clear_all_registers();
       return NO_REGISTER;
 
