@@ -44,6 +44,46 @@ static int interpret_if_ast_with_register(struct ASTNode *node) {
 
   return NO_REGISTER;
 }
+
+/**
+ * 形成类似
+ * Lstart:
+ *         evaluate condition
+	         jump to Lend if condition false
+	         statements
+	         jump to Lstart
+   Lend:
+   这样的效果
+*/
+static int interpret_while_ast_with_register(struct ASTNode *node) {
+  int label_start, label_end;
+
+  label_start = label();
+  label_end = label();
+
+  // 先生成一个 Lstart
+  register_label(label_start);
+
+  // 解析 while 中的 condition 条件语句，并生成对应的汇编代码
+  // evaluate condition
+  // jump to Lend if condition false
+  interpret_ast_with_register(node->left, label_end, node->operation);
+  clear_all_registers();
+
+  // 解析 while 下面的复合语句
+  // statements
+  interpret_ast_with_register(node->right, NO_REGISTER, node->operation);
+  clear_all_registers();
+
+  // jump to Lstart
+  register_jump(label_start);
+
+  // 最后生成一个 Lend
+  register_label(label_end);
+
+  return NO_REGISTER;
+}
+
 /**
  * 这里主要将 ast 中的代码取出来，然后用汇编的方式进行值的加减乘除
  * 这里加减乘除后返回的是寄存器的标识
@@ -107,8 +147,11 @@ int interpret_ast_with_register(
     case AST_COMPARE_GREATER_THAN:
     case AST_COMPARE_LESS_EQUALS:
     case AST_COMPARE_GREATER_EQUALS:
-      if (parent_ast_operation == AST_IF)
-        return register_compare_and_jump(node->operation, left_register, right_register, register_index);
+      if (parent_ast_operation == AST_IF ||
+        parent_ast_operation == AST_WHILE)
+        return register_compare_and_jump(
+          node->operation, left_register,
+          right_register, register_index);
       return register_compare_and_set(node->operation, left_register, right_register);
 
     case AST_INTEGER_LITERAL:
