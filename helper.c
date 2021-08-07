@@ -29,6 +29,10 @@ void verify_if() {
   verify_token_and_fetch_next_token(TOKEN_IF, "if");
 }
 
+void verify_while() {
+  verify_token_and_fetch_next_token(TOKEN_WHILE, "while");
+}
+
 void verify_left_paren() {
   verify_token_and_fetch_next_token(TOKEN_LEFT_PAREN, "(");
 }

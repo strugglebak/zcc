@@ -101,6 +101,28 @@ struct ASTNode *parse_if_statement() {
   return create_ast_node(AST_IF, condition_node, true_node, false_node, 0);
 }
 
+struct ASTNode *parse_while_statement() {
+  struct ASTNode *condition_node, *statement_node = NULL;
+
+  verify_while();
+  verify_left_paren();
+
+  // 检测 while 中的 条件语句
+  condition_node = converse_token_2_ast(0);
+  // 确保条件语句中出现的是正确的符号
+  if (condition_node->operation < AST_COMPARE_EQUALS ||
+    condition_node->operation > AST_COMPARE_GREATER_EQUALS) {
+    error("Bad comparison operator");
+  }
+
+  verify_right_paren();
+
+  // while 里面都是复合语句，所以直接解析即可
+
+  statement_node = parse_compound_statement();
+  return create_ast_node(AST_WHILE, condition_node, NULL, statement_node, 0);
+}
+
 /**
  * 语句(statement) 的 BNF 为
  * compound_statement: '{' '}'
@@ -127,6 +149,8 @@ struct ASTNode *parse_if_statement() {
  * if_statement: if_head
  *      |        if_head 'else' compound_statement
  *      ;
+ *
+ * while_statement: 'while' '(' true_or_false_expression ')' compound_statement
  *
  * if_head: 'if' '(' true_or_false_expression ')' compound_statement
  *      ;
