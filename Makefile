@@ -35,6 +35,10 @@ test: parser ./test/*
 	  cc -o out out.s
 		./out
 
+		./parser ./test/input06
+	  cc -o out out.s
+		./out
+
 test2: parser2 ./test/*
 		./parser2 ./test/input00
 	  cc -o out out.s
@@ -57,5 +61,9 @@ test2: parser2 ./test/*
 		./out
 
 		./parser2 ./test/input05
+	  cc -o out out.s
+		./out
+
+		./parser2 ./test/input06
 	  cc -o out out.s
 		./out
