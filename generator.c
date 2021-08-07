@@ -112,6 +112,12 @@ int interpret_ast_with_register(
         AST_GLUE stmt3
           /  \
       stmt1  stmt2
+
+     3. while 语句
+            while
+           /   |   \
+          /    |    \
+        cond  NULL  stmt
   */
   switch (node->operation) {
     case AST_IF:
@@ -122,6 +128,8 @@ int interpret_ast_with_register(
       interpret_ast_with_register(node->right, NO_REGISTER, node->operation);
       clear_all_registers();
       return NO_REGISTER;
+    case AST_WHILE:
+      return interpret_while_ast_with_register(node);
   }
 
   if (node->left) {
@@ -171,6 +179,7 @@ int interpret_ast_with_register(
       return NO_REGISTER;
 
     default:
+      printf("node op = %d\n", node->operation);
       error_with_digital("Unknown AST operator", node->operation);
   }
 }

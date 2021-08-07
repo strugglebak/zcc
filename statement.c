@@ -180,6 +180,9 @@ struct ASTNode *parse_compound_statement() {
       case TOKEN_IF:
         tree = parse_if_statement();
         break;
+      case TOKEN_WHILE:
+        tree = parse_while_statement();
+        break;
       case TOKEN_RIGHT_BRACE:
         // 解析右 }
         verify_right_brace();
