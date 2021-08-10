@@ -19,9 +19,6 @@ struct ASTNode *parse_print_statement() {
   tree = converse_token_2_ast(0);
   tree = create_ast_left_node(AST_PRINT, tree, 0);
 
-  // 解析是否带了分号
-  verify_semicolon();
-
   return tree;
 }
 
@@ -66,9 +63,6 @@ void parse_var_declaration_statement() {
 
   // 根据左右节点创建一颗有关 statement 的 ast 树
   tree = create_ast_node(AST_ASSIGNMENT_STATEMENT, left, NULL, right, 0);
-
-  // 最后解析是否带分号
-  verify_semicolon();
 
   return tree;
 }
@@ -123,6 +117,30 @@ struct ASTNode *parse_while_statement() {
   return create_ast_node(AST_WHILE, condition_node, NULL, statement_node, 0);
 }
 
+struct ASTNode *parse_for_statement() {
+
+}
+
+static struct ASTNode *parse_single_statement() {
+  switch(token_from_file.token) {
+    case TOKEN_PRINT:
+      return parse_print_statement();
+    case TOKEN_INT:
+      parse_var_declaration_statement();
+      return NULL;
+    case TOKEN_IDENTIFIER:
+      return parse_assignment_statement();
+    case TOKEN_IF:
+      return parse_if_statement();
+    case TOKEN_WHILE:
+      return parse_while_statement();
+    case TOKEN_FOR:
+      return parse_for_statement();
+    default:
+      error_with_digital("Syntax error, token", token_from_file.token);
+  }
+}
+
 /**
  * 语句(statement) 的 BNF 为
  * compound_statement: '{' '}'
@@ -152,6 +170,17 @@ struct ASTNode *parse_while_statement() {
  *
  * while_statement: 'while' '(' true_or_false_expression ')' compound_statement
  *
+ * for_statement: 'for' '('
+ *  pre_operation_statement ';'
+ *  true_or_false_expression ';'
+ *  post_operation_statement ')' compound_statement
+ *      ;
+ *
+ *  pre_operation_statement: statement
+ *      ;
+ *  post_operation_statement: statement
+ *      ;
+ *
  * if_head: 'if' '(' true_or_false_expression ')' compound_statement
  *      ;
  *
@@ -162,34 +191,26 @@ struct ASTNode *parse_compound_statement() {
   struct ASTNode *left = NULL;
   struct ASTNode *tree;
 
-  // 先解析左 {
+  // 先解析左括号 {
   verify_left_brace();
 
   while (1) {
-    switch(token_from_file.token) {
-      case TOKEN_PRINT:
-        tree = parse_print_statement();
-        break;
-      case TOKEN_INT:
-        parse_var_declaration_statement();
-        tree = NULL;
-        break;
-      case TOKEN_IDENTIFIER:
-        tree = parse_assignment_statement();
-        break;
-      case TOKEN_IF:
-        tree = parse_if_statement();
-        break;
-      case TOKEN_WHILE:
-        tree = parse_while_statement();
-        break;
-      case TOKEN_RIGHT_BRACE:
-        // 解析右 }
-        verify_right_brace();
-        return left;
-      default:
-        error_with_digital("Syntax error, token", token_from_file.token);
-    }
+    // 这里主要兼容对 for 语句的处理
+    // for 语句的 ast 结构如下
+    //        A_GLUE
+    //       /     \
+    // preop        A_WHILE
+    //               /    \
+    // true_or_false_stmt  A_GLUE
+    //                 /    \
+    //           compound  postop
+    tree = parse_single_statement();
+
+    // 既然是解析 stmt，那么必须后面带 ;
+    if (tree &&
+      (tree->operation == AST_PRINT ||
+      tree->operation == AST_ASSIGNMENT_STATEMENT))
+      verify_semicolon();
 
     // 如果 tree 不为空，则更新对应的 left
     if (!tree) continue;
@@ -204,5 +225,11 @@ struct ASTNode *parse_compound_statement() {
     left = left
       ? create_ast_node(AST_GLUE, left, NULL, tree, 0)
       : tree;
+
+    // 最后解析右括号 }
+    if (token_from_file.token == TOKEN_RIGHT_BRACE) {
+      verify_right_brace();
+      return left;
+    }
   }
 }
