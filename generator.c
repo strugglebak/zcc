@@ -179,7 +179,6 @@ int interpret_ast_with_register(
       return NO_REGISTER;
 
     default:
-      printf("node op = %d\n", node->operation);
       error_with_digital("Unknown AST operator", node->operation);
   }
 }
