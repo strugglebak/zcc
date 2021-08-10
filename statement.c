@@ -118,11 +118,53 @@ struct ASTNode *parse_while_statement() {
 }
 
 struct ASTNode *parse_for_statement() {
+  struct ASTNode
+    *condition_node, *statement_node,
+    *pre_operation_statement_node, *post_operation_statement_node,
+    *tree = NULL;
 
+  // 解析类似  for (i=1 ; i < 10 ; i= i + 1) print('xxx'); 这样的语法
+
+  // 解析 for(
+  verify_for();
+  verify_left_paren();
+
+  // 解析 i=1;
+  pre_operation_statement_node = parse_single_statement();
+  verify_semicolon();
+
+  // 解析 i < 10;
+  condition_node = converse_token_2_ast(0);
+  // 确保条件语句中出现的是正确的符号
+  if (condition_node->operation < AST_COMPARE_EQUALS ||
+    condition_node->operation > AST_COMPARE_GREATER_EQUALS) {
+    error("Bad comparison operator");
+  }
+  verify_semicolon();
+
+  // 解析 i = i+1)
+  post_operation_statement_node = parse_single_statement();
+  verify_right_paren();
+
+  // 解析 for 语句块里面的 stmt
+  statement_node = parse_compound_statement();
+
+  // 递归构建 for ast
+  // for 语句的 ast 结构如下
+  //        A_GLUE
+  //       /     \
+  // preop           A_WHILE
+  //               /        \
+  // true_or_false_condition  A_GLUE
+  //                          /    \
+  //                 compound_stmt  postop
+  tree = create_ast_node(AST_GLUE, statement_node, NULL, post_operation_statement_node, 0);
+  tree = create_ast_node(AST_WHILE, condition_node, NULL, tree, 0);
+  return create_ast_node(AST_GLUE, pre_operation_statement_node, NULL, tree, 0);
 }
 
 static struct ASTNode *parse_single_statement() {
-  switch(token_from_file.token) {
+  witch(token_from_file.token) {
     case TOKEN_PRINT:
       return parse_print_statement();
     case TOKEN_INT:
@@ -196,14 +238,6 @@ struct ASTNode *parse_compound_statement() {
 
   while (1) {
     // 这里主要兼容对 for 语句的处理
-    // for 语句的 ast 结构如下
-    //        A_GLUE
-    //       /     \
-    // preop        A_WHILE
-    //               /    \
-    // true_or_false_stmt  A_GLUE
-    //                 /    \
-    //           compound  postop
     tree = parse_single_statement();
 
     // 既然是解析 stmt，那么必须后面带 ;

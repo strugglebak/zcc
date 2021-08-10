@@ -6,6 +6,7 @@ void verify_semicolon();
 void verify_identifier();
 void verify_if();
 void verify_while();
+void verify_for();
 void verify_left_paren();
 void verify_right_paren();
 void verify_left_brace();
