@@ -9,6 +9,26 @@
 #include "ast.h"
 #include "scan.h"
 
+static struct ASTNode *parse_single_statement() {
+  switch(token_from_file.token) {
+    case TOKEN_PRINT:
+      return parse_print_statement();
+    case TOKEN_INT:
+      parse_var_declaration_statement();
+      return NULL;
+    case TOKEN_IDENTIFIER:
+      return parse_assignment_statement();
+    case TOKEN_IF:
+      return parse_if_statement();
+    case TOKEN_WHILE:
+      return parse_while_statement();
+    case TOKEN_FOR:
+      return parse_for_statement();
+    default:
+      error_with_digital("Syntax error, token", token_from_file.token);
+  }
+}
+
 struct ASTNode *parse_print_statement() {
   struct ASTNode *tree;
   int register_index = 0;
@@ -163,25 +183,6 @@ struct ASTNode *parse_for_statement() {
   return create_ast_node(AST_GLUE, pre_operation_statement_node, NULL, tree, 0);
 }
 
-static struct ASTNode *parse_single_statement() {
-  witch(token_from_file.token) {
-    case TOKEN_PRINT:
-      return parse_print_statement();
-    case TOKEN_INT:
-      parse_var_declaration_statement();
-      return NULL;
-    case TOKEN_IDENTIFIER:
-      return parse_assignment_statement();
-    case TOKEN_IF:
-      return parse_if_statement();
-    case TOKEN_WHILE:
-      return parse_while_statement();
-    case TOKEN_FOR:
-      return parse_for_statement();
-    default:
-      error_with_digital("Syntax error, token", token_from_file.token);
-  }
-}
 
 /**
  * 语句(statement) 的 BNF 为

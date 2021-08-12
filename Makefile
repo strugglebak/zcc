@@ -11,4 +11,4 @@ clean:
 	rm -f parser parser2 *.o *.s out
 
 test: parser test/run_test
-	(cd test; chmod +x run_test; ./run_test)
+	(cd test; chmod +x make_test; chmod +x run_test; ./make_test && ./run_test)

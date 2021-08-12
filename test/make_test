@@ -1,0 +1,15 @@
+#!/bin/sh
+
+if [ ! -f ../parser ]
+  then echo "Need to build ../parser first!"; exit 1
+fi
+
+for i in input*
+do if [ ! -f "out.$i" ]
+   then
+     ../parser $i
+     cc -o out out.s
+     ./out > out.$i
+     rm -f out out.s
+   fi
+done
