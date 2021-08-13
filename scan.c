@@ -116,6 +116,9 @@ static int get_keyword(char *s) {
     case 'w':
       if (!strcmp(s, "while")) return TOKEN_WHILE;
       break;
+    case 'f':
+      if (!strcmp(s, "for")) return TOKEN_FOR;
+      break;
   }
   return 0;
 }
