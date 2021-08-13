@@ -57,6 +57,21 @@ void parse_var_declaration_statement() {
   verify_semicolon();
 }
 
+struct ASTNode *parse_function_declaration_statement() {
+  struct ASTNode *tree;
+  int name_slot;
+
+  // 解析类似于 void xxx(){} 这样的函数定义语句
+  verify_token_and_fetch_next_token(TOKEN_VOID, "void");
+  verify_identifier();
+  name_slot = add_global_symbol(text_buffer);
+  verify_left_paren();
+  verify_right_paren();
+
+  tree = parse_compound_statement();
+  return create_ast_left_node(AST_FUNCTION, tree, name_slot);
+}
+
  struct ASTNode *parse_assignment_statement() {
   struct ASTNode *tree, *left, *right;
   int symbol_table_index;
@@ -225,6 +240,9 @@ struct ASTNode *parse_for_statement() {
  *      ;
  *
  * if_head: 'if' '(' true_or_false_expression ')' compound_statement
+ *      ;
+ *
+ * function_declaration: 'void' identifier '(' ')' compound_statement
  *      ;
  *
  * identifier: TOKEN_IDENTIFIER

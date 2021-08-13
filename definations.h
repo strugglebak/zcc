@@ -53,7 +53,10 @@ enum {
   TOKEN_IF, // if
   TOKEN_ELSE, // else
   TOKEN_WHILE, // while
-  TOKEN_FOR // for
+  TOKEN_FOR, // for
+
+  TOKEN_VOID, // void
+  TOKEN_FUNCTION
 };
 
 // AST 节点类型
@@ -77,7 +80,10 @@ enum {
   AST_GLUE,
   AST_IF,
   AST_WHILE,
-  AST_FOR
+  AST_FOR,
+
+  AST_VOID,
+  AST_FUNCTION
 };
 
 // 如果在 generator.c 中的 interpret_ast_with_register
