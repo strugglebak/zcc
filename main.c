@@ -53,9 +53,14 @@ int main(int argc, char *argv[]) {
   // 生成汇编代码
   // 这里主要是测试有 print 的语句的情况
   generate_preamble_code();
-  tree = parse_compound_statement();
-  interpret_ast_with_register(tree, NO_REGISTER, 0);
-  generate_postamble_code();
+  while (token_from_file.token != TOKEN_EOF) {
+    tree = parse_function_declaration_statement();
+    interpret_ast_with_register(tree, NO_REGISTER, 0);
+  }
+
+  // tree = parse_compound_statement();
+  // interpret_ast_with_register(tree, NO_REGISTER, 0);
+  // generate_postamble_code();
 
   // 关闭文件
   fclose(input_file);
