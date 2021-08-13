@@ -119,6 +119,9 @@ static int get_keyword(char *s) {
     case 'f':
       if (!strcmp(s, "for")) return TOKEN_FOR;
       break;
+    case 'v':
+      if (!strcmp(s, "void")) return TOKEN_VOID;
+      break;
   }
   return 0;
 }
