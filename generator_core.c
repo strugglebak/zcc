@@ -93,15 +93,15 @@ void register_preamble() {
     "\tnop\n"
     "\tleave\n"
     "\tret\n"
-    "\n"
-    GLOBAL_MAIN
+    "\n",
+    // GLOBAL_MAIN
     // 如果是要编译成 Mach-O x86-64 的汇编，则不需要下面的这个指令，因为这个指令为一个调试用的指令，通常用来调用桢信息的
     // 详情见
     // https://stackoverflow.com/questions/19720084/what-is-the-difference-between-assembly-on-mac-and-assembly-on-linux/19725269#19725269
     // "\t.type\tmain, @function\n"
-    MAIN
-    "\tpushq\t%rbp\n"
-    "\tmovq	%rsp, %rbp\n",
+    // MAIN
+    // "\tpushq\t%rbp\n"
+    // "\tmovq	%rsp, %rbp\n",
     output_file
   );
 }
