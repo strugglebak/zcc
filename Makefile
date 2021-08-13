@@ -8,7 +8,8 @@ parser2: $(SRCS)
 	$(CC) -o parser2 -g $(SRCS)
 
 clean:
-	rm -f parser parser2 *.o *.s out
+	rm -f parser parser2 *.o *.s out test/out.input*
+
 
 test: parser test/run_test
 	(cd test; chmod +x make_test; chmod +x run_test; ./make_test && ./run_test)
