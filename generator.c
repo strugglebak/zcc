@@ -162,6 +162,12 @@ int interpret_ast_with_register(
           right_register, register_index);
       return register_compare_and_set(node->operation, left_register, right_register);
 
+    case AST_FUNCTION:
+      register_function_preamble(global_symbol_table[node->value.symbol_table_index].name);
+      interpret_ast_with_register(node->left, NO_REGISTER, node->operation);
+      register_function_postamble();
+      return NO_REGISTER;
+
     case AST_INTEGER_LITERAL:
       return register_load_interger_literal(node->value.interger_value);
     case AST_IDENTIFIER:

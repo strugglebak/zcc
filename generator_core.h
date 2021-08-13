@@ -34,4 +34,8 @@ int register_compare_and_jump(
 void register_label(int label);
 void register_jump(int label);
 
+
+void register_function_preamble(char *name);
+void register_function_postamble();
+
 #endif

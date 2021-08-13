@@ -266,3 +266,26 @@ void register_label(int label) {
 void register_jump(int label) {
   fprintf(output_file, "\tjmp\tL%d\n", label);
 }
+
+/**
+ * 解析函数定义的前置汇编代码
+*/
+void register_function_preamble(char *name) {
+  fprintf(output_file,
+            "\t.text\n"
+            "\t.globl\t%s\n"
+            "\t.type\t%s, @function\n"
+            "%s:\n"
+            "\tpushq\t%%rbp\n"
+            "\tmovq\t%%rsp, %%rbp\n",
+            name, name, name);
+}
+
+/**
+ * 解析函数定义的后置汇编代码
+*/
+void register_function_postamble() {
+  fputs("\tmovl $0, %eax\n"
+        "\tpopq     %rbp\n"
+        "\tret\n", output_file);
+}
