@@ -33,7 +33,11 @@ int find_global_symbol_table_index(char *symbol_string) {
 /**
  * 将一个 symbol_string 插入到 global_symbol_string 中，返回这个被插入的下标
 */
-int add_global_symbol(char *symbol_string) {
+int add_global_symbol(
+  char *symbol_string,
+  int primitive_type,
+  int structural_type
+) {
   int index = 0;
   if ((index = find_global_symbol_table_index(symbol_string)) != -1) {
     return index;
@@ -41,6 +45,9 @@ int add_global_symbol(char *symbol_string) {
 
   index = new_global_symbol_string();
   // 将字符串复制一份放入到内存中，并返回这个内存的地址
+  // 初始化
   global_symbol_table[index].name = strdup(symbol_string);
+  global_symbol_table[index].primitive_type = primitive_type;
+  global_symbol_table[index].structural_type = structural_type;
   return index;
 }

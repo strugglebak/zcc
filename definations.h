@@ -9,6 +9,7 @@ struct Token {
 struct ASTNode {
   // 操作符  + - * /
   int operation;
+  int primitive_type; // 对应 void/char/int...
   struct ASTNode *left;
   struct ASTNode *middle;
   struct ASTNode *right;
@@ -20,7 +21,9 @@ struct ASTNode {
 
 // 符号表，目前作用是支持变量
 struct SymbolTable {
-  char *name;
+  char *name;         // 每个变量的名字
+  int primitive_type; // 每个变量的原始类型
+  int structural_type;// 每个变量的结构类型
 };
 
 
@@ -56,7 +59,8 @@ enum {
   TOKEN_FOR, // for
 
   TOKEN_VOID, // void
-  TOKEN_FUNCTION
+  TOKEN_FUNCTION,
+  TOKEN_CHAR, // char
 };
 
 // AST 节点类型
@@ -83,7 +87,22 @@ enum {
   AST_FOR,
 
   AST_VOID,
-  AST_FUNCTION
+  AST_FUNCTION,
+  AST_CHAR
+};
+
+// Primitive types 原始类型
+enum {
+  PRIMITIVE_NONE,
+  PRIMITIVE_VOID,
+  PRIMITIVE_CHAR,
+  PRIMITIVE_INT
+};
+
+// Structural types 结构类型
+enum {
+  STRUCTURAL_VARIABLE,
+  STRUCTURAL_FUNCTION
 };
 
 // 如果在 generator.c 中的 interpret_ast_with_register
