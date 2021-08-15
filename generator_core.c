@@ -197,8 +197,12 @@ int register_store_value_2_variable(int register_index, char *identifier) {
 /**
  * 创建全局变量
 */
-void register_generate_global_symbol(char *symbol_string) {
-  fprintf(output_file, "\t.comm\t%s,8,8\n", symbol_string);
+void register_generate_global_symbol(int identifier_id) {
+  // 这个全局变量先比较其原始类型，目前来说仅比较 int/char
+  if (global_symbol_table[identifier_id].primitive_type == PRIMITIVE_INT)
+    fprintf(output_file, "\t.comm\t%s,8,8\n", global_symbol_table[identifier_id].name);
+  else
+    fprintf(output_file, "\t.comm\t%s,1,1\n", global_symbol_table[identifier_id].name);
 }
 
 /**

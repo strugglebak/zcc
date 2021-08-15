@@ -8,6 +8,7 @@
 #include "symbol_table.h"
 #include "ast.h"
 #include "scan.h"
+#include "declaraion.h"
 
 static struct ASTNode *parse_single_statement() {
   switch(token_from_file.token) {
@@ -40,36 +41,6 @@ struct ASTNode *parse_print_statement() {
   tree = create_ast_left_node(AST_PRINT, tree, 0);
 
   return tree;
-}
-
-void parse_var_declaration_statement() {
-  // 解析 int 后面是不是跟着一个标识符
-  verify_token_and_fetch_next_token(TOKEN_INT, "int");
-  verify_identifier();
-
-  // 把这个标识符加入 global symbol table
-  add_global_symbol(text_buffer);
-
-  // 并接着生成对应的汇编代码
-  generate_global_symbol_table_code(text_buffer);
-
-  // 解析是否带了分号
-  verify_semicolon();
-}
-
-struct ASTNode *parse_function_declaration_statement() {
-  struct ASTNode *tree;
-  int name_slot;
-
-  // 解析类似于 void xxx(){} 这样的函数定义语句
-  verify_token_and_fetch_next_token(TOKEN_VOID, "void");
-  verify_identifier();
-  name_slot = add_global_symbol(text_buffer);
-  verify_left_paren();
-  verify_right_paren();
-
-  tree = parse_compound_statement();
-  return create_ast_left_node(AST_FUNCTION, tree, name_slot);
 }
 
  struct ASTNode *parse_assignment_statement() {
