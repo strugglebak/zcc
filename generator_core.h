@@ -15,8 +15,8 @@ int register_divide(int left_register, int right_register);
 
 void register_print(int register_index);
 
-int register_load_value_from_variable(char *identifier);
-int register_store_value_2_variable(int register_index, char *identifier);
+int register_load_value_from_variable(int id);
+int register_store_value_2_variable(int register_index, int id);
 void register_generate_global_symbol(char *symbol_string);
 
 int register_compare_and_set(
@@ -37,5 +37,10 @@ void register_jump(int label);
 
 void register_function_preamble(char *name);
 void register_function_postamble();
+
+int register_widen(
+  int register_index,
+  int old_primitive_type,
+  int new_primitive_type);
 
 #endif

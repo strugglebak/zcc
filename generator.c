@@ -171,9 +171,9 @@ int interpret_ast_with_register(
     case AST_INTEGER_LITERAL:
       return register_load_interger_literal(node->value.interger_value);
     case AST_IDENTIFIER:
-      return register_load_value_from_variable(global_symbol_table[node->value.symbol_table_index].name);
+      return register_load_value_from_variable(node->value.symbol_table_index);
     case AST_LVALUE_IDENTIFIER:
-      return register_store_value_2_variable(register_index, global_symbol_table[node->value.symbol_table_index].name);
+      return register_store_value_2_variable(register_index, node->value.symbol_table_index);
     case AST_ASSIGNMENT_STATEMENT:
       // 这里所有的生成汇编代码的工作已经结束，返回结果就好
       return right_register;

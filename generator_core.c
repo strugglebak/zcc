@@ -180,17 +180,35 @@ void register_print(int register_index) {
 /**
  * 将一个变量的值保存到寄存器中
 */
-int register_load_value_from_variable(char *identifier) {
+int register_load_value_from_variable(int id) {
   int register_index = allocate_register();
-  fprintf(output_file, "\tmovq\t%s(\%%rip), %s\n", identifier, register_list[register_index]);
+
+  // 区分 int/char
+  if (global_symbol_table[id].primitive_type == PRIMITIVE_INT)
+    fprintf(output_file, "\tmovq\t%s(\%%rip), %s\n",
+    global_symbol_table[id].name,
+    register_list[register_index]);
+  else
+    fprintf(output_file, "\tmovzbq\t%s(\%%rip), %s\n",
+    global_symbol_table[id].name,
+    register_list[register_index]);
+
   return register_index;
 }
 
 /**
  * 将寄存器中的值保存到一个变量中
 */
-int register_store_value_2_variable(int register_index, char *identifier) {
-  fprintf(output_file, "\tmovq\t%s, %s(\%%rip)\n", register_list[register_index], identifier);
+int register_store_value_2_variable(int register_index, int id) {
+  // 区分 int/char
+  if (global_symbol_table[id].primitive_type == PRIMITIVE_INT)
+    fprintf(output_file, "\tmovq\t%s, %s(\%%rip)\n",
+      register_list[register_index],
+      global_symbol_table[id].name);
+  else
+    fprintf(output_file, "\tmovb\t%s, %s(\%%rip)\n",
+      lower_8_bits_register_list[register_index],
+      global_symbol_table[id].name);
   return register_index;
 }
 
@@ -292,4 +310,13 @@ void register_function_postamble() {
   fputs("\tmovl $0, %eax\n"
         "\tpopq     %rbp\n"
         "\tret\n", output_file);
+}
+
+// 从 old_primitive_type 转向 new_primitive_type 时扩大在寄存器中的值
+// 返回这个新的值
+int register_widen(
+  int register_index,
+  int old_primitive_type,
+  int new_primitive_type) {
+    return register_index;
 }
