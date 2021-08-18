@@ -90,7 +90,9 @@ enum {
   AST_VOID,
   AST_FUNCTION,
   AST_CHAR,
-  AST_INT
+  AST_INT,
+
+  AST_WIDEN
 };
 
 // Primitive types 原始类型
