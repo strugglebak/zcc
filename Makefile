@@ -14,7 +14,7 @@ clean:
 test: parser test/run_test
 	(cd test; chmod +x make_test; chmod +x run_test; ./make_test && ./run_test)
 
-test8: parser test/input08
-	./parser test/input08
+test9: parser test/input09
+	./parser test/input09
 	cc -o out out.s
 	./out
