@@ -33,12 +33,24 @@ static struct ASTNode *parse_single_statement() {
 struct ASTNode *parse_print_statement() {
   struct ASTNode *tree;
   int register_index = 0;
+  int left_primitive_type, right_primitive_type = 0;
 
   verify_token_and_fetch_next_token(TOKEN_PRINT, "print");
 
   // 解析带 print 的 statement，并创建汇编代码
   tree = converse_token_2_ast(0);
-  tree = create_ast_left_node(AST_PRINT, tree, 0);
+
+  // 检查类型是否兼容
+  left_primitive_type = PRIMITIVE_INT;
+  right_primitive_type = tree->primitive_type;
+  if (!check_type_compatible(&left_primitive_type, &right_primitive_type, 0))
+    error("Incompatible types");
+
+  // 扩大类型
+  if (right_primitive_type)
+    tree = create_ast_leaf(right_primitive_type, PRIMITIVE_INT, tree, 0);
+
+  tree = create_ast_left_node(AST_PRINT, PRIMITIVE_NONE, tree, 0);
 
   return tree;
 }
