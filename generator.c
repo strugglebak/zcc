@@ -184,6 +184,10 @@ int interpret_ast_with_register(
       clear_all_registers();
       return NO_REGISTER;
 
+
+    case AST_WIDEN:
+      return register_widen(left_register, node->left->primitive_type, node->primitive_type);
+
     default:
       error_with_digital("Unknown AST operator", node->operation);
   }
