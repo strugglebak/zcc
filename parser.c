@@ -7,6 +7,7 @@
 #include "scan.h"
 #include "helper.h"
 #include "symbol_table.h"
+#include "types.h"
 
 static int operation_precedence_array[] = {
   0, // TOKEN_EOF
@@ -87,6 +88,7 @@ int convert_token_operation_2_ast_operation(int operation_in_token) {
 struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
   struct ASTNode *left, *right;
   int node_operaion_type = 0;
+  int left_primitive_type, right_primitive_type = 0;
 
   // 初始化左子树
   left = create_ast_node_from_expression();
@@ -106,10 +108,30 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
     scan(&token_from_file);
     // 开始构建右子树
     right = converse_token_2_ast(operation_precedence(node_operaion_type));
+
+    // 检查 left 和 right 节点的 primitive_type 是否兼容
+    left_primitive_type = left->primitive_type;
+    right_primitive_type = right->primitive_type;
+    if (!check_type_compatible(&left_primitive_type, &right_primitive_type, 0))
+      error("Incompatible types");
+
+    // 检查完之后，left_primitive_type 和 right_primitive_type 应该会有变化
+    // 到这里基本是
+    // int char
+    // char int
+    // int int
+    // char char
+    // 如果 left_primitive_type 或者 right_primitive_type 其中之一是 AST_WIDEN
+    //
+    if (left_primitive_type)
+      left = create_ast_leaf(left_primitive_type, right->primitive_type, 0);
+    if (right_primitive_type)
+      right = create_ast_leaf(right_primitive_type, left->primitive_type, 0);
+
     // 将 Token 操作符类型转换成 AST 操作符类型
     node_operaion_type = convert_token_operation_2_ast_operation(node_operaion_type);
     // 开始构建左子树
-    left = create_ast_node(node_operaion_type, left, NULL, right, 0);
+    left = create_ast_node(node_operaion_type, left->primitive_type, left, NULL, right, 0);
 
     node_operaion_type = token_from_file.token;
     if (TOKEN_SEMICOLON == node_operaion_type ||
