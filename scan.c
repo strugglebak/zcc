@@ -103,6 +103,9 @@ static int scan_identifier(int c, char *buffer, int limit_length) {
 // 这里只做简单的判断，如果首字母是对应关键字的首字母，则直接返回关键字
 static int get_keyword(char *s) {
   switch (*s) {
+    case 'c':
+      if (!strcmp(s, "char")) return TOKEN_CHAR;
+      break;
     case 'p':
       if (!strcmp(s, "print")) return TOKEN_PRINT;
       break;

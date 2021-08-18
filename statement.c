@@ -15,6 +15,7 @@ static struct ASTNode *parse_single_statement() {
   switch(token_from_file.token) {
     case TOKEN_PRINT:
       return parse_print_statement();
+    case TOKEN_CHAR:
     case TOKEN_INT:
       parse_var_declaration_statement();
       return NULL;
