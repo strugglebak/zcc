@@ -1,5 +1,5 @@
-#ifndef __DECLARAION_H__
-#define __DECLARAION_H__
+#ifndef __DECLARATION_H__
+#define __DECLARATION_H__
 
 
 int convert_token_2_primitive_type(int token);

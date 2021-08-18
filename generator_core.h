@@ -17,7 +17,7 @@ void register_print(int register_index);
 
 int register_load_value_from_variable(int id);
 int register_store_value_2_variable(int register_index, int id);
-void register_generate_global_symbol(char *symbol_string);
+void register_generate_global_symbol(int identifier_id);
 
 int register_compare_and_set(
   int ast_operation,

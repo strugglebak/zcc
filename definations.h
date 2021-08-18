@@ -61,7 +61,6 @@ enum {
   TOKEN_VOID, // void
   TOKEN_FUNCTION,
   TOKEN_CHAR, // char
-  TOKEN_INT, // int
 };
 
 // AST 节点类型

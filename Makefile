@@ -1,6 +1,6 @@
 CC= cc
 CFLAGS+= -D _linux
-SRCS= parser.c interpreter.c main.c scan.c ast.c generator.c generator_core.c statement.c helper.c symbol_table.c
+SRCS= parser.c interpreter.c main.c scan.c ast.c generator.c generator_core.c statement.c helper.c symbol_table.c types.c declaration.c
 parser: $(SRCS)
 	$(CC) $(CFLAGS) -o parser -g $(SRCS)
 

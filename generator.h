@@ -10,6 +10,6 @@ void generate_preamble_code();
 void generate_postamble_code();
 void generate_clearable_registers();
 void generate_printable_code(int register_index);
-void generate_global_symbol_table_code(char *symbol_string);
+void generate_global_symbol_table_code(int identifier_id);
 
 #endif

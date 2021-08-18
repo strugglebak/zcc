@@ -8,7 +8,8 @@
 #include "symbol_table.h"
 #include "ast.h"
 #include "scan.h"
-#include "declaraion.h"
+#include "declaration.h"
+#include "types.h"
 
 static struct ASTNode *parse_single_statement() {
   switch(token_from_file.token) {
@@ -123,7 +124,7 @@ struct ASTNode *parse_if_statement() {
     false_node = parse_compound_statement();
   }
 
-  return create_ast_node(AST_IF, condition_node, true_node, false_node, 0);
+  return create_ast_node(AST_IF, PRIMITIVE_NONE, condition_node, true_node, false_node, 0);
 }
 
 struct ASTNode *parse_while_statement() {
@@ -145,7 +146,7 @@ struct ASTNode *parse_while_statement() {
   // while 里面都是复合语句，所以直接解析即可
 
   statement_node = parse_compound_statement();
-  return create_ast_node(AST_WHILE, condition_node, NULL, statement_node, 0);
+  return create_ast_node(AST_WHILE, PRIMITIVE_NONE, condition_node, NULL, statement_node, 0);
 }
 
 struct ASTNode *parse_for_statement() {
@@ -189,9 +190,9 @@ struct ASTNode *parse_for_statement() {
   // true_or_false_condition  A_GLUE
   //                          /    \
   //                 compound_stmt  postop
-  tree = create_ast_node(AST_GLUE, statement_node, NULL, post_operation_statement_node, 0);
-  tree = create_ast_node(AST_WHILE, condition_node, NULL, tree, 0);
-  return create_ast_node(AST_GLUE, pre_operation_statement_node, NULL, tree, 0);
+  tree = create_ast_node(AST_GLUE, PRIMITIVE_NONE, statement_node, NULL, post_operation_statement_node, 0);
+  tree = create_ast_node(AST_WHILE, PRIMITIVE_NONE, condition_node, NULL, tree, 0);
+  return create_ast_node(AST_GLUE, PRIMITIVE_NONE, pre_operation_statement_node, NULL, tree, 0);
 }
 
 
@@ -272,7 +273,7 @@ struct ASTNode *parse_compound_statement() {
       //     /  \
       // stmt1  stmt2
     left = left
-      ? create_ast_node(AST_GLUE, left, NULL, tree, 0)
+      ? create_ast_node(AST_GLUE, PRIMITIVE_NONE, left, NULL, tree, 0)
       : tree;
 
     // 最后解析右括号 }

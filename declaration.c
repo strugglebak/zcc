@@ -4,6 +4,8 @@
 #include "scan.h"
 #include "symbol_table.h"
 #include "generator.h"
+#include "ast.h"
+#include "statement.h"
 
 int convert_token_2_primitive_type(int token) {
   switch (token) {
@@ -41,10 +43,10 @@ struct ASTNode *parse_function_declaration_statement() {
   // 解析类似于 void xxx(){} 这样的函数定义语句
   verify_token_and_fetch_next_token(TOKEN_VOID, "void");
   verify_identifier();
-  name_slot = add_global_symbol(text_buffer);
+  name_slot = add_global_symbol(text_buffer, PRIMITIVE_VOID, STRUCTURAL_FUNCTION);
   verify_left_paren();
   verify_right_paren();
 
   tree = parse_compound_statement();
-  return create_ast_left_node(AST_FUNCTION, tree, name_slot);
+  return create_ast_left_node(AST_FUNCTION, PRIMITIVE_VOID, tree, name_slot);
 }
