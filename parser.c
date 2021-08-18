@@ -32,18 +32,28 @@ static struct ASTNode *create_ast_node_from_expression() {
   int symbol_table_index;
 
   switch (token_from_file.token) {
-  case TOKEN_INTEGER_LITERAL:
-    node = create_ast_leaf(AST_INTEGER_LITERAL, token_from_file.integer_value);
-    break;
-  case TOKEN_IDENTIFIER:
-    // 检查标识符是否存在
-    if ((symbol_table_index = find_global_symbol_table_index(text_buffer)) == -1) {
-      error_with_message("Unknown variable", text_buffer);
-    }
-    node = create_ast_leaf(AST_IDENTIFIER, symbol_table_index);
-    break;
-  default:
-    error_with_digital("Syntax error on line", line);
+    // 解析类似   char j; j= 2; 这样的语句需要考虑的情况
+    // 即把 2 这个 int 数值转换成 char 类型的
+    case TOKEN_INTEGER_LITERAL:
+      node = create_ast_leaf(
+        AST_INTEGER_LITERAL,
+        token_from_file.integer_value >= 0 && token_from_file.integer_value < 256
+          ? PRIMITIVE_CHAR
+          : PRIMITIVE_INT,
+        token_from_file.integer_value);
+      break;
+    case TOKEN_IDENTIFIER:
+      // 检查标识符是否存在
+      if ((symbol_table_index = find_global_symbol_table_index(text_buffer)) == -1) {
+        error_with_message("Unknown variable", text_buffer);
+      }
+      node = create_ast_leaf(
+        AST_IDENTIFIER,
+        global_symbol_table[symbol_table_index].primitive_type,
+        symbol_table_index);
+      break;
+    default:
+      error_with_digital("Syntax error on line", line);
   }
 
   // 扫描下一个，继续判断

@@ -6,6 +6,7 @@
 
 struct ASTNode *create_ast_node(
   int operation,
+  int primitive_type,
   struct ASTNode *left,
   struct ASTNode *middle,
   struct ASTNode *right,
@@ -19,6 +20,7 @@ struct ASTNode *create_ast_node(
   }
 
   node->operation = operation;
+  node->primitive_type = primitive_type;
   node->left = left;
   node->middle = middle;
   node->right = right;
@@ -28,14 +30,29 @@ struct ASTNode *create_ast_node(
 }
 
 // 创建一个子节点
-struct ASTNode *create_ast_leaf(int operation, int interger_value) {
-  return create_ast_node(operation, NULL, NULL, NULL, interger_value);
+struct ASTNode *create_ast_leaf(
+  int operation,
+  int primitive_type,
+  int interger_value
+) {
+  return create_ast_node(
+    operation,
+    primitive_type,
+    NULL, NULL, NULL,
+    interger_value
+  );
 }
 
 struct ASTNode *create_ast_left_node(
   int operation,
+  int primitive_type,
   struct ASTNode *left,
   int interger_value
 ) {
-  return create_ast_node(operation, left, NULL, NULL, interger_value);
+  return create_ast_node(
+    operation,
+    primitive_type,
+    left, NULL, NULL,
+    interger_value
+  );
 }
