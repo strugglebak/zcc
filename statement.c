@@ -48,7 +48,7 @@ struct ASTNode *parse_print_statement() {
 
   // 扩大类型
   if (right_primitive_type)
-    tree = create_ast_leaf(right_primitive_type, PRIMITIVE_INT, tree, 0);
+    tree = create_ast_left_node(right_primitive_type, PRIMITIVE_INT, tree, 0);
 
   tree = create_ast_left_node(AST_PRINT, PRIMITIVE_NONE, tree, 0);
 
@@ -58,6 +58,7 @@ struct ASTNode *parse_print_statement() {
  struct ASTNode *parse_assignment_statement() {
   struct ASTNode *tree, *left, *right;
   int symbol_table_index;
+  int left_primitive_type, right_primitive_type = 0;
 
   // 先解析是不是一个标识符
   verify_identifier();
@@ -71,7 +72,10 @@ struct ASTNode *parse_print_statement() {
   // 创建右节点
   // 这里将左值塞到右节点的目的是在将值保存到变量之前，优先计算 statement 的值
   // 注意我们这里的左节点的操作优先级高于右节点
-  right = create_ast_leaf(AST_LVALUE_IDENTIFIER, symbol_table_index);
+  right = create_ast_leaf(
+    AST_LVALUE_IDENTIFIER,
+    global_symbol_table[symbol_table_index].primitive_type,
+    symbol_table_index);
 
   // 解析 statement 中是否有 = 号
   verify_token_and_fetch_next_token(TOKEN_EQUALS, "=");
@@ -79,8 +83,17 @@ struct ASTNode *parse_print_statement() {
   // 解析 statement（也就是右值），并创建左节点
   left = converse_token_2_ast(0);
 
+  // 检查类型是否兼容
+  left_primitive_type = left->primitive_type;
+  right_primitive_type = right->primitive_type;
+  if (!check_type_compatible(&left_primitive_type, &right_primitive_type, 1)) // 注意这里不允许强制转换
+    error("Incompatible types");
+
+  if (left_primitive_type)
+    left = create_ast_left_node(left_primitive_type, right->primitive_type, left, 0);
+
   // 根据左右节点创建一颗有关 statement 的 ast 树
-  tree = create_ast_node(AST_ASSIGNMENT_STATEMENT, left, NULL, right, 0);
+  tree = create_ast_node(AST_ASSIGNMENT_STATEMENT, PRIMITIVE_INT, left, NULL, right, 0);
 
   return tree;
 }

@@ -124,9 +124,9 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
     // 如果 left_primitive_type 或者 right_primitive_type 其中之一是 AST_WIDEN
     //
     if (left_primitive_type)
-      left = create_ast_leaf(left_primitive_type, right->primitive_type, 0);
+      left = create_ast_left_node(left_primitive_type, right->primitive_type, left, 0);
     if (right_primitive_type)
-      right = create_ast_leaf(right_primitive_type, left->primitive_type, 0);
+      right = create_ast_left_node(right_primitive_type, left->primitive_type, right, 0);
 
     // 将 Token 操作符类型转换成 AST 操作符类型
     node_operaion_type = convert_token_operation_2_ast_operation(node_operaion_type);
