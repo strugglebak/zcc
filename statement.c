@@ -196,6 +196,36 @@ struct ASTNode *parse_for_statement() {
   return create_ast_node(AST_GLUE, PRIMITIVE_NONE, pre_operation_statement_node, NULL, tree, 0);
 }
 
+struct ASTNode *parse_function_call_statement() {
+  struct ASTNode *tree;
+  int symbol_table_index;
+
+  // 解析类似于 xxx(1); 这样的函数调用
+
+  // 检查是否未声明
+  if ((symbol_table_index = find_global_symbol_table_index(text_buffer)) != -1)
+    error_with_message("Undeclared function", text_buffer);
+
+  // 解析左 (
+  verify_left_paren();
+
+  // 解析括号中的语句
+  tree = converse_token_2_ast(0);
+
+  // 保存函数返回的类型作为这个 node 的类型
+  // 保存函数名在这个 symbol table 中的 index 索引
+  tree = create_ast_left_node(
+    AST_FUNCTION_CALL,
+    global_symbol_table[symbol_table_index].primitive_type,
+    tree,
+    symbol_table_index);
+
+  // 解析右 )
+  verify_right_paren();
+
+  return tree;
+}
+
 
 /**
  * 语句(statement) 的 BNF 为
@@ -242,6 +272,8 @@ struct ASTNode *parse_for_statement() {
  *
  * function_declaration: 'void' identifier '(' ')' compound_statement
  *      ;
+ *
+ * function_call: identifier '(' expression ')'
  *
  * identifier: TOKEN_IDENTIFIER
  *      ;

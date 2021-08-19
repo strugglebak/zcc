@@ -7,5 +7,6 @@ struct ASTNode *parse_if_statement();
 struct ASTNode *parse_while_statement();
 struct ASTNode *parse_for_statement();
 struct ASTNode *parse_compound_statement();
+struct ASTNode *parse_function_call_statement();
 
 #endif

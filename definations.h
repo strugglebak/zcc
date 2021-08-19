@@ -61,6 +61,9 @@ enum {
   TOKEN_VOID, // void
   TOKEN_FUNCTION,
   TOKEN_CHAR, // char
+
+  TOKEN_LONG, // long
+  TOKEN_RETURN, // return
 };
 
 // AST 节点类型
@@ -91,7 +94,8 @@ enum {
   AST_CHAR,
   AST_INT,
 
-  AST_WIDEN
+  AST_WIDEN,
+  AST_FUNCTION_CALL
 };
 
 // Primitive types 原始类型
