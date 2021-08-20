@@ -7,6 +7,14 @@
 #include "scan.h"
 #include "helper.h"
 
+static struct Token *rejected_token = NULL;
+
+void reject_token(struct Token *t) {
+  if (rejected_token)
+    error("Can't reject token twice");
+  rejected_token = t;
+}
+
 // 从文件中读取下一个字符
 static int next(void) {
   char c;
@@ -133,8 +141,16 @@ static int get_keyword(char *s) {
 // 只有扫描到文件尾时返回 0，表示扫描结束
 // 其他情况均在扫描中
 int scan(struct Token *t) {
+  char c;
+
+  if (rejected_token) {
+    t = rejected_token;
+    rejected_token = NULL;
+    return 1;
+  }
+
   // 去掉不需要的字符
-  char c = skip();
+  c = skip();
 
   switch (c) {
     case EOF:

@@ -44,6 +44,19 @@ static struct ASTNode *create_ast_node_from_expression() {
         token_from_file.integer_value);
       break;
     case TOKEN_IDENTIFIER:
+      // 解析类似的语句时需要注意的问题，即区别是变量名还是函数调用
+      //  x = fred + jim;
+      //  x = fred(5) + jim;
+
+      // 扫描下一个，继续判断
+      scan(&token_from_file);
+
+      // 如果是左 (，则直接看作是函数调用
+      if (token_from_file.token == TOKEN_LEFT_PAREN)
+        return convert_function_call_2_ast();
+      // 如果不是函数调用，则需要丢掉这个新的 token
+      reject_token(&token_from_file);
+
       // 检查标识符是否存在
       if ((symbol_table_index = find_global_symbol_table_index(text_buffer)) == -1) {
         error_with_message("Unknown variable", text_buffer);
@@ -142,4 +155,34 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
 
   // 返回这颗构建的树
   return left;
+}
+
+struct ASTNode *convert_function_call_2_ast() {
+  struct ASTNode *tree;
+  int symbol_table_index;
+
+  // 解析类似于 xxx(1); 这样的函数调用
+
+  // 检查是否未声明
+  if ((symbol_table_index = find_global_symbol_table_index(text_buffer)) != -1)
+    error_with_message("Undeclared function", text_buffer);
+
+  // 解析左 (
+  verify_left_paren();
+
+  // 解析括号中的语句
+  tree = converse_token_2_ast(0);
+
+  // 保存函数返回的类型作为这个 node 的类型
+  // 保存函数名在这个 symbol table 中的 index 索引
+  tree = create_ast_left_node(
+    AST_FUNCTION_CALL,
+    global_symbol_table[symbol_table_index].primitive_type,
+    tree,
+    symbol_table_index);
+
+  // 解析右 )
+  verify_right_paren();
+
+  return tree;
 }

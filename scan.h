@@ -4,6 +4,7 @@
 
 #include "definations.h"
 
+void reject_token(struct Token *t);
 int scan(struct Token *t);
 
 #endif
