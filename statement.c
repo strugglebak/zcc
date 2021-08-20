@@ -4,7 +4,6 @@
 #include "generator.h"
 #include "helper.h"
 #include "data.h"
-#include "helper.h"
 #include "symbol_table.h"
 #include "ast.h"
 #include "scan.h"
@@ -64,6 +63,14 @@ struct ASTNode *parse_print_statement() {
 
   // 先解析是不是一个标识符
   verify_identifier();
+
+  // 解析类似的语句时需要注意的问题，即区别是变量名还是函数调用
+  // fred = 2;
+  // fred(18);
+
+  // 如果是左 (，则直接看作是函数调用
+  if (token_from_file.token == TOKEN_LEFT_PAREN)
+    return convert_function_call_2_ast();
 
   // 找下这个标识符有没有重复定义过
   // 如果没被定义就用了，抛出异常
