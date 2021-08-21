@@ -24,6 +24,7 @@ struct SymbolTable {
   char *name;         // 每个变量的名字
   int primitive_type; // 每个变量的原始类型
   int structural_type;// 每个变量的结构类型
+  int end_label;
 };
 
 
@@ -95,7 +96,8 @@ enum {
   AST_INT,
 
   AST_WIDEN,
-  AST_FUNCTION_CALL
+  AST_FUNCTION_CALL,
+  AST_RETURN,
 };
 
 // Primitive types 原始类型
@@ -103,7 +105,8 @@ enum {
   PRIMITIVE_NONE,
   PRIMITIVE_VOID,
   PRIMITIVE_CHAR,
-  PRIMITIVE_INT
+  PRIMITIVE_INT,
+  PRIMITIVE_LONG
 };
 
 // Structural types 结构类型

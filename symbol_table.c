@@ -36,7 +36,8 @@ int find_global_symbol_table_index(char *symbol_string) {
 int add_global_symbol(
   char *symbol_string,
   int primitive_type,
-  int structural_type
+  int structural_type,
+  int end_label
 ) {
   int index = 0;
   if ((index = find_global_symbol_table_index(symbol_string)) != -1) {
@@ -49,5 +50,6 @@ int add_global_symbol(
   global_symbol_table[index].name = strdup(symbol_string);
   global_symbol_table[index].primitive_type = primitive_type;
   global_symbol_table[index].structural_type = structural_type;
+  global_symbol_table[index].end_label = end_label;
   return index;
 }

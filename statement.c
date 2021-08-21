@@ -203,6 +203,42 @@ struct ASTNode *parse_for_statement() {
   return create_ast_node(AST_GLUE, PRIMITIVE_NONE, pre_operation_statement_node, NULL, tree, 0);
 }
 
+static struct ASTNode *parse_return_statement() {
+  struct ASTNode *tree;
+  int return_type, function_type;
+
+  // 如果函数返回的是 void 则不能进行返回
+  if (global_symbol_table[current_function_symbol_id].primitive_type == PRIMITIVE_VOID)
+    error("Can't return from a void function");
+
+  // 检查 return (
+  verify_token_and_fetch_next_token(TOKEN_RETURN, "return");
+  verify_left_paren();
+
+  // 解析 return 中间的语句
+  tree = converse_token_2_ast(0);
+
+  // 检查 return type 和 function type 是否兼容
+  return_type = tree->primitive_type;
+  function_type = global_symbol_table[current_function_symbol_id].primitive_type;
+  if (!check_type_compatible(&return_type, &function_type, 1)) // 不允许强制转换
+    error("Incompatible types");
+
+  // 举例:
+  // 如果 return_type 在检查之前的类型为 char
+  // 而 function_type 在检查之前的类型为 int
+  // 那么这个时候是可以做兼容处理的
+  if (return_type)
+    tree = create_ast_left_node(return_type, function_type, tree, 0);
+
+  // 生成 return_statement 的 node
+  tree = create_ast_left_node(AST_RETURN, PRIMITIVE_NONE, tree, 0);
+
+  // 检查 )
+  verify_right_paren();
+
+  return tree;
+}
 
 /**
  * 语句(statement) 的 BNF 为
@@ -251,6 +287,10 @@ struct ASTNode *parse_for_statement() {
  *      ;
  *
  * function_call: identifier '(' expression ')'
+ *      ;
+ *
+ * return_statement: 'return' '(' expression ')'
+ *      ;
  *
  * identifier: TOKEN_IDENTIFIER
  *      ;

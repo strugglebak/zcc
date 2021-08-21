@@ -20,4 +20,6 @@ extern_ struct Token token_from_file;
 extern_ char text_buffer[TEXT_LENGTH + 1];
 extern_ struct SymbolTable global_symbol_table[SYMBOL_TABLE_ENTRIES_NUMBER];
 
+extern_ int current_function_symbol_id;
+
 #endif
