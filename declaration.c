@@ -46,8 +46,10 @@ struct ASTNode *parse_function_declaration_statement() {
   scan(&token_from_file);
   verify_identifier();
 
-  name_slot = add_global_symbol(text_buffer, PRIMITIVE_VOID, STRUCTURAL_FUNCTION, end_label);
+  end_label = generate_label();
+  name_slot = add_global_symbol(text_buffer, primitive_type, STRUCTURAL_FUNCTION, end_label);
   current_function_symbol_id = name_slot;
+
   verify_left_paren();
   verify_right_paren();
 

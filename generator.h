@@ -1,6 +1,7 @@
 #ifndef __GENERATOR_H__
 #define __GENERATOR_H__
 
+int generate_label();
 int interpret_ast_with_register(
   struct ASTNode *node,
   int register_index,

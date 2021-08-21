@@ -10,7 +10,7 @@
 // 这个 label 是为了在汇编 code 中生成类似 L1, L2 的代码用的
 // 目的是为了代码间的跳转
 // 比如 jmp L1, jmp L2 之类去执行
-static int label() {
+int generate_label() {
   static int id = 1;
   return id++;
 }
@@ -18,8 +18,8 @@ static int label() {
 static int interpret_if_ast_with_register(struct ASTNode *node) {
   int label_start, label_end;
 
-  label_start = label();
-  if (node->right) label_end = label();
+  label_start = generate_label();
+  if (node->right) label_end = generate_label();
 
   // 解析 if 中的 condition 条件语句，并生成对应的汇编代码
   // 这个条件语句最终的执行的结果是 0，并跳转到 label_false 存在的地方
@@ -58,8 +58,8 @@ static int interpret_if_ast_with_register(struct ASTNode *node) {
 static int interpret_while_ast_with_register(struct ASTNode *node) {
   int label_start, label_end;
 
-  label_start = label();
-  label_end = label();
+  label_start = generate_label();
+  label_end = generate_label();
 
   // 先生成一个 Lstart
   register_label(label_start);
