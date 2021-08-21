@@ -38,17 +38,28 @@ void parse_var_declaration_statement() {
 }
 
 struct ASTNode *parse_function_declaration_statement() {
-  struct ASTNode *tree;
+  struct ASTNode *tree, *final_statement;
   int name_slot, primitive_type, end_label = 0;
 
-  // 解析类似于 void xxx(){} 这样的函数定义语句
-  verify_token_and_fetch_next_token(TOKEN_VOID, "void");
+  // 解析类似于 int xxx() {}; 这样的语句
+  primitive_type = convert_token_2_primitive_type(token_from_file.token);
+  scan(&token_from_file);
   verify_identifier();
+
   name_slot = add_global_symbol(text_buffer, PRIMITIVE_VOID, STRUCTURAL_FUNCTION, end_label);
   current_function_symbol_id = name_slot;
   verify_left_paren();
   verify_right_paren();
 
   tree = parse_compound_statement();
+
+  // 确保非 void 返回的函数始终有返回一个值
+  if (primitive_type != PRIMITIVE_VOID) {
+    final_statement = tree->operation == AST_GLUE ? tree->right : tree;
+    if (!final_statement ||
+      final_statement->operation != AST_RETURN)
+      error("No return for function with non-void type");
+  }
+
   return create_ast_left_node(AST_FUNCTION, PRIMITIVE_VOID, tree, name_slot);
 }
