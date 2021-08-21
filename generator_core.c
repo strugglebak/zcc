@@ -25,6 +25,9 @@ static char *compare_list[] =
 
 static char *inverted_compare_list[] = { "jne", "je", "jge", "jle", "jg", "jl" };
 
+// none/void/char/int/long
+static int primitive_size[] = { 0, 0, 1, 4, 8 };
+
 void clear_all_registers() {
   free_registers[0] = free_registers[1] = free_registers[2] = free_registers[3] = 1;
 }
@@ -312,11 +315,22 @@ void register_function_postamble() {
         "\tret\n", output_file);
 }
 
-// 从 old_primitive_type 转向 new_primitive_type 时扩大在寄存器中的值
-// 返回这个新的值
+/**
+ * 从 old_primitive_type 转向 new_primitive_type 时扩大在寄存器中的值
+ * 返回这个新的值
+*/
 int register_widen(
   int register_index,
   int old_primitive_type,
   int new_primitive_type) {
     return register_index;
+}
+
+/**
+ * 给定一个 primitive type，返回其对应的字节数
+*/
+int register_get_primitive_type_size(int primitive_type) {
+  if (primitive_type < PRIMITIVE_NONE || primitive_type > PRIMITIVE_LONG)
+    error("Bad type in register_get_primitive_type_size()");
+  return primitive_size[primitive_type];
 }

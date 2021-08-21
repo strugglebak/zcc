@@ -43,4 +43,6 @@ int register_widen(
   int old_primitive_type,
   int new_primitive_type);
 
+int register_get_primitive_type_size(int primitive_type);
+
 #endif
