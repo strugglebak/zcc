@@ -130,6 +130,11 @@ int interpret_ast_with_register(
       return NO_REGISTER;
     case AST_WHILE:
       return interpret_while_ast_with_register(node);
+    case AST_FUNCTION:
+      register_function_preamble(global_symbol_table[node->value.symbol_table_index].name);
+      interpret_ast_with_register(node->left, NO_REGISTER, node->operation);
+      register_function_postamble(node->value.symbol_table_index);
+      return NO_REGISTER;
   }
 
   if (node->left) {
@@ -162,10 +167,10 @@ int interpret_ast_with_register(
           right_register, register_index);
       return register_compare_and_set(node->operation, left_register, right_register);
 
-    case AST_FUNCTION:
-      register_function_preamble(global_symbol_table[node->value.symbol_table_index].name);
-      interpret_ast_with_register(node->left, NO_REGISTER, node->operation);
-      register_function_postamble();
+    case AST_FUNCTION_CALL:
+      return register_function_call(left_register, node->value.symbol_table_index);
+    case AST_RETURN:
+      register_function_return(left_register, current_function_symbol_id);
       return NO_REGISTER;
 
     case AST_INTEGER_LITERAL:

@@ -17,8 +17,9 @@
 #endif
 
 static int free_registers[4] = { 1 };
-static char *register_list[4] = { "%r8", "%r9", "%r10", "%r11" };
-static char *lower_8_bits_register_list[4] = { "%r8b", "%r9b", "%r10b", "%r11b" };
+static char *register_list[4] = { "%r8", "%r9", "%r10", "%r11" }; // 64 位寄存器
+static char *lower_8_bits_register_list[4] = { "%r8b", "%r9b", "%r10b", "%r11b" }; // 低 8 位寄存器
+static char *lower_32_bits_register_list[4] = { "%r8d", "%r9d", "%r10d", "%r11d" }; // 低 32 位寄存器
 
 static char *compare_list[] =
   { "sete", "setne", "setl", "setg", "setle", "setge" };
@@ -183,35 +184,45 @@ void register_print(int register_index) {
 /**
  * 将一个变量的值保存到寄存器中
 */
-int register_load_value_from_variable(int id) {
+int register_load_value_from_variable(int symbol_table_index) {
   int register_index = allocate_register();
-
-  // 区分 int/char
-  if (global_symbol_table[id].primitive_type == PRIMITIVE_INT)
-    fprintf(output_file, "\tmovq\t%s(\%%rip), %s\n",
-    global_symbol_table[id].name,
-    register_list[register_index]);
-  else
-    fprintf(output_file, "\tmovzbq\t%s(\%%rip), %s\n",
-    global_symbol_table[id].name,
-    register_list[register_index]);
-
+  struct SymbolTable t = global_symbol_table[symbol_table_index];
+  char r = register_list[register_index];
+  switch (t.primitive_type) {
+    case PRIMITIVE_CHAR:
+      fprintf(output_file, "\tmovzbq\t%s(\%%rip), %s\n", t.name, r);
+      break;
+    case PRIMITIVE_INT:
+      fprintf(output_file, "\tmovzbl\t%s(\%%rip), %s\n", t.name, r);
+      break;
+    case PRIMITIVE_LONG:
+      fprintf(output_file, "\tmovq\t%s(\%%rip), %s\n", t.name, r);
+      break;
+    default:
+      error_with_digital("Bad type in register_load_value_from_variable:", t.primitive_type);
+  }
   return register_index;
 }
 
 /**
  * 将寄存器中的值保存到一个变量中
 */
-int register_store_value_2_variable(int register_index, int id) {
-  // 区分 int/char
-  if (global_symbol_table[id].primitive_type == PRIMITIVE_INT)
-    fprintf(output_file, "\tmovq\t%s, %s(\%%rip)\n",
-      register_list[register_index],
-      global_symbol_table[id].name);
-  else
-    fprintf(output_file, "\tmovb\t%s, %s(\%%rip)\n",
-      lower_8_bits_register_list[register_index],
-      global_symbol_table[id].name);
+int register_store_value_2_variable(int register_index, int symbol_table_index) {
+  struct SymbolTable t = global_symbol_table[symbol_table_index];
+  char r = register_list[register_index];
+  switch (t.primitive_type) {
+    case PRIMITIVE_CHAR:
+      fprintf(output_file, "\tmovb\t%s, %s(\%%rip)\n", r, t.name);
+      break;
+    case PRIMITIVE_INT:
+      fprintf(output_file, "\tmovl\t%s, %s(\%%rip)\n", r, t.name);
+      break;
+    case PRIMITIVE_LONG:
+      fprintf(output_file, "\tmovq\t%s, %s(\%%rip)\n", r, t.name);
+      break;
+    default:
+      error_with_digital("Bad type in register_store_value_2_variable:", t.primitive_type);
+  }
   return register_index;
 }
 
@@ -219,11 +230,15 @@ int register_store_value_2_variable(int register_index, int id) {
  * 创建全局变量
 */
 void register_generate_global_symbol(int symbol_table_index) {
+  int primitive_type_size
+    = register_get_primitive_type_size(
+      global_symbol_table[symbol_table_index].primitive_type
+    );
   // 这个全局变量先比较其原始类型，目前来说仅比较 int/char
-  if (global_symbol_table[symbol_table_index].primitive_type == PRIMITIVE_INT)
-    fprintf(output_file, "\t.comm\t%s,8,8\n", global_symbol_table[symbol_table_index].name);
-  else
-    fprintf(output_file, "\t.comm\t%s,1,1\n", global_symbol_table[symbol_table_index].name);
+  fprintf(output_file, "\t.comm\t%s,%d,%d\n",
+    global_symbol_table[symbol_table_index].name,
+    primitive_type_size,
+    primitive_type_size);
 }
 
 /**
@@ -309,9 +324,10 @@ void register_function_preamble(char *name) {
 /**
  * 解析函数定义的后置汇编代码
 */
-void register_function_postamble() {
-  fputs("\tmovl $0, %eax\n"
-        "\tpopq     %rbp\n"
+void register_function_postamble(int symbol_table_index) {
+  struct SymbolTable t = global_symbol_table[symbol_table_index];
+  register_label(t.end_label);
+  fputs( "\tpopq     %rbp\n"
         "\tret\n", output_file);
 }
 
@@ -333,4 +349,38 @@ int register_get_primitive_type_size(int primitive_type) {
   if (primitive_type < PRIMITIVE_NONE || primitive_type > PRIMITIVE_LONG)
     error("Bad type in register_get_primitive_type_size()");
   return primitive_size[primitive_type];
+}
+
+/**
+ * 处理函数调用 function_call
+*/
+int register_function_call(int register_index, int symbol_table_index) {
+  int out_register_index = allocate_register();
+  fprintf(output_file, "\tmovq\t%s, %%rdi\n", register_list[register_index]);
+  fprintf(output_file, "\tcall\t%s\n", global_symbol_table[symbol_table_index].name);
+  fprintf(output_file, "\tmovq\t%%rax, %s\n", register_list[out_register_index]);
+  clear_register(register_index);
+  return out_register_index;
+}
+
+/**
+ * 处理函数返回 function_return
+*/
+void register_function_return(int register_index, int symbol_table_index) {
+  struct SymbolTable t = global_symbol_table[symbol_table_index];
+  char r = register_list[register_index];
+  switch (t.primitive_type) {
+    case PRIMITIVE_CHAR:
+      fprintf(output_file, "\tmovzbl\t%s, %%eax\n", lower_8_bits_register_list[register_index]);
+      break;
+    case PRIMITIVE_INT:
+      fprintf(output_file, "\tmovl\t%s, %%eax\n", lower_32_bits_register_list[register_index]);
+      break;
+    case PRIMITIVE_LONG:
+      fprintf(output_file, "\tmovq\t%s, %%rax\n", register_list[register_index]);
+      break;
+    default:
+      error_with_digital("Bad function type in register_function_return:", t.primitive_type);
+  }
+  register_jump(t.end_label);
 }
