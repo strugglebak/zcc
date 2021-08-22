@@ -21,8 +21,8 @@ int check_type_compatible(
   }
 
   // 用 size 来检查是否一致
-  left_primitive_type_size = register_get_primitive_type_size(left_primitive_type);
-  right_primitive_type_size = register_get_primitive_type_size(right_primitive_type);
+  left_primitive_type_size = register_get_primitive_type_size(*left_primitive_type);
+  right_primitive_type_size = register_get_primitive_type_size(*right_primitive_type);
 
   if (left_primitive_type_size == 0 ||
       right_primitive_type_size == 0)

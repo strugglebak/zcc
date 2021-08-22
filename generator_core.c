@@ -4,6 +4,7 @@
 #include "data.h"
 #include "definations.h"
 #include "helper.h"
+#include "generator_core.h"
 
 
 #ifdef _linux
@@ -187,7 +188,7 @@ void register_print(int register_index) {
 int register_load_value_from_variable(int symbol_table_index) {
   int register_index = allocate_register();
   struct SymbolTable t = global_symbol_table[symbol_table_index];
-  char r = register_list[register_index];
+  char *r = register_list[register_index];
   switch (t.primitive_type) {
     case PRIMITIVE_CHAR:
       fprintf(output_file, "\tmovzbq\t%s(\%%rip), %s\n", t.name, r);
@@ -209,7 +210,7 @@ int register_load_value_from_variable(int symbol_table_index) {
 */
 int register_store_value_2_variable(int register_index, int symbol_table_index) {
   struct SymbolTable t = global_symbol_table[symbol_table_index];
-  char r = register_list[register_index];
+  char *r = register_list[register_index];
   switch (t.primitive_type) {
     case PRIMITIVE_CHAR:
       fprintf(output_file, "\tmovb\t%s, %s(\%%rip)\n", r, t.name);
@@ -368,7 +369,7 @@ int register_function_call(int register_index, int symbol_table_index) {
 */
 void register_function_return(int register_index, int symbol_table_index) {
   struct SymbolTable t = global_symbol_table[symbol_table_index];
-  char r = register_list[register_index];
+  char *r = register_list[register_index];
   switch (t.primitive_type) {
     case PRIMITIVE_CHAR:
       fprintf(output_file, "\tmovzbl\t%s, %%eax\n", lower_8_bits_register_list[register_index]);
