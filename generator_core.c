@@ -210,16 +210,21 @@ int register_load_value_from_variable(int symbol_table_index) {
 */
 int register_store_value_2_variable(int register_index, int symbol_table_index) {
   struct SymbolTable t = global_symbol_table[symbol_table_index];
-  char *r = register_list[register_index];
   switch (t.primitive_type) {
     case PRIMITIVE_CHAR:
-      fprintf(output_file, "\tmovb\t%s, %s(\%%rip)\n", r, t.name);
+      fprintf(output_file, "\tmovb\t%s, %s(\%%rip)\n",
+       lower_8_bits_register_list[register_index],
+       t.name);
       break;
     case PRIMITIVE_INT:
-      fprintf(output_file, "\tmovl\t%s, %s(\%%rip)\n", r, t.name);
+      fprintf(output_file, "\tmovl\t%s, %s(\%%rip)\n",
+       lower_32_bits_register_list[register_index],
+       t.name);
       break;
     case PRIMITIVE_LONG:
-      fprintf(output_file, "\tmovq\t%s, %s(\%%rip)\n", r, t.name);
+      fprintf(output_file, "\tmovq\t%s, %s(\%%rip)\n",
+      register_list[register_index],
+      t.name);
       break;
     default:
       error_with_digital("Bad type in register_store_value_2_variable:", t.primitive_type);
