@@ -49,6 +49,7 @@ struct ASTNode *parse_function_declaration_statement() {
   end_label = generate_label();
   name_slot = add_global_symbol(text_buffer, primitive_type, STRUCTURAL_FUNCTION, end_label);
   current_function_symbol_id = name_slot;
+  printf("current func = %d\n %s\n", current_function_symbol_id, text_buffer);
 
   verify_left_paren();
   verify_right_paren();

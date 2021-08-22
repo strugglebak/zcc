@@ -165,7 +165,7 @@ struct ASTNode *convert_function_call_2_ast() {
   // 解析类似于 xxx(1); 这样的函数调用
 
   // 检查是否未声明
-  if ((symbol_table_index = find_global_symbol_table_index(text_buffer)) != -1)
+  if ((symbol_table_index = find_global_symbol_table_index(text_buffer)) == -1)
     error_with_message("Undeclared function", text_buffer);
 
   // 解析左 (
