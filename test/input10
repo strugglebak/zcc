@@ -2,7 +2,7 @@ int fred() {
   return(20);
 }
 
-void main() {
+int main() {
   int result;
   printint(10);
   result= fred(15);

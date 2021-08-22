@@ -15,6 +15,7 @@
 #include "statement.h"
 #include "helper.h"
 #include "declaration.h"
+#include "symbol_table.h"
 
 // 声明 token 字符串数组
 const char *token_string[] = { "+", "-", "*", "/", "integer_literal" };
@@ -31,7 +32,6 @@ static void usage_info(char *info) {
 
 int main(int argc, char *argv[]) {
   struct ASTNode *tree;
-  int result;
 
   if (argc != 2) usage_info(argv[0]);
 
@@ -48,6 +48,9 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
+  // 确保 print_int 是已经定义的
+  add_global_symbol("print_int", PRIMITIVE_CHAR, STRUCTURAL_FUNCTION, 0);
+
   // 扫描文件中的字符串，并将其赋值给 token_from_file 这个全局变量
   scan(&token_from_file);
 
@@ -58,10 +61,6 @@ int main(int argc, char *argv[]) {
     tree = parse_function_declaration_statement();
     interpret_ast_with_register(tree, NO_REGISTER, 0);
   }
-
-  // tree = parse_compound_statement();
-  // interpret_ast_with_register(tree, NO_REGISTER, 0);
-  // generate_postamble_code();
 
   // 关闭文件
   fclose(input_file);

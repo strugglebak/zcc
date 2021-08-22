@@ -39,7 +39,7 @@ void parse_var_declaration_statement() {
 
 struct ASTNode *parse_function_declaration_statement() {
   struct ASTNode *tree, *final_statement;
-  int name_slot, primitive_type, end_label = 0;
+  int name_slot, primitive_type, end_label;
 
   // 解析类似于 int xxx() {}; 这样的语句
   primitive_type = convert_token_2_primitive_type(token_from_file.token);
@@ -63,5 +63,5 @@ struct ASTNode *parse_function_declaration_statement() {
       error("No return for function with non-void type");
   }
 
-  return create_ast_left_node(AST_FUNCTION, PRIMITIVE_VOID, tree, name_slot);
+  return create_ast_left_node(AST_FUNCTION, primitive_type, tree, name_slot);
 }

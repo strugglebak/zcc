@@ -10,12 +10,14 @@
 #include "declaration.h"
 #include "types.h"
 
+static struct ASTNode *parse_return_statement();
 static struct ASTNode *parse_single_statement() {
   switch(token_from_file.token) {
     case TOKEN_PRINT:
       return parse_print_statement();
     case TOKEN_CHAR:
     case TOKEN_INT:
+    case TOKEN_LONG:
       parse_var_declaration_statement();
       return NULL;
     case TOKEN_IDENTIFIER:
@@ -26,6 +28,8 @@ static struct ASTNode *parse_single_statement() {
       return parse_while_statement();
     case TOKEN_FOR:
       return parse_for_statement();
+    case TOKEN_RETURN:
+      return parse_return_statement();
     default:
       error_with_digital("Syntax error, token", token_from_file.token);
   }
@@ -309,22 +313,25 @@ struct ASTNode *parse_compound_statement() {
     // 既然是解析 stmt，那么必须后面带 ;
     if (tree &&
       (tree->operation == AST_PRINT ||
-      tree->operation == AST_ASSIGNMENT_STATEMENT))
+      tree->operation == AST_ASSIGNMENT_STATEMENT ||
+      tree->operation == AST_RETURN ||
+      tree->operation == AST_FUNCTION_CALL))
       verify_semicolon();
 
     // 如果 tree 不为空，则更新对应的 left
-    if (!tree) continue;
-      // 变成如下的形式
-      //          A_GLUE
-      //         /  \
-      //     A_GLUE stmt4
-      //       /  \
-      //   A_GLUE stmt3
-      //     /  \
-      // stmt1  stmt2
-    left = left
-      ? create_ast_node(AST_GLUE, PRIMITIVE_NONE, left, NULL, tree, 0)
-      : tree;
+    // 变成如下的形式
+    //          A_GLUE
+    //         /  \
+    //     A_GLUE stmt4
+    //       /  \
+    //   A_GLUE stmt3
+    //     /  \
+    // stmt1  stmt2
+    if (tree) {
+      left = left
+        ? create_ast_node(AST_GLUE, PRIMITIVE_NONE, left, NULL, tree, 0)
+        : tree;
+    }
 
     // 最后解析右括号 }
     if (token_from_file.token == TOKEN_RIGHT_BRACE) {

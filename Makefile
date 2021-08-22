@@ -1,6 +1,7 @@
 CC= cc
 CFLAGS+= -D _linux
 SRCS= parser.c interpreter.c main.c scan.c ast.c generator.c generator_core.c statement.c helper.c symbol_table.c types.c declaration.c
+LIB= lib/print_int.c
 parser: $(SRCS)
 	$(CC) $(CFLAGS) -o parser -g $(SRCS)
 
@@ -14,7 +15,7 @@ clean:
 test: parser test/run_test
 	(cd test; chmod +x make_test; chmod +x run_test; ./make_test && ./run_test)
 
-test10: parser test/input10
+test10: parser test/input10 $(LIB)
 	./parser test/input10
-	cc -o out out.s
+	cc -o out out.s $(LIB)
 	./out
