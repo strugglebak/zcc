@@ -2,7 +2,6 @@
 #include "helper.h"
 #include "data.h"
 
-static int global_symbol_table_index = 0;
 
 /**
  * 在 global_symbol_table 这个数组中找到一个新的下标，并返回这个下标

@@ -35,7 +35,7 @@ void register_label(int label);
 void register_jump(int label);
 
 
-void register_function_preamble(char *name);
+void register_function_preamble(int symbol_table_index);
 void register_function_postamble(int symbol_table_index);
 
 int register_widen(

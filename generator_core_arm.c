@@ -4,31 +4,28 @@
 #include "data.h"
 #include "definations.h"
 #include "helper.h"
-#include "generator_core.h"
 
+// 把大 int 类型数值放入内存中，用一个数组保存起来
+// postamble 会用到
+#define MAX_INTEGER_NUMBER 1024
 
-#ifdef _linux
-  #define CALL_PRINTF "\tcall	printf\n"
-  #define GLOBAL_MAIN "\t.globl\tmain\n"
-  #define MAIN "main:\n"
-#else
-  #define CALL_PRINTF "\tcall	_printf\n"
-  #define GLOBAL_MAIN "\t.globl\t_main\n"
-  #define MAIN "_main:\n"
-#endif
+int integer_list[MAX_INTEGER_NUMBER] = { 0 };
+static int integer_list_index = 0;
 
 static int free_registers[4] = { 1 };
-static char *register_list[4] = { "%r8", "%r9", "%r10", "%r11" }; // 64 位寄存器
-static char *lower_8_bits_register_list[4] = { "%r8b", "%r9b", "%r10b", "%r11b" }; // 低 8 位寄存器
-static char *lower_32_bits_register_list[4] = { "%r8d", "%r9d", "%r10d", "%r11d" }; // 低 32 位寄存器
+static char *register_list[4] = { "r4", "r5", "r6", "r7" };
 
 static char *compare_list[] =
-  { "sete", "setne", "setl", "setg", "setle", "setge" };
+  { "moveq", "movne", "movlt", "movgt", "movle", "movge" };
 
-static char *inverted_compare_list[] = { "jne", "je", "jge", "jle", "jg", "jl" };
+static char *inverted_compare_list[] =
+  { "movne", "moveq", "movge", "movle", "movgt", "movlt" };
+
+static char *inverted_branch_list[] =
+  { "bne", "beq", "bge", "ble", "bgt", "blt" };
 
 // none/void/char/int/long
-static int primitive_size[] = { 0, 0, 1, 4, 8 };
+static int primitive_size[] = { 0, 0, 1, 4, 4 };
 
 void clear_all_registers() {
   free_registers[0] = free_registers[1] = free_registers[2] = free_registers[3] = 1;
@@ -46,19 +43,52 @@ static int allocate_register() {
     }
   }
 
-  fprintf(stderr, "Out of registers\n");
-  exit(1);
+  error("Out of registers");
+  return NO_REGISTER;
 }
 
 /**
  * 清空某个寄存器
 */
 static void clear_register(int index) {
-  if (free_registers[index]) {
-    fprintf(stderr, "Error trying to clear registers\n");
-    exit(1);
-  }
+  if (free_registers[index])
+    error_with_digital("Error trying to clear registers", index);
   free_registers[index] = 1;
+}
+
+/**
+ * 设置大 int 型数值在 label 下的 offset
+*/
+static void set_large_integer_offset(int value) {
+  int offset = -1;
+  for (int i = 0; i < integer_list_index; i++) {
+    if (value == integer_list[i]) {
+      offset = i * 4;
+      break;
+    }
+  }
+  // 如果不在列表中，则直接加入
+  if (offset < 0) {
+    offset = integer_list_index * 4;
+    if (integer_list_index == MAX_INTEGER_NUMBER)
+      error("Out of max integer number in set_large_integer_offset()");
+    integer_list[integer_list_index++] = value;
+  }
+  // 用 offset 写入 r3 这个寄存器
+  fprintf(output_file, "\tldr\tr3, .L3+%d\n", offset);
+}
+
+/**
+ * 设置变量在 label 下的 offset
+*/
+static void set_variable_offset(int symbol_table_index) {
+  int offset = 0;
+  for (int i = 0; i < symbol_table_index; i++) {
+    if (global_symbol_table[i].structural_type == STRUCTURAL_VARIABLE)
+      offset += 4;
+  }
+  // 用 offset 写入 r3 这个寄存器
+  fprintf(output_file, "\tldr\tr3, .L2+%d\n", offset);
 }
 
 /**
@@ -78,49 +108,22 @@ static int compare_register(int left_register, int right_register, char *set_ins
 */
 void register_preamble() {
   clear_all_registers();
-  fputs(
-    "\t.text\n"
-    ".LC0:\n"
-    "\t.string\t\"%d\\n\"\n"
-    "register_print:\n"
-    "\tpushq\t%rbp\n"
-    "\tmovq\t%rsp, %rbp\n"
-    "\tsubq\t$16, %rsp\n"
-    "\tmovl\t%edi, -4(%rbp)\n"
-    "\tmovl\t-4(%rbp), %eax\n"
-    "\tmovl\t%eax, %esi\n"
-    "\tleaq	.LC0(%rip), %rdi\n"
-    "\tmovl	$0, %eax\n"
-    // MacOS & iOS 不用 PLT
-    // https://stackoverflow.com/questions/59817831/unsupported-symbol-modifier-in-branch-relocation-call-printfplt
-    // "\tcall	_printf@PLT\n"
-    CALL_PRINTF
-    "\tnop\n"
-    "\tleave\n"
-    "\tret\n"
-    "\n",
-    // GLOBAL_MAIN
-    // 如果是要编译成 Mach-O x86-64 的汇编，则不需要下面的这个指令，因为这个指令为一个调试用的指令，通常用来调用桢信息的
-    // 详情见
-    // https://stackoverflow.com/questions/19720084/what-is-the-difference-between-assembly-on-mac-and-assembly-on-linux/19725269#19725269
-    // "\t.type\tmain, @function\n"
-    // MAIN
-    // "\tpushq\t%rbp\n"
-    // "\tmovq	%rsp, %rbp\n",
-    output_file
-  );
+  fputs("\t.text\n", output_file);
 }
 
 /**
  * 汇编后置代码，写入到 output_file 中
 */
 void register_postamble() {
-  fputs(
-    "\tmovl	$0, %eax\n"
-    "\tpopq	%rbp\n"
-    "\tret\n",
-    output_file
-  );
+  fprintf(output_file, ".L2:\n");
+  for (int i = 0; i < global_symbol_table_index; i++) {
+    if (global_symbol_table[i].structural_type == STRUCTURAL_VARIABLE)
+      fprintf(output_file, "\t.word %s\n", global_symbol_table[i].name);
+  }
+  fprintf(output_file, ".L3:\n");
+  for (int i = 0; i < integer_list_index; i++) {
+    fprintf(output_file, "\t.word %d\n", integer_list[i]);
+  }
 }
 
 /**
@@ -128,7 +131,12 @@ void register_postamble() {
 */
 int register_load_interger_literal(int value) {
   int register_index = allocate_register();
-  fprintf(output_file, "\tmovq\t$%d, %s\n", value, register_list[register_index]);
+  if (value <= 1000)
+    fprintf(output_file, "\tmov\t%s, #%d\n", register_list[register_index], value);
+  else {
+    set_large_integer_offset(value);
+    fprintf(output_file, "\tldr\t%s, [r3]\n", register_list[register_index]);
+  }
   return register_index;
 }
 
@@ -136,7 +144,11 @@ int register_load_interger_literal(int value) {
  * 两个寄存器相加，并将其放入其中一个寄存器中
 */
 int register_plus(int left_register, int right_register) {
-  fprintf(output_file, "\taddq\t%s, %s\n", register_list[left_register], register_list[right_register]);
+  fprintf(output_file,
+    "\tadd\t%s, %s, %s\n",
+    register_list[right_register],
+    register_list[left_register],
+    register_list[right_register]);
   clear_register(left_register);
   return right_register;
 }
@@ -187,21 +199,8 @@ void register_print(int register_index) {
 */
 int register_load_value_from_variable(int symbol_table_index) {
   int register_index = allocate_register();
-  struct SymbolTable t = global_symbol_table[symbol_table_index];
-  char *r = register_list[register_index];
-  switch (t.primitive_type) {
-    case PRIMITIVE_CHAR:
-      fprintf(output_file, "\tmovzbq\t%s(\%%rip), %s\n", t.name, r);
-      break;
-    case PRIMITIVE_INT:
-      fprintf(output_file, "\tmovzbl\t%s(\%%rip), %s\n", t.name, r);
-      break;
-    case PRIMITIVE_LONG:
-      fprintf(output_file, "\tmovq\t%s(\%%rip), %s\n", t.name, r);
-      break;
-    default:
-      error_with_digital("Bad type in register_load_value_from_variable:", t.primitive_type);
-  }
+  set_variable_offset(symbol_table_index);
+  fprintf(output_file, "\tldr\t%s, [r3]\n", register_list[register_index]);
   return register_index;
 }
 
@@ -319,12 +318,13 @@ void register_jump(int label) {
 void register_function_preamble(int symbol_table_index) {
   char *name = global_symbol_table[symbol_table_index].name;
   fprintf(output_file,
-            "\t.text\n"
-            "\t.globl\t%s\n"
-            "\t.type\t%s, @function\n"
-            "%s:\n"
-            "\tpushq\t%%rbp\n"
-            "\tmovq\t%%rsp, %%rbp\n",
+          "\t.text\n"
+          "\t.globl\t%s\n"
+          "\t.type\t%s, \%%function\n"
+          "%s:\n" "\tpush\t{fp, lr}\n"
+          "\tadd\tfp, sp, #4\n"
+          "\tsub\tsp, sp, #8\n"
+          "\tstr\tr0, [fp, #-8]\n",
             name, name, name);
 }
 
@@ -334,8 +334,10 @@ void register_function_preamble(int symbol_table_index) {
 void register_function_postamble(int symbol_table_index) {
   struct SymbolTable t = global_symbol_table[symbol_table_index];
   register_label(t.end_label);
-  fputs( "\tpopq     %rbp\n"
-        "\tret\n", output_file);
+  fputs("\tsub\tsp, fp, #4\n"
+        "\tpop\t{fp, pc}\n"
+        "\t.align\t2\n"
+        , output_file);
 }
 
 /**

@@ -131,7 +131,7 @@ int interpret_ast_with_register(
     case AST_WHILE:
       return interpret_while_ast_with_register(node);
     case AST_FUNCTION:
-      register_function_preamble(global_symbol_table[node->value.symbol_table_index].name);
+      register_function_preamble(node->value.symbol_table_index);
       interpret_ast_with_register(node->left, NO_REGISTER, node->operation);
       register_function_postamble(node->value.symbol_table_index);
       return NO_REGISTER;
