@@ -4,6 +4,7 @@
 #include "data.h"
 #include "definations.h"
 #include "helper.h"
+#include "generator_core.h"
 
 // 把大 int 类型数值放入内存中，用一个数组保存起来
 // postamble 会用到
@@ -92,18 +93,6 @@ static void set_variable_offset(int symbol_table_index) {
 }
 
 /**
- * 比较两个寄存器值的大小
- * 使用 cmpq 比较了大小之后，需要将一个 8 位的寄存器置位
-*/
-static int compare_register(int left_register, int right_register, char *set_instruction) {
-  fprintf(output_file, "\tcmpq\t%s, %s\n", register_list[right_register], register_list[left_register]);
-  fprintf(output_file, "\t%s\t%s\n", set_instruction, lower_8_bits_register_list[right_register]);
-  fprintf(output_file, "\tandq\t$255,%s\n", register_list[right_register]);
-  clear_register(left_register);
-  return right_register;
-}
-
-/**
  * 汇编前置代码，写入到 output_file 中
 */
 void register_preamble() {
@@ -157,7 +146,11 @@ int register_plus(int left_register, int right_register) {
  * 两个寄存器相减，并将其放入其中一个寄存器中
 */
 int register_minus(int left_register, int right_register) {
-  fprintf(output_file, "\tsubq\t%s, %s\n", register_list[right_register], register_list[left_register]);
+  fprintf(output_file,
+    "\tsub\t%s, %s, %s\n",
+    register_list[left_register],
+    register_list[left_register],
+    register_list[right_register]);
   clear_register(right_register);
   return left_register;
 }
@@ -166,7 +159,11 @@ int register_minus(int left_register, int right_register) {
  * 两个寄存器相乘，并将其放入其中一个寄存器中
 */
 int register_multiply(int left_register, int right_register) {
-  fprintf(output_file, "\timulq\t%s, %s\n", register_list[left_register], register_list[right_register]);
+  fprintf(output_file,
+    "\tmul\t%s, %s, %s\n",
+    register_list[right_register],
+    register_list[left_register],
+    register_list[right_register]);
   clear_register(left_register);
   return right_register;
 }
@@ -177,10 +174,10 @@ int register_multiply(int left_register, int right_register) {
  * 进行除法运算后，再从 rax 寄存器中把结果拿出来，放入 left_register
 */
 int register_divide(int left_register, int right_register) {
-  fprintf(output_file, "\tmovq\t%s, %%rax\n", register_list[left_register]);
-  fprintf(output_file, "\tcqo\n");
-  fprintf(output_file, "\tidivq\t%s\n", register_list[right_register]);
-  fprintf(output_file, "\tmovq\t%%rax, %s\n", register_list[left_register]);
+  fprintf(output_file, "\tmov\tr0, %s\n", register_list[left_register]);
+  fprintf(output_file, "\tmov\tr1, %s\n", register_list[right_register]);
+  fprintf(output_file, "\tbl\t__aeabi_idiv\n");
+  fprintf(output_file, "\tmov\t%s, r0\n", register_list[left_register]);
   clear_register(right_register);
   return left_register;
 }
@@ -189,8 +186,9 @@ int register_divide(int left_register, int right_register) {
  * 打印指定的寄存器
 */
 void register_print(int register_index) {
-  fprintf(output_file, "\tmovq\t%s, %%rdi\n", register_list[register_index]);
-  fprintf(output_file, "\tcall\tregister_print\n");
+  fprintf(output_file, "\tmov\tr0, %s\n", register_list[register_index]);
+  fprintf(output_file, "\tbl\tregister_print\n");
+  fprintf(output_file, "\tnop\n");
   clear_register(register_index);
 }
 
@@ -209,21 +207,16 @@ int register_load_value_from_variable(int symbol_table_index) {
 */
 int register_store_value_2_variable(int register_index, int symbol_table_index) {
   struct SymbolTable t = global_symbol_table[symbol_table_index];
+  set_variable_offset(symbol_table_index);
   switch (t.primitive_type) {
     case PRIMITIVE_CHAR:
-      fprintf(output_file, "\tmovb\t%s, %s(\%%rip)\n",
-       lower_8_bits_register_list[register_index],
-       t.name);
+      fprintf(output_file, "\tstrb\t%s, [r3]\n",
+       register_list[register_index]);
       break;
     case PRIMITIVE_INT:
-      fprintf(output_file, "\tmovl\t%s, %s(\%%rip)\n",
-       lower_32_bits_register_list[register_index],
-       t.name);
-      break;
     case PRIMITIVE_LONG:
-      fprintf(output_file, "\tmovq\t%s, %s(\%%rip)\n",
-      register_list[register_index],
-      t.name);
+      fprintf(output_file, "\tstr\t%s, [r3]\n",
+      register_list[register_index]);
       break;
     default:
       error_with_digital("Bad type in register_store_value_2_variable:", t.primitive_type);
@@ -235,13 +228,12 @@ int register_store_value_2_variable(int register_index, int symbol_table_index) 
  * 创建全局变量
 */
 void register_generate_global_symbol(int symbol_table_index) {
+  struct SymbolTable t = global_symbol_table[symbol_table_index];
   int primitive_type_size
-    = register_get_primitive_type_size(
-      global_symbol_table[symbol_table_index].primitive_type
-    );
+    = register_get_primitive_type_size(t.primitive_type);
   // 这个全局变量先比较其原始类型，目前来说仅比较 int/char
   fprintf(output_file, "\t.comm\t%s,%d,%d\n",
-    global_symbol_table[symbol_table_index].name,
+    t.name,
     primitive_type_size,
     primitive_type_size);
 }
@@ -258,16 +250,20 @@ int register_compare_and_set(
     || ast_operation > AST_COMPARE_GREATER_EQUALS)
     error("Bad ast operaion in register_compare_and_set function");
 
-  fprintf(output_file, "\tcmpq\t%s, %s\n",
+  fprintf(output_file, "\tcmp\t%s, %s\n",
     register_list[register_right],
     register_list[register_left]);
 
-  fprintf(output_file, "\t%s\t%s\n",
+  fprintf(output_file, "\t%s\t%s, #1\n",
     compare_list[ast_operation - AST_COMPARE_EQUALS],
-    lower_8_bits_register_list[register_right]);
+    register_list[register_right]);
 
-  fprintf(output_file, "\tmovzbq\t%s, %s\n",
-    lower_8_bits_register_list[register_right],
+  fprintf(output_file, "\t%s\t%s, #0\n",
+    inverted_compare_list[ast_operation - AST_COMPARE_EQUALS],
+    register_list[register_right]);
+
+  fprintf(output_file, "\tuxtb\t%s, %s\n",
+    register_list[register_right],
     register_list[register_right]);
 
   clear_register(register_left);
@@ -287,11 +283,11 @@ int register_compare_and_jump(
     || ast_operation > AST_COMPARE_GREATER_EQUALS)
     error("Bad ast operaion in register_compare_and_jump function");
 
-  fprintf(output_file, "\tcmpq\t%s, %s\n",
-    register_list[register_right],
-    register_list[register_left]);
+  fprintf(output_file, "\tcmp\t%s, %s\n",
+    register_list[register_left],
+    register_list[register_right]);
   fprintf(output_file, "\t%s\tL%d\n",
-    inverted_compare_list[ast_operation - AST_COMPARE_EQUALS],
+    inverted_branch_list[ast_operation - AST_COMPARE_EQUALS],
     label);
 
   clear_all_registers();
@@ -309,7 +305,7 @@ void register_label(int label) {
  * 创建一个跳到 label 的 jmp
 */
 void register_jump(int label) {
-  fprintf(output_file, "\tjmp\tL%d\n", label);
+  fprintf(output_file, "\tb\tL%d\n", label);
 }
 
 /**
@@ -364,12 +360,10 @@ int register_get_primitive_type_size(int primitive_type) {
  * 处理函数调用 function_call
 */
 int register_function_call(int register_index, int symbol_table_index) {
-  int out_register_index = allocate_register();
-  fprintf(output_file, "\tmovq\t%s, %%rdi\n", register_list[register_index]);
-  fprintf(output_file, "\tcall\t%s\n", global_symbol_table[symbol_table_index].name);
-  fprintf(output_file, "\tmovq\t%%rax, %s\n", register_list[out_register_index]);
-  clear_register(register_index);
-  return out_register_index;
+  fprintf(output_file, "\tmov\tr0, %s\n", register_list[register_index]);
+  fprintf(output_file, "\tbl\t%s\n", global_symbol_table[symbol_table_index].name);
+  fprintf(output_file, "\tmov\t%s, r0\n", register_list[register_index]);
+  return register_index;
 }
 
 /**
@@ -378,18 +372,6 @@ int register_function_call(int register_index, int symbol_table_index) {
 void register_function_return(int register_index, int symbol_table_index) {
   struct SymbolTable t = global_symbol_table[symbol_table_index];
   char *r = register_list[register_index];
-  switch (t.primitive_type) {
-    case PRIMITIVE_CHAR:
-      fprintf(output_file, "\tmovzbl\t%s, %%eax\n", lower_8_bits_register_list[register_index]);
-      break;
-    case PRIMITIVE_INT:
-      fprintf(output_file, "\tmovl\t%s, %%eax\n", lower_32_bits_register_list[register_index]);
-      break;
-    case PRIMITIVE_LONG:
-      fprintf(output_file, "\tmovq\t%s, %%rax\n", register_list[register_index]);
-      break;
-    default:
-      error_with_digital("Bad function type in register_function_return:", t.primitive_type);
-  }
+  fprintf(output_file, "\tmov\tr0, %s\n", r);
   register_jump(t.end_label);
 }
