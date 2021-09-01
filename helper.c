@@ -4,6 +4,7 @@
 #include "scan.h"
 #include "data.h"
 #include "definations.h"
+#include "helper.h"
 
 /**
  * 检查当前 token 是否为给到的标识符，如果不是则报错
@@ -11,8 +12,7 @@
 */
 void verify_token_and_fetch_next_token(int token, char *wanted_identifier) {
   if (token_from_file.token != token) {
-    printf("%s expected on line %d\n", wanted_identifier, line);
-    exit(1);
+    error_with_message("Expected", wanted_identifier);
   }
   scan(&token_from_file);
 }

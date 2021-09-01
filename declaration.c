@@ -33,7 +33,6 @@ void parse_var_declaration_statement() {
 
   // 解析类似于 int xxx; 这样的语句
   primitive_type = convert_token_2_primitive_type(token_from_file.token);
-  scan(&token_from_file);
   verify_identifier();
 
   // 把这个标识符加入 global symbol table
@@ -52,7 +51,6 @@ struct ASTNode *parse_function_declaration_statement() {
 
   // 解析类似于 int xxx() {}; 这样的语句
   primitive_type = convert_token_2_primitive_type(token_from_file.token);
-  scan(&token_from_file);
   verify_identifier();
 
   end_label = generate_label();

@@ -26,12 +26,12 @@ test: parser test/run_test
 test_arm: parser_arm test/run_test
 	(cd test; chmod +x make_test; chmod +x run_test; ./make_test && ./run_test)
 
-test10: parser test/input10 $(LIB)
-	./parser test/input10
+test11: parser test/input11 $(LIB)
+	./parser test/input11
 	cc -o out out.s $(LIB)
 	./out
 
-test10_arm: parser_arm test/input10 $(LIB)
-	./parser test/input10
+test11_arm: parser_arm test/input11 $(LIB)
+	./parser test/input11
 	cc -o out out.s $(LIB)
 	./out

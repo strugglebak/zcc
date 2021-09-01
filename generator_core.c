@@ -197,6 +197,9 @@ int register_load_value_from_variable(int symbol_table_index) {
       fprintf(output_file, "\tmovzbl\t%s(\%%rip), %s\n", t.name, r);
       break;
     case PRIMITIVE_LONG:
+    case PRIMITIVE_CHAR_POINTER:
+    case PRIMITIVE_INT_POINTER:
+    case PRIMITIVE_LONG_POINTER:
       fprintf(output_file, "\tmovq\t%s(\%%rip), %s\n", t.name, r);
       break;
     default:
@@ -222,6 +225,9 @@ int register_store_value_2_variable(int register_index, int symbol_table_index) 
        t.name);
       break;
     case PRIMITIVE_LONG:
+    case PRIMITIVE_CHAR_POINTER:
+    case PRIMITIVE_INT_POINTER:
+    case PRIMITIVE_LONG_POINTER:
       fprintf(output_file, "\tmovq\t%s, %s(\%%rip)\n",
       register_list[register_index],
       t.name);
@@ -353,7 +359,7 @@ int register_widen(
  * 给定一个 primitive type，返回其对应的字节数
 */
 int register_get_primitive_type_size(int primitive_type) {
-  if (primitive_type < PRIMITIVE_NONE || primitive_type > PRIMITIVE_LONG)
+  if (primitive_type < PRIMITIVE_NONE || primitive_type > PRIMITIVE_LONG_POINTER)
     error("Bad type in register_get_primitive_type_size()");
   return primitive_size[primitive_type];
 }
