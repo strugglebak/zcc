@@ -394,4 +394,5 @@ int register_dereference_pointer(int register_index, int primitive_type) {
       fprintf(output_file, "\tldr\t%s, [%s]\n", r, r);
       break;
   }
+  return register_index;
 }
