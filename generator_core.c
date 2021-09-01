@@ -391,3 +391,25 @@ void register_function_return(int register_index, int symbol_table_index) {
   }
   register_jump(t.end_label);
 }
+
+int register_load_identifier_address(int symbol_table_index) {
+  int register_index = allocate_register();
+  struct SymbolTable t = global_symbol_table[symbol_table_index];
+  fprintf(output_file, "\tleaq\t%s(%%rip), %s\n",
+    t.name,
+    register_list[register_index]);
+  return register_index;
+}
+
+int register_dereference_pointer(int register_index, int primitive_type) {
+  char *r = register_list[register_index];
+  switch (primitive_type) {
+    case PRIMITIVE_CHAR_POINTER:
+      fprintf(output_file, "\tmovzbq\t(%s), %s\n", r, r);
+      break;
+    case PRIMITIVE_INT_POINTER:
+    case PRIMITIVE_LONG_POINTER:
+      fprintf(output_file, "\tmovq\t(%s), %s\n", r, r);
+      break;
+  }
+}

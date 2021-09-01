@@ -183,6 +183,13 @@ int interpret_ast_with_register(
       // 这里所有的生成汇编代码的工作已经结束，返回结果就好
       return right_register;
 
+    // &
+    case AST_IDENTIFIER_ADDRESS:
+      return register_load_identifier_address(node->value.symbol_table_index);
+    // *
+    case AST_DEREFERENCE_POINTER:
+      return register_dereference_pointer(left_register, node->left->primitive_type);
+
     case AST_PRINT:
       // 打印左子树的值
       register_print(left_register);

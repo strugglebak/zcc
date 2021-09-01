@@ -217,7 +217,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
         tree->operation != AST_DEREFERENCE_POINTER)
         error("* operator must be followed by an identifier or *");
 
-      //
+      // 生成一个父级节点
       tree = create_ast_left_node(
         AST_DEREFERENCE_POINTER,
         value_at(tree->primitive_type),

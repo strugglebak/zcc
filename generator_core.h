@@ -47,4 +47,7 @@ int register_get_primitive_type_size(int primitive_type);
 int register_function_call(int register_index, int symbol_table_index);
 void register_function_return(int register_index, int symbol_table_index);
 
+int register_load_identifier_address(int symbol_table_index);
+int register_dereference_pointer(int register_index, int primitive_type);
+
 #endif
