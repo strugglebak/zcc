@@ -49,27 +49,27 @@ int check_type_compatible(
 }
 
 int pointer_to(int primitive_type) {
-  int newtype;
+  int new_type;
   switch (primitive_type) {
-    case PRIMITIVE_VOID: newtype = PRIMITIVE_VOID_POINTER; break;
-    case PRIMITIVE_CHAR: newtype = PRIMITIVE_CHAR_POINTER; break;
-    case PRIMITIVE_INT: newtype = PRIMITIVE_INT_POINTER; break;
-    case PRIMITIVE_LONG: newtype = PRIMITIVE_LONG_POINTER; break;
+    case PRIMITIVE_VOID: new_type = PRIMITIVE_VOID_POINTER; break;
+    case PRIMITIVE_CHAR: new_type = PRIMITIVE_CHAR_POINTER; break;
+    case PRIMITIVE_INT: new_type = PRIMITIVE_INT_POINTER; break;
+    case PRIMITIVE_LONG: new_type = PRIMITIVE_LONG_POINTER; break;
     default:
       error_with_digital("Unrecognised in pointer_to: primitive type", primitive_type);
   }
-  return newtype;
+  return new_type;
 }
 
 int value_at(int primitive_type) {
-  int newtype;
+  int new_type;
   switch (primitive_type) {
-    case PRIMITIVE_VOID_POINTER: newtype = PRIMITIVE_VOID; break;
-    case PRIMITIVE_CHAR_POINTER: newtype = PRIMITIVE_CHAR; break;
-    case PRIMITIVE_INT_POINTER: newtype = PRIMITIVE_INT; break;
-    case PRIMITIVE_LONG_POINTER: newtype = PRIMITIVE_LONG; break;
+    case PRIMITIVE_VOID_POINTER: new_type = PRIMITIVE_VOID; break;
+    case PRIMITIVE_CHAR_POINTER: new_type = PRIMITIVE_CHAR; break;
+    case PRIMITIVE_INT_POINTER: new_type = PRIMITIVE_INT; break;
+    case PRIMITIVE_LONG_POINTER: new_type = PRIMITIVE_LONG; break;
     default:
       error_with_digital("Unrecognised in value_at: primitive type", primitive_type);
   }
-  return newtype;
+  return new_type;
 }

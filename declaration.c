@@ -6,17 +6,26 @@
 #include "generator.h"
 #include "ast.h"
 #include "statement.h"
+#include "types.h"
 
 int convert_token_2_primitive_type(int token) {
+  int new_type;
   switch (token) {
-    case TOKEN_CHAR: return PRIMITIVE_CHAR;
-    case TOKEN_INT: return PRIMITIVE_INT;
-    case TOKEN_VOID: return PRIMITIVE_VOID;
-    case TOKEN_LONG: return PRIMITIVE_LONG;
+    case TOKEN_CHAR: new_type = PRIMITIVE_CHAR; break;
+    case TOKEN_INT: new_type = PRIMITIVE_INT; break;
+    case TOKEN_VOID: new_type = PRIMITIVE_VOID; break;
+    case TOKEN_LONG: new_type = PRIMITIVE_LONG; break;
     default:
       error_with_digital("Illegal type, token", token);
-      break;
   }
+
+  // 检查后面是否带 *
+  while (1) {
+    scan(&token_from_file);
+    if (token_from_file.token != TOKEN_MULTIPLY) break;
+    new_type = pointer_to(new_type);
+  }
+  return new_type;
 }
 
 void parse_var_declaration_statement() {
