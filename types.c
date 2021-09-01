@@ -1,5 +1,6 @@
 #include "definations.h"
 #include "generator_core.h"
+#include "helper.h"
 
 // 比较俩基本类型是否兼容
 // 返回 1 为兼容，0 为不兼容
@@ -45,4 +46,30 @@ int check_type_compatible(
   // 剩下的都是兼容的
   *left_primitive_type = *right_primitive_type = 0;
   return 1;
+}
+
+int pointer_to(int primitive_type) {
+  int newtype;
+  switch (primitive_type) {
+    case PRIMITIVE_VOID: newtype = PRIMITIVE_VOID_POINTER; break;
+    case PRIMITIVE_CHAR: newtype = PRIMITIVE_CHAR_POINTER; break;
+    case PRIMITIVE_INT: newtype = PRIMITIVE_INT_POINTER; break;
+    case PRIMITIVE_LONG: newtype = PRIMITIVE_LONG_POINTER; break;
+    default:
+      error_with_digital("Unrecognised in pointer_to: primitive type", primitive_type);
+  }
+  return newtype;
+}
+
+int value_at(int primitive_type) {
+  int newtype;
+  switch (primitive_type) {
+    case PRIMITIVE_VOID_POINTER: newtype = PRIMITIVE_VOID; break;
+    case PRIMITIVE_CHAR_POINTER: newtype = PRIMITIVE_CHAR; break;
+    case PRIMITIVE_INT_POINTER: newtype = PRIMITIVE_INT; break;
+    case PRIMITIVE_LONG_POINTER: newtype = PRIMITIVE_LONG; break;
+    default:
+      error_with_digital("Unrecognised in value_at: primitive type", primitive_type);
+  }
+  return newtype;
 }
