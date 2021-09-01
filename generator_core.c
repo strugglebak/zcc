@@ -28,7 +28,7 @@ static char *compare_list[] =
 static char *inverted_compare_list[] = { "jne", "je", "jge", "jle", "jg", "jl" };
 
 // none/void/char/int/long
-static int primitive_size[] = { 0, 0, 1, 4, 8 };
+static int primitive_size[] = { 0, 0, 1, 4, 8, 8, 8, 8 };
 
 void clear_all_registers() {
   free_registers[0] = free_registers[1] = free_registers[2] = free_registers[3] = 1;

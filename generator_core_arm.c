@@ -26,7 +26,7 @@ static char *inverted_branch_list[] =
   { "bne", "beq", "bge", "ble", "bgt", "blt" };
 
 // none/void/char/int/long
-static int primitive_size[] = { 0, 0, 1, 4, 4 };
+static int primitive_size[] = { 0, 0, 1, 4, 4, 4, 4, 4 };
 
 void clear_all_registers() {
   free_registers[0] = free_registers[1] = free_registers[2] = free_registers[3] = 1;
