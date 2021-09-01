@@ -188,6 +188,14 @@ int scan(struct Token *t) {
       t->token = TOKEN_RIGHT_BRACE;
       break;
 
+    case '&':
+      if ((c = next()) == '&') {
+        t->token = TOKEN_LOGICAL_AND;
+      } else {
+        put_back(c);
+        t->token = TOKEN_AMPERSAND;
+      }
+      break;
     case '=':
       if ((c = next()) == '=') {
         t->token = TOKEN_COMPARE_EQUALS;

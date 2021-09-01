@@ -65,6 +65,9 @@ enum {
 
   TOKEN_LONG, // long
   TOKEN_RETURN, // return
+
+  TOKEN_AMPERSAND, // &
+  TOKEN_LOGICAL_AND, // &&
 };
 
 // AST 节点类型
@@ -106,7 +109,12 @@ enum {
   PRIMITIVE_VOID,
   PRIMITIVE_CHAR,
   PRIMITIVE_INT,
-  PRIMITIVE_LONG
+  PRIMITIVE_LONG,
+  // 指针类型
+  PRIMITIVE_VOID_POINTER,
+  PRIMITIVE_CHAR_POINTER,
+  PRIMITIVE_INT_POINTER,
+  PRIMITIVE_LONG_POINTER,
 };
 
 // Structural types 结构类型
