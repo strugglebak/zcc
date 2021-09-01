@@ -215,6 +215,9 @@ int register_store_value_2_variable(int register_index, int symbol_table_index) 
       break;
     case PRIMITIVE_INT:
     case PRIMITIVE_LONG:
+    case PRIMITIVE_CHAR_POINTER:
+    case PRIMITIVE_INT_POINTER:
+    case PRIMITIVE_LONG_POINTER:
       fprintf(output_file, "\tstr\t%s, [r3]\n",
       register_list[register_index]);
       break;
@@ -351,7 +354,7 @@ int register_widen(
  * 给定一个 primitive type，返回其对应的字节数
 */
 int register_get_primitive_type_size(int primitive_type) {
-  if (primitive_type < PRIMITIVE_NONE || primitive_type > PRIMITIVE_LONG)
+  if (primitive_type < PRIMITIVE_NONE || primitive_type > PRIMITIVE_LONG_POINTER)
     error("Bad type in register_get_primitive_type_size()");
   return primitive_size[primitive_type];
 }
