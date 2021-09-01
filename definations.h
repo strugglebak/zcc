@@ -101,6 +101,9 @@ enum {
   AST_WIDEN,
   AST_FUNCTION_CALL,
   AST_RETURN,
+
+  AST_DEREFERENCE_POINTER, // 间接引用指针
+  AST_IDENTIFIER_ADDRESS, // 指针变量地址
 };
 
 // Primitive types 原始类型

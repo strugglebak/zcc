@@ -105,7 +105,7 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
   int left_primitive_type, right_primitive_type = 0;
 
   // 初始化左子树
-  left = create_ast_node_from_expression();
+  left = convert_prefix_expression_2_ast();
 
   // 到这里说明已经遍历到文件尾，可以直接 return
   node_operaion_type = token_from_file.token;
@@ -184,6 +184,49 @@ struct ASTNode *convert_function_call_2_ast() {
 
   // 解析右 )
   verify_right_paren();
+
+  return tree;
+}
+
+// prefix_expression: primary
+//     | '*' prefix_expression
+//     | '&' prefix_expression
+//     ;
+struct ASTNode *convert_prefix_expression_2_ast() {
+  // 解析类似于
+  // a= &&&b;
+  // x= ***y;
+  // 这样的表达式
+  struct ASTNode *tree;
+  switch (token_from_file.token) {
+    case TOKEN_AMPERSAND:
+      // 递归，看下一个是不是 &
+      scan(&token_from_file);
+      tree = convert_prefix_expression_2_ast();
+      if (tree->operation != AST_IDENTIFIER)
+        error("& operator must be followed by an identifier");
+
+      tree->operation = AST_IDENTIFIER_ADDRESS;
+      tree->primitive_type = pointer_to(tree->primitive_type);
+      break;
+    case TOKEN_MULTIPLY:
+      // 递归，看下一个是不是 *
+      scan(&token_from_file);
+      tree = convert_prefix_expression_2_ast();
+      if (tree->operation != AST_IDENTIFIER &&
+        tree->operation != AST_DEREFERENCE_POINTER)
+        error("* operator must be followed by an identifier or *");
+
+      //
+      tree = create_ast_left_node(
+        AST_DEREFERENCE_POINTER,
+        value_at(tree->primitive_type),
+        tree,
+        0);
+      break;
+    default:
+      tree = create_ast_node_from_expression();
+  }
 
   return tree;
 }
