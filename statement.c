@@ -100,13 +100,8 @@ struct ASTNode *parse_print_statement() {
   left = converse_token_2_ast(0);
 
   // 检查类型是否兼容
-  left_primitive_type = left->primitive_type;
-  right_primitive_type = right->primitive_type;
-  if (!check_type_compatible(&left_primitive_type, &right_primitive_type, 1)) // 注意这里不允许强制转换
-    error("Incompatible types");
-
-  if (left_primitive_type)
-    left = create_ast_left_node(left_primitive_type, right->primitive_type, left, 0);
+  left = modify_type(left, right->primitive_type, 0);
+  if (!left) error("Incompatible expression in assignment");
 
   // 根据左右节点创建一颗有关 statement 的 ast 树
   tree = create_ast_node(AST_ASSIGNMENT_STATEMENT, PRIMITIVE_INT, left, NULL, right, 0);

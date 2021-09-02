@@ -100,7 +100,7 @@ int convert_token_operation_2_ast_operation(int operation_in_token) {
  * 注意这里用 pratt 解析的方式进行
 */
 struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
-  struct ASTNode *left, *right;
+  struct ASTNode *left, *right, *left_temp, *right_temp;
   int node_operaion_type = 0;
   int left_primitive_type, right_primitive_type = 0;
 
@@ -123,27 +123,17 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
     // 开始构建右子树
     right = converse_token_2_ast(operation_precedence(node_operaion_type));
 
-    // 检查 left 和 right 节点的 primitive_type 是否兼容
-    left_primitive_type = left->primitive_type;
-    right_primitive_type = right->primitive_type;
-    if (!check_type_compatible(&left_primitive_type, &right_primitive_type, 0))
-      error("Incompatible types");
-
-    // 检查完之后，left_primitive_type 和 right_primitive_type 应该会有变化
-    // 到这里基本是
-    // int char
-    // char int
-    // int int
-    // char char
-    // 如果 left_primitive_type 或者 right_primitive_type 其中之一是 AST_WIDEN
-    //
-    if (left_primitive_type)
-      left = create_ast_left_node(left_primitive_type, right->primitive_type, left, 0);
-    if (right_primitive_type)
-      right = create_ast_left_node(right_primitive_type, left->primitive_type, right, 0);
-
     // 将 Token 操作符类型转换成 AST 操作符类型
     node_operaion_type = convert_token_operation_2_ast_operation(node_operaion_type);
+
+    // 检查 left 和 right 节点的 primitive_type 是否兼容
+    // 这里同时判断了指针的类型
+    left_temp = modify_type(left, right->primitive_type, node_operaion_type);
+    right_temp = modify_type(right, left->primitive_type, node_operaion_type);
+    if (!left_temp && !right_temp) error("Incompatible types in binary expression");
+    if (left_temp) left = left_temp;
+    if (right_temp) right = right_temp;
+
     // 开始构建左子树
     left = create_ast_node(node_operaion_type, left->primitive_type, left, NULL, right, 0);
 
