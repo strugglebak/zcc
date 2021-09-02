@@ -29,20 +29,28 @@ int convert_token_2_primitive_type() {
 }
 
 void parse_var_declaration_statement(int primitive_type) {
-  int identifier_id;
+  int symbol_table_index;
 
-  // 解析类似于 int xxx; 这样的语句
-  primitive_type = convert_token_2_primitive_type();
-  verify_identifier();
+  // 解析类似于 int x,y,z; 这样的声明
+  while (1) {
+    // 把这个标识符加入 global symbol table
+    symbol_table_index = add_global_symbol(text_buffer, primitive_type, STRUCTURAL_VARIABLE, 0);
 
-  // 把这个标识符加入 global symbol table
-  identifier_id = add_global_symbol(text_buffer, primitive_type, STRUCTURAL_VARIABLE, 0);
+    // 并接着生成对应的汇编代码
+    generate_global_symbol_table_code(symbol_table_index);
 
-  // 并接着生成对应的汇编代码
-  generate_global_symbol_table_code(identifier_id);
+    if (token_from_file.token == TOKEN_SEMICOLON) {
+      scan(&token_from_file);
+      return;
+    }
 
-  // 解析是否带了分号
-  verify_semicolon();
+    if (token_from_file.token == TOKEN_COMMA) {
+      scan(&token_from_file);
+      verify_identifier();
+      continue;
+    }
+    error("Missing , or ; after identifier");
+  }
 }
 
 struct ASTNode *parse_function_declaration_statement(int primitive_type) {
