@@ -57,10 +57,6 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
   struct ASTNode *tree, *final_statement;
   int name_slot, end_label;
 
-  // 解析类似于 int xxx() {}; 这样的语句
-  primitive_type = convert_token_2_primitive_type();
-  verify_identifier();
-
   end_label = generate_label();
   name_slot = add_global_symbol(text_buffer, primitive_type, STRUCTURAL_FUNCTION, end_label);
   current_function_symbol_id = name_slot;

@@ -12,13 +12,16 @@
 
 static struct ASTNode *parse_return_statement();
 static struct ASTNode *parse_single_statement() {
+  int primitive_type;
   switch(token_from_file.token) {
     case TOKEN_PRINT:
       return parse_print_statement();
     case TOKEN_CHAR:
     case TOKEN_INT:
     case TOKEN_LONG:
-      parse_var_declaration_statement();
+      primitive_type = convert_token_2_primitive_type();
+      verify_identifier();
+      parse_var_declaration_statement(primitive_type);
       return NULL;
     case TOKEN_IDENTIFIER:
       return parse_assignment_statement();
