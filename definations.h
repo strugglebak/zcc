@@ -68,6 +68,7 @@ enum {
 
   TOKEN_AMPERSAND, // &
   TOKEN_LOGICAL_AND, // &&
+  TOKEN_COMMA, // ,
 };
 
 // AST 节点类型

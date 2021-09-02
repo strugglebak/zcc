@@ -53,14 +53,9 @@ int main(int argc, char *argv[]) {
 
   // 扫描文件中的字符串，并将其赋值给 token_from_file 这个全局变量
   scan(&token_from_file);
-
-  // 生成汇编代码
-  // 这里主要是测试有 print 的语句的情况
   generate_preamble_code();
-  while (token_from_file.token != TOKEN_EOF) {
-    tree = parse_function_declaration_statement();
-    interpret_ast_with_register(tree, NO_REGISTER, 0);
-  }
+  parse_global_declaration_statement();
+  generate_postamble_code();
 
   // 关闭文件
   fclose(input_file);

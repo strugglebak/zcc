@@ -8,15 +8,15 @@
 #include "statement.h"
 #include "types.h"
 
-int convert_token_2_primitive_type(int token) {
+int convert_token_2_primitive_type() {
   int new_type;
-  switch (token) {
+  switch (token_from_file.token) {
     case TOKEN_CHAR: new_type = PRIMITIVE_CHAR; break;
     case TOKEN_INT: new_type = PRIMITIVE_INT; break;
     case TOKEN_VOID: new_type = PRIMITIVE_VOID; break;
     case TOKEN_LONG: new_type = PRIMITIVE_LONG; break;
     default:
-      error_with_digital("Illegal type, token", token);
+      error_with_digital("Illegal type, token", token_from_file.token);
   }
 
   // 检查后面是否带 *
@@ -28,11 +28,11 @@ int convert_token_2_primitive_type(int token) {
   return new_type;
 }
 
-void parse_var_declaration_statement() {
-  int identifier_id, primitive_type;
+void parse_var_declaration_statement(int primitive_type) {
+  int identifier_id;
 
   // 解析类似于 int xxx; 这样的语句
-  primitive_type = convert_token_2_primitive_type(token_from_file.token);
+  primitive_type = convert_token_2_primitive_type();
   verify_identifier();
 
   // 把这个标识符加入 global symbol table
@@ -45,12 +45,12 @@ void parse_var_declaration_statement() {
   verify_semicolon();
 }
 
-struct ASTNode *parse_function_declaration_statement() {
+struct ASTNode *parse_function_declaration_statement(int primitive_type) {
   struct ASTNode *tree, *final_statement;
-  int name_slot, primitive_type, end_label;
+  int name_slot, end_label;
 
   // 解析类似于 int xxx() {}; 这样的语句
-  primitive_type = convert_token_2_primitive_type(token_from_file.token);
+  primitive_type = convert_token_2_primitive_type();
   verify_identifier();
 
   end_label = generate_label();
@@ -71,4 +71,21 @@ struct ASTNode *parse_function_declaration_statement() {
   }
 
   return create_ast_left_node(AST_FUNCTION, primitive_type, tree, name_slot);
+}
+
+void parse_global_declaration_statement() {
+  struct ASTNode *tree;
+  int primitive_type;
+
+  // 解析声明的全局变量/函数
+  while (token_from_file.token != TOKEN_EOF) {
+    primitive_type = convert_token_2_primitive_type();
+    verify_identifier();
+    // 解析到 ( 说明是个函数
+    if (token_from_file.token == TOKEN_LEFT_PAREN)
+      tree = parse_function_declaration_statement(primitive_type);
+    else
+      // 否则就是变量
+      parse_var_declaration_statement(primitive_type);
+  }
 }
