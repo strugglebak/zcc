@@ -4,7 +4,8 @@ LIB= lib/print_int.c
 COMMON= parser.c interpreter.c main.c scan.c ast.c generator.c  statement.c helper.c symbol_table.c types.c declaration.c
 SRCS= $(COMMON) generator_core.c
 ARM_SRCS= $(COMMON) generator_core_arm.c
-TEST_CASE= test/input12
+TEST_CASE_NAME= 12
+TEST_CASE= test/input$(TEST_CASE_NAME).zc
 
 clean:
 	rm -f parser parser_arm *.o *.s out test/out.input*
