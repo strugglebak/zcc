@@ -195,15 +195,15 @@ int register_store_value_2_variable(int register_index, int symbol_table_index) 
  * 创建全局变量
 */
 void register_generate_global_symbol(int symbol_table_index) {
-  int primitive_type_size
-    = register_get_primitive_type_size(
-      global_symbol_table[symbol_table_index].primitive_type
-    );
-  // 这个全局变量先比较其原始类型，目前来说仅比较 int/char
-  fprintf(output_file, "\t.comm\t%s,%d,%d\n",
-    global_symbol_table[symbol_table_index].name,
-    primitive_type_size,
-    primitive_type_size);
+  struct SymbolTable t = global_symbol_table[symbol_table_index];
+  int primitive_type_size = register_get_primitive_type_size(t.primitive_type);
+  fprintf(output_file, "\t.data\n" "\t.globl\t%s\n", t.name);
+  switch(primitive_type_size) {
+    case 1: fprintf(output_file, "%s:\t.byte\t0\n", t.name); break;
+    case 4: fprintf(output_file, "%s:\t.long\t0\n", t.name); break;
+    case 8: fprintf(output_file, "%s:\t.quad\t0\n", t.name); break;
+    default: error_with_digital("Unknown typesize in register_generate_global_symbol: ", primitive_type_size);
+  }
 }
 
 /**
