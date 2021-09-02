@@ -79,7 +79,7 @@ void register_postamble() {
 /**
  * 把 value 放入某个寄存器中，并返回该寄存器的下标
 */
-int register_load_interger_literal(int value) {
+int register_load_interger_literal(int value, int primitive_type) {
   int register_index = allocate_register();
   fprintf(output_file, "\tmovq\t$%d, %s\n", value, register_list[register_index]);
   return register_index;
@@ -371,5 +371,11 @@ int register_dereference_pointer(int register_index, int primitive_type) {
       fprintf(output_file, "\tmovq\t(%s), %s\n", r, r);
       break;
   }
+  return register_index;
+}
+
+int register_shift_left_by_constant(int register_index, int value) {
+  int *r = register_list[register_index];
+  fprintf(output_file, "\tsalq\t$%d, %s\n", value, r);
   return register_index;
 }

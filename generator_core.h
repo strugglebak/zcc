@@ -7,7 +7,7 @@ void clear_all_registers();
 void register_preamble();
 void register_postamble();
 
-int register_load_interger_literal(int value);
+int register_load_interger_literal(int value, int primitive_type);
 int register_plus(int left_register, int right_register);
 int register_minus(int left_register, int right_register);
 int register_multiply(int left_register, int right_register);
@@ -49,5 +49,6 @@ void register_function_return(int register_index, int symbol_table_index);
 
 int register_load_identifier_address(int symbol_table_index);
 int register_dereference_pointer(int register_index, int primitive_type);
+int register_shift_left_by_constant(int register_index, int value);
 
 #endif

@@ -118,7 +118,7 @@ void register_postamble() {
 /**
  * 把 value 放入某个寄存器中，并返回该寄存器的下标
 */
-int register_load_interger_literal(int value) {
+int register_load_interger_literal(int value, int primitive_type) {
   int register_index = allocate_register();
   if (value <= 1000)
     fprintf(output_file, "\tmov\t%s, #%d\n", register_list[register_index], value);
@@ -397,5 +397,11 @@ int register_dereference_pointer(int register_index, int primitive_type) {
       fprintf(output_file, "\tldr\t%s, [%s]\n", r, r);
       break;
   }
+  return register_index;
+}
+
+int register_shift_left_by_constant(int register_index, int value) {
+  int *r = register_list[register_index];
+  fprintf(output_file, "\tlsl\t%s, %s, #%d\n", r, r, value);
   return register_index;
 }

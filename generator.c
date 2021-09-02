@@ -196,9 +196,19 @@ int interpret_ast_with_register(
       clear_all_registers();
       return NO_REGISTER;
 
-
+    // 对 char/int/long 类型转换的处理
     case AST_WIDEN:
       return register_widen(left_register, node->left->primitive_type, node->primitive_type);
+    // 对 char*/int*/long* 指针类型转换的处理
+    case AST_SCALE:
+      switch (node->value.scale_size) {
+        case 2: return register_shift_left_by_constant(left_register, 1); // 左移 1 位
+        case 4: return register_shift_left_by_constant(left_register, 2); // 左移 2 位
+        case 8: return register_shift_left_by_constant(left_register, 3); // 左移 3 位
+        default:
+          right_register = register_load_interger_literal(node->value.scale_size, PRIMITIVE_INT);
+          return register_multiply(left_register, right_register);
+      }
 
     default:
       error_with_digital("Unknown AST operator", node->operation);
