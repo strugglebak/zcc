@@ -1,0 +1,12 @@
+int   d, f;
+int  *e;
+
+int main() {
+  int a, b, c;
+  b= 3; c= 5; a= b + c * 10;
+  print_int(a);
+
+  d= 12; print_int(d);
+  e= &d; f= *e; print_int(f);
+  return(0);
+}
