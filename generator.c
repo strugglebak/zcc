@@ -174,7 +174,7 @@ int interpret_ast_with_register(
       return NO_REGISTER;
 
     case AST_INTEGER_LITERAL:
-      return register_load_interger_literal(node->value.interger_value);
+      return register_load_interger_literal(node->value.interger_value, node->primitive_type);
     case AST_IDENTIFIER:
       return register_load_value_from_variable(node->value.symbol_table_index);
     case AST_LVALUE_IDENTIFIER:

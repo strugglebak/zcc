@@ -401,7 +401,7 @@ int register_dereference_pointer(int register_index, int primitive_type) {
 }
 
 int register_shift_left_by_constant(int register_index, int value) {
-  int *r = register_list[register_index];
+  char *r = register_list[register_index];
   fprintf(output_file, "\tlsl\t%s, %s, #%d\n", r, r, value);
   return register_index;
 }
