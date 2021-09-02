@@ -16,6 +16,7 @@ struct ASTNode {
   union {
     int interger_value;
     int symbol_table_index;
+    int scale_size;
   } value;
 };
 
@@ -100,6 +101,7 @@ enum {
   AST_INT,
 
   AST_WIDEN,
+  AST_SCALE,
   AST_FUNCTION_CALL,
   AST_RETURN,
 
