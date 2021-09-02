@@ -263,10 +263,10 @@ static struct ASTNode *parse_return_statement() {
  *
  * print_statement: 'print' expression ';'
  *      ;
- * declaration_statement: 'int' identifier ';'
- *      ;
+ *
  * assignment_statement: identifier '=' expression ';'
  *      ;
+ *
  * if_statement: if_head
  *      |        if_head 'else' compound_statement
  *      ;
@@ -287,7 +287,32 @@ static struct ASTNode *parse_return_statement() {
  * if_head: 'if' '(' true_or_false_expression ')' compound_statement
  *      ;
  *
- * function_declaration: 'void' identifier '(' ')' compound_statement
+ *
+ * global_declarations: global_declarations
+ *      |               global_declaration global_declarations
+ *      ;
+ *
+ * global_declaration: function_declaration
+ *      |              var_declaration
+ *      ;
+ *
+ * function_declaration: type identifier '(' ')' compound_statement
+ *      ;
+ *
+ * var_declaration: type identifier_list ';'
+ *      ;
+ *
+ * type: type_keyword operation_pointer
+ *      ;
+ *
+ * type_keyword: 'void' | 'char' | 'int' | 'long'
+ *      ;
+ *
+ * operation_pointer: <empty> | '*' opt_pointer
+ *      ;
+ *
+ * identifier_list: identifier
+ *      |           identifier ',' identifier_list
  *      ;
  *
  * function_call: identifier '(' expression ')'
