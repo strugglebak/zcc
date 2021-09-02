@@ -6,17 +6,6 @@
 #include "helper.h"
 #include "generator_core.h"
 
-
-#ifdef _linux
-  #define CALL_PRINTF "\tcall	printf\n"
-  #define GLOBAL_MAIN "\t.globl\tmain\n"
-  #define MAIN "main:\n"
-#else
-  #define CALL_PRINTF "\tcall	_printf\n"
-  #define GLOBAL_MAIN "\t.globl\t_main\n"
-  #define MAIN "_main:\n"
-#endif
-
 static int free_registers[4] = { 1 };
 static char *register_list[4] = { "%r8", "%r9", "%r10", "%r11" }; // 64 位寄存器
 static char *lower_8_bits_register_list[4] = { "%r8b", "%r9b", "%r10b", "%r11b" }; // 低 8 位寄存器
@@ -78,49 +67,13 @@ static int compare_register(int left_register, int right_register, char *set_ins
 */
 void register_preamble() {
   clear_all_registers();
-  fputs(
-    "\t.text\n"
-    ".LC0:\n"
-    "\t.string\t\"%d\\n\"\n"
-    "register_print:\n"
-    "\tpushq\t%rbp\n"
-    "\tmovq\t%rsp, %rbp\n"
-    "\tsubq\t$16, %rsp\n"
-    "\tmovl\t%edi, -4(%rbp)\n"
-    "\tmovl\t-4(%rbp), %eax\n"
-    "\tmovl\t%eax, %esi\n"
-    "\tleaq	.LC0(%rip), %rdi\n"
-    "\tmovl	$0, %eax\n"
-    // MacOS & iOS 不用 PLT
-    // https://stackoverflow.com/questions/59817831/unsupported-symbol-modifier-in-branch-relocation-call-printfplt
-    // "\tcall	_printf@PLT\n"
-    CALL_PRINTF
-    "\tnop\n"
-    "\tleave\n"
-    "\tret\n"
-    "\n",
-    // GLOBAL_MAIN
-    // 如果是要编译成 Mach-O x86-64 的汇编，则不需要下面的这个指令，因为这个指令为一个调试用的指令，通常用来调用桢信息的
-    // 详情见
-    // https://stackoverflow.com/questions/19720084/what-is-the-difference-between-assembly-on-mac-and-assembly-on-linux/19725269#19725269
-    // "\t.type\tmain, @function\n"
-    // MAIN
-    // "\tpushq\t%rbp\n"
-    // "\tmovq	%rsp, %rbp\n",
-    output_file
-  );
+  fputs( "\t.text\n", output_file);
 }
 
 /**
  * 汇编后置代码，写入到 output_file 中
 */
 void register_postamble() {
-  fputs(
-    "\tmovl	$0, %eax\n"
-    "\tpopq	%rbp\n"
-    "\tret\n",
-    output_file
-  );
 }
 
 /**
@@ -340,7 +293,7 @@ void register_function_preamble(int symbol_table_index) {
 void register_function_postamble(int symbol_table_index) {
   struct SymbolTable t = global_symbol_table[symbol_table_index];
   register_label(t.end_label);
-  fputs( "\tpopq     %rbp\n"
+  fputs("\tpopq     %rbp\n"
         "\tret\n", output_file);
 }
 

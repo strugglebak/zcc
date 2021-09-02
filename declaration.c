@@ -86,9 +86,10 @@ void parse_global_declaration_statement() {
     primitive_type = convert_token_2_primitive_type();
     verify_identifier();
     // 解析到 ( 说明是个函数
-    if (token_from_file.token == TOKEN_LEFT_PAREN)
+    if (token_from_file.token == TOKEN_LEFT_PAREN) {
       tree = parse_function_declaration_statement(primitive_type);
-    else
+      interpret_ast_with_register(tree, NO_REGISTER, 0);
+    } else
       // 否则就是变量
       parse_var_declaration_statement(primitive_type);
   }

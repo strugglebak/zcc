@@ -187,6 +187,9 @@ int scan(struct Token *t) {
     case '}':
       t->token = TOKEN_RIGHT_BRACE;
       break;
+    case ',':
+      t->token = TOKEN_COMMA;
+      break;
 
     case '&':
       if ((c = next()) == '&') {
