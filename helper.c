@@ -117,6 +117,7 @@ void dump_ast(struct ASTNode *n, int label, int level) {
   switch (n->operation) {
     case AST_GLUE:
       fprintf(stdout, "\n\n"); return;
+
     case AST_FUNCTION:
       fprintf(stdout, "AST_FUNCTION %s\n", t.name); return;
     case AST_PLUS:
@@ -148,20 +149,19 @@ void dump_ast(struct ASTNode *n, int label, int level) {
       return;
     case AST_ASSIGNMENT_STATEMENT:
       fprintf(stdout, "AST_ASSIGN\n"); return;
-    case AST_WIDEN:
-      fprintf(stdout, "AST_WIDEN\n"); return;
-    case AST_RETURN:
-      fprintf(stdout, "AST_RETURN\n"); return;
     case AST_FUNCTION_CALL:
       fprintf(stdout, "AST_FUNCCALL %s\n", t.name); return;
+    case AST_RETURN:
+      fprintf(stdout, "AST_RETURN\n"); return;
     case AST_IDENTIFIER_ADDRESS:
       fprintf(stdout, "AST_ADDR %s\n", t.name); return;
     case AST_DEREFERENCE_POINTER:
-      if (n->rvalue)
-        fprintf(stdout, "AST_DEREF rval\n");
-      else
-        fprintf(stdout, "AST_DEREF\n");
+      n->rvalue
+        ? fprintf(stdout, "AST_DEREF rval\n")
+        : fprintf(stdout, "AST_DEREF\n");
       return;
+    case AST_WIDEN:
+      fprintf(stdout, "AST_WIDEN\n"); return;
     case AST_SCALE:
       fprintf(stdout, "AST_SCALE %d\n", n->value.scale_size); return;
     default:
