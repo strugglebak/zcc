@@ -14,8 +14,6 @@ static struct ASTNode *parse_return_statement();
 static struct ASTNode *parse_single_statement() {
   int primitive_type;
   switch(token_from_file.token) {
-    case TOKEN_PRINT:
-      return parse_print_statement();
     case TOKEN_CHAR:
     case TOKEN_INT:
     case TOKEN_LONG:
@@ -23,8 +21,6 @@ static struct ASTNode *parse_single_statement() {
       verify_identifier();
       parse_var_declaration_statement(primitive_type);
       return NULL;
-    case TOKEN_IDENTIFIER:
-      return parse_assignment_statement();
     case TOKEN_IF:
       return parse_if_statement();
     case TOKEN_WHILE:
@@ -34,7 +30,7 @@ static struct ASTNode *parse_single_statement() {
     case TOKEN_RETURN:
       return parse_return_statement();
     default:
-      error_with_digital("Syntax error, token", token_from_file.token);
+      return converse_token_2_ast(0);
   }
 }
 
@@ -335,10 +331,9 @@ struct ASTNode *parse_compound_statement() {
 
     // 既然是解析 stmt，那么必须后面带 ;
     if (tree &&
-      (tree->operation == AST_PRINT ||
-      tree->operation == AST_ASSIGNMENT_STATEMENT ||
-      tree->operation == AST_RETURN ||
-      tree->operation == AST_FUNCTION_CALL))
+        (tree->operation == AST_ASSIGNMENT_STATEMENT ||
+         tree->operation == AST_RETURN ||
+         tree->operation == AST_FUNCTION_CALL))
       verify_semicolon();
 
     // 如果 tree 不为空，则更新对应的 left
