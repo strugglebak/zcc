@@ -19,6 +19,10 @@ static int operation_precedence_array[] = {
   50, 50, 50, 50 // < > <= >=
 };
 
+static int check_right_associative(int token) {
+  return token == TOKEN_ASSIGN ? 1 : 0;
+}
+
 // 确定操作符的优先级
 static int operation_precedence(int operation_in_token) {
   int precedence = operation_precedence_array[operation_in_token];
@@ -102,50 +106,71 @@ int convert_token_operation_2_ast_operation(int operation_in_token) {
 */
 struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
   struct ASTNode *left, *right, *left_temp, *right_temp;
-  int node_operaion_type = 0;
-  int left_primitive_type, right_primitive_type = 0;
+  int node_operation_type;
+  int ast_operation_type;
 
   // 初始化左子树
   left = convert_prefix_expression_2_ast();
 
   // 到这里说明已经遍历到文件尾，可以直接 return
-  node_operaion_type = token_from_file.token;
+  node_operation_type = token_from_file.token;
   // 如果遇到分号，也可以直接 return
   // 如果遇到')' 说明这个节点已经构建完成，直接返回 left
-  if (TOKEN_SEMICOLON == node_operaion_type ||
-    TOKEN_EOF == node_operaion_type ||
-    TOKEN_RIGHT_PAREN == node_operaion_type
+  if (TOKEN_SEMICOLON == node_operation_type ||
+    TOKEN_EOF == node_operation_type ||
+    TOKEN_RIGHT_PAREN == node_operation_type
     ) return left;
 
-  // 如果这次扫描得到的操作符比之前的优先级高，则进行树的循环构建
-  while(operation_precedence(node_operaion_type) > previous_token_precedence) {
+  // 如果这次扫描得到的操作符比之前的优先级高，
+  // 或者它是个右结合操作符 =，并且优先级和上一个操作符相同
+  // 则进行树的循环构建
+  while(
+    (operation_precedence(node_operation_type)
+      > previous_token_precedence) ||
+    (check_right_associative(node_operation_type)
+      && operation_precedence(node_operation_type) == previous_token_precedence)
+  ) {
     // 继续扫描
     scan(&token_from_file);
     // 开始构建右子树
-    right = converse_token_2_ast(operation_precedence(node_operaion_type));
+    right = converse_token_2_ast(operation_precedence(node_operation_type));
 
     // 将 Token 操作符类型转换成 AST 操作符类型
-    node_operaion_type = convert_token_operation_2_ast_operation(node_operaion_type);
+    ast_operation_type = convert_token_operation_2_ast_operation(node_operation_type);
+    right->rvalue = 1;
+    if (ast_operation_type == AST_ASSIGNMENT_STATEMENT) {
+      // 确保 right 和 left 的类型匹配
+      right = modify_type(right, left->primitive_type, 0);
+      if (!left) error("Incompatible expression in assignment");
 
-    // 检查 left 和 right 节点的 primitive_type 是否兼容
-    // 这里同时判断了指针的类型
-    left_temp = modify_type(left, right->primitive_type, node_operaion_type);
-    right_temp = modify_type(right, left->primitive_type, node_operaion_type);
-    if (!left_temp && !right_temp) error("Incompatible types in binary expression");
-    if (left_temp) left = left_temp;
-    if (right_temp) right = right_temp;
+      // 交换 left 和 right，确保 right 汇编语句能在 left 之前生成
+      left_temp = left; left = right; right = left_temp;
+    } else {
+      // 如果不是赋值操作，那么显然所有的 tree node 都是 rvalue 右值
+      left->rvalue = 1;
+
+      // 检查 left 和 right 节点的 primitive_type 是否兼容
+      // 这里同时判断了指针的类型
+      left_temp = modify_type(left, right->primitive_type, ast_operation_type);
+      right_temp = modify_type(right, left->primitive_type, ast_operation_type);
+      if (!left_temp && !right_temp) error("Incompatible types in binary expression");
+      if (left_temp) left = left_temp;
+      if (right_temp) right = right_temp;
+    }
+
 
     // 开始构建左子树
-    left = create_ast_node(node_operaion_type, left->primitive_type, left, NULL, right, 0);
+    left = create_ast_node(ast_operation_type, left->primitive_type, left, NULL, right, 0);
 
-    node_operaion_type = token_from_file.token;
-    if (TOKEN_SEMICOLON == node_operaion_type ||
-      TOKEN_EOF == node_operaion_type ||
-      TOKEN_RIGHT_PAREN == node_operaion_type
+    node_operation_type = token_from_file.token;
+    if (TOKEN_SEMICOLON == node_operation_type ||
+      TOKEN_EOF == node_operation_type ||
+      TOKEN_RIGHT_PAREN == node_operation_type
       ) break;
   }
 
   // 返回这颗构建的树
+  left->rvalue = 1;
   return left;
 }
 
