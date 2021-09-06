@@ -101,7 +101,7 @@ void dump_ast(struct ASTNode *n, int label, int level) {
       label_start = generate_dump_label();
       for (int i = 0; i < level; i++) fprintf(stdout, " ");
       fprintf(stdout, "AST_WHILE, start L%d\n", label_start);
-      label_end = gendumplabel();
+      label_end = generate_dump_label();
       dump_ast(n->left, label_end, level+2);
       dump_ast(n->right, NO_LABEL, level+2);
       return;
