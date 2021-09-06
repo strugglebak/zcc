@@ -136,4 +136,6 @@ enum {
 // 函数没有 register id 返回了，就用这个标志位
 #define NO_REGISTER -1
 
+#define NO_LABEL 0
+
 #endif

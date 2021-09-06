@@ -73,3 +73,98 @@ void error_with_character(char *string, char character) {
   fprintf(stderr, "%s:%c on line %d\n", string, character, line);
   exit(1);
 }
+
+static int generate_dump_label(void) {
+  static int id = 1;
+  return (id++);
+}
+// 递归打印 ast
+void dump_ast(struct ASTNode *n, int label, int level) {
+  int label_false, label_start, label_end;
+  struct SymbolTable t = global_symbol_table[n->value.symbol_table_index];
+
+  switch (n->operation) {
+    case AST_IF:
+      label_false = generate_dump_label();
+      for (int i = 0; i < level; i++) fprintf(stdout, " ");
+      fprintf(stdout, "AST_IF");
+      if (n->right) {
+        label_end = generate_dump_label();
+        fprintf(stdout, ", end L%d", label_end);
+      }
+      fprintf(stdout, "\n");
+      dump_ast(n->left, label_false, level+2);
+      dump_ast(n->middle, NO_LABEL, level+2);
+      if (n->right) dump_ast(n->right, NO_LABEL, level+2);
+      return;
+    case AST_WHILE:
+      label_start = generate_dump_label();
+      for (int i = 0; i < level; i++) fprintf(stdout, " ");
+      fprintf(stdout, "AST_WHILE, start L%d\n", label_start);
+      label_end = gendumplabel();
+      dump_ast(n->left, label_end, level+2);
+      dump_ast(n->right, NO_LABEL, level+2);
+      return;
+  }
+
+  if (n->operation == AST_GLUE) level= -2;
+
+  if (n->left) dump_ast(n->left, NO_LABEL, level+2);
+  if (n->right) dump_ast(n->right, NO_LABEL, level+2);
+
+
+  for (int i = 0; i < level; i++) fprintf(stdout, " ");
+  switch (n->operation) {
+    case AST_GLUE:
+      fprintf(stdout, "\n\n"); return;
+    case AST_FUNCTION:
+      fprintf(stdout, "AST_FUNCTION %s\n", t.name); return;
+    case AST_PLUS:
+      fprintf(stdout, "AST_PLUS\n"); return;
+    case AST_MINUS:
+      fprintf(stdout, "AST_MINUS\n"); return;
+    case AST_MULTIPLY:
+      fprintf(stdout, "AST_MULTIPLY\n"); return;
+    case AST_DIVIDE:
+      fprintf(stdout, "AST_DIVIDE\n"); return;
+    case AST_COMPARE_EQUALS:
+      fprintf(stdout, "AST_EQ\n"); return;
+    case AST_COMPARE_NOT_EQUALS:
+      fprintf(stdout, "AST_NE\n"); return;
+    case AST_COMPARE_LESS_THAN:
+      fprintf(stdout, "AST_LE\n"); return;
+    case AST_COMPARE_GREATER_THAN:
+      fprintf(stdout, "AST_GT\n"); return;
+    case AST_COMPARE_LESS_EQUALS:
+      fprintf(stdout, "AST_LE\n"); return;
+    case AST_COMPARE_GREATER_EQUALS:
+      fprintf(stdout, "AST_GE\n"); return;
+    case AST_INTEGER_LITERAL:
+      fprintf(stdout, "AST_INTLIT %d\n", n->value.interger_value); return;
+    case AST_IDENTIFIER:
+      n->rvalue
+        ? fprintf(stdout, "AST_IDENT rval %s\n", t.name)
+        : fprintf(stdout, "AST_IDENT %s\n", t.name);
+      return;
+    case AST_ASSIGNMENT_STATEMENT:
+      fprintf(stdout, "AST_ASSIGN\n"); return;
+    case AST_WIDEN:
+      fprintf(stdout, "AST_WIDEN\n"); return;
+    case AST_RETURN:
+      fprintf(stdout, "AST_RETURN\n"); return;
+    case AST_FUNCTION_CALL:
+      fprintf(stdout, "AST_FUNCCALL %s\n", t.name); return;
+    case AST_IDENTIFIER_ADDRESS:
+      fprintf(stdout, "AST_ADDR %s\n", t.name); return;
+    case AST_DEREFERENCE_POINTER:
+      if (n->rvalue)
+        fprintf(stdout, "AST_DEREF rval\n");
+      else
+        fprintf(stdout, "AST_DEREF\n");
+      return;
+    case AST_SCALE:
+      fprintf(stdout, "AST_SCALE %d\n", n->value.scale_size); return;
+    default:
+      error_with_digital("Unknown dump_ast operator", n->operation);
+  }
+}
