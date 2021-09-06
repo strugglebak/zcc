@@ -10,6 +10,7 @@ struct ASTNode {
   // 操作符  + - * /
   int operation;
   int primitive_type; // 对应 void/char/int...
+  int rvalue; // boolean, 是否是右值节点，1 为 true, 0 为 false
   struct ASTNode *left;
   struct ASTNode *middle;
   struct ASTNode *right;
@@ -33,6 +34,7 @@ struct SymbolTable {
 enum {
   TOKEN_EOF,
 
+  TOKEN_ASSIGN, // = 赋值操作
   TOKEN_PLUS, TOKEN_MINUS, TOKEN_MULTIPLY, TOKEN_DIVIDE,
 
   TOKEN_COMPARE_EQUALS,
@@ -74,7 +76,9 @@ enum {
 
 // AST 节点类型
 enum {
-  AST_PLUS = 1, AST_MINUS, AST_MULTIPLY, AST_DIVIDE,
+  AST_PLUS = 1,
+
+  AST_MINUS, AST_MULTIPLY, AST_DIVIDE,
 
   AST_COMPARE_EQUALS,
   AST_COMPARE_NOT_EQUALS,
