@@ -22,5 +22,6 @@ extern_ struct SymbolTable global_symbol_table[SYMBOL_TABLE_ENTRIES_NUMBER];
 extern_ int global_symbol_table_index;
 
 extern_ int current_function_symbol_id;
+extern_ int output_dump_ast;
 
 #endif

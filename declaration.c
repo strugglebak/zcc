@@ -88,6 +88,10 @@ void parse_global_declaration_statement() {
     // 解析到 ( 说明是个函数
     if (token_from_file.token == TOKEN_LEFT_PAREN) {
       tree = parse_function_declaration_statement(primitive_type);
+      if (output_dump_ast) {
+        dump_ast(tree, NO_LABEL, 0);
+        fprintf(stdout, "\n\n");
+      }
       interpret_ast_with_register(tree, NO_REGISTER, 0);
     } else
       // 否则就是变量

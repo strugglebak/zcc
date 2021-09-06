@@ -17,4 +17,6 @@ void error_with_message(char *string, char *message);
 void error_with_digital(char *string, int digital);
 void error_with_character(char *string, char character);
 
+void dump_ast(struct ASTNode *n, int label, int level);
+
 #endif
