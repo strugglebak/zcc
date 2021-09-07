@@ -49,6 +49,7 @@ void register_function_return(int register_index, int symbol_table_index);
 
 int register_load_identifier_address(int symbol_table_index);
 int register_dereference_pointer(int register_index, int primitive_type);
+int register_store_dereference_pointer(int left_register, int right_register, int primitive_type);
 int register_shift_left_by_constant(int register_index, int value);
 
 #endif

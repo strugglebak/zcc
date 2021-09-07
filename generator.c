@@ -176,19 +176,38 @@ int interpret_ast_with_register(
     case AST_INTEGER_LITERAL:
       return register_load_interger_literal(node->value.interger_value, node->primitive_type);
     case AST_IDENTIFIER:
-      return register_load_value_from_variable(node->value.symbol_table_index);
+      //               类似于 * y 这种情况
+      //                     | |
+      //                     /  \
+      // parent_ast_operation  node
+      if (node->rvalue || parent_ast_operation == AST_DEREFERENCE_POINTER)
+        return register_load_value_from_variable(node->value.symbol_table_index);
+      return NO_REGISTER;
     case AST_LVALUE_IDENTIFIER:
       return register_store_value_2_variable(register_index, node->value.symbol_table_index);
     case AST_ASSIGNMENT_STATEMENT:
-      // 这里所有的生成汇编代码的工作已经结束，返回结果就好
-      return right_register;
+      // 是赋值给一个变量还是给一个指针赋值?
+      // x = y
+      // *x = y
+      // 在 parser 中 left 和 right 做了交换，所以这里要对 right 的 operation 做判断
+      switch (node->right->operation) {
+        case AST_IDENTIFIER:
+          return register_store_value_2_variable(left_register, node->right->value.symbol_table_index);
+        case AST_DEREFERENCE_POINTER:
+          return register_store_dereference_pointer(left_register, right_register, node->right->primitive_type);
+        default:
+          error_with_digital("Can't A_ASSIGN in interpret_ast_with_register, operation", node->operation);
+      }
 
     // &
     case AST_IDENTIFIER_ADDRESS:
       return register_load_identifier_address(node->value.symbol_table_index);
     // *
     case AST_DEREFERENCE_POINTER:
-      return register_dereference_pointer(left_register, node->left->primitive_type);
+      if (node->rvalue)
+        return register_dereference_pointer(left_register, node->left->primitive_type);
+      // 返回上一个回调交给 AST_ASSIGNMENT_STATEMENT 处理
+      return left_register;
 
     case AST_PRINT:
       // 打印左子树的值

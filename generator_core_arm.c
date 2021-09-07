@@ -397,8 +397,27 @@ int register_dereference_pointer(int register_index, int primitive_type) {
     case PRIMITIVE_LONG_POINTER:
       fprintf(output_file, "\tldr\t%s, [%s]\n", r, r);
       break;
+    default:
+      error_with_digital("Can't register_dereference_pointer on type:", primitive_type);
   }
   return register_index;
+}
+
+int register_store_dereference_pointer(int left_register, int right_register, int primitive_type) {
+  char *lr = register_list[left_register];
+  char *rr = register_list[right_register];
+  switch (primitive_type) {
+    case PRIMITIVE_CHAR:
+      fprintf(output_file, "\tstrb\t%s, [%s]\n", lr, rr);
+      break;
+    case PRIMITIVE_INT:
+    case PRIMITIVE_LONG:
+      fprintf(output_file, "\tstr\t%s, [%s]\n", lr, rr);
+      break;
+    default:
+      error_with_digital("Can't register_store_dereference_pointer on type:", primitive_type);
+  }
+  return left_register;
 }
 
 int register_shift_left_by_constant(int register_index, int value) {

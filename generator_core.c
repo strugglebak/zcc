@@ -370,8 +370,29 @@ int register_dereference_pointer(int register_index, int primitive_type) {
     case PRIMITIVE_LONG_POINTER:
       fprintf(output_file, "\tmovq\t(%s), %s\n", r, r);
       break;
+    default:
+      error_with_digital("Can't register_dereference_pointer on type:", primitive_type);
   }
   return register_index;
+}
+
+int register_store_dereference_pointer(int left_register, int right_register, int primitive_type) {
+  switch (primitive_type) {
+    case PRIMITIVE_CHAR:
+      fprintf(output_file, "\tmovb\t%s, (%s)\n",
+        lower_8_bits_register_list[left_register],
+        register_list[right_register]);
+      break;
+    case PRIMITIVE_INT:
+    case PRIMITIVE_LONG:
+      fprintf(output_file, "\tmovq\t%s, (%s)\n",
+        register_list[left_register],
+        register_list[right_register]);
+      break;
+    default:
+      error_with_digital("Can't register_store_dereference_pointer on type:", primitive_type);
+  }
+  return left_register;
 }
 
 int register_shift_left_by_constant(int register_index, int value) {
