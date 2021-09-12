@@ -26,7 +26,8 @@ struct SymbolTable {
   char *name;         // 每个变量的名字
   int primitive_type; // 每个变量的原始类型
   int structural_type;// 每个变量的结构类型
-  int end_label;
+  int end_label; // 对于 STRUCTURAL_FUNCTION 来说的 end label
+  int size; // 在 symbol 中元素的个数
 };
 
 
@@ -129,7 +130,8 @@ enum {
 // Structural types 结构类型
 enum {
   STRUCTURAL_VARIABLE,
-  STRUCTURAL_FUNCTION
+  STRUCTURAL_FUNCTION,
+  STRUCTURAL_ARRAY
 };
 
 // 如果在 generator.c 中的 interpret_ast_with_register
