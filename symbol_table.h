@@ -6,7 +6,8 @@ int add_global_symbol(
   char *symbol_string,
   int primitive_type,
   int structural_type,
-  int end_label
+  int end_label,
+  int size
 );
 
 #endif
