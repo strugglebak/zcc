@@ -34,6 +34,11 @@ static int operation_precedence(int operation_in_token) {
 }
 
 // 逐个字的读取文件，并将文件中读取到的数字字符构建成一颗树
+// primary_expression: IDENTIFIER
+//                   | CONSTANT
+//                   | STRING_LITERAL
+//                   | '(' expression ')'
+//                   ;
 static struct ASTNode *create_ast_node_from_expression() {
   struct ASTNode *node;
   int symbol_table_index;
@@ -72,6 +77,13 @@ static struct ASTNode *create_ast_node_from_expression() {
         global_symbol_table[symbol_table_index].primitive_type,
         symbol_table_index);
       break;
+    case TOKEN_LEFT_PAREN:
+      // 解析 e= (a+b) * (c+d); 类似的语句
+      // 如果表达式以 ( 开头，略过它
+      scan(&token_from_file);
+      node = converse_token_2_ast(0);
+      verify_right_paren();
+      return node;
     default:
       error_with_digital("Syntax error on line", line);
   }
