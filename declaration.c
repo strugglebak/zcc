@@ -28,29 +28,46 @@ int convert_token_2_primitive_type() {
   return new_type;
 }
 
+//  variable_declaration: type identifier ';'
+//                      | type identifier '[' TOKEN_INTEGER_LITERAL ']' ';'
+//                      ;
 void parse_var_declaration_statement(int primitive_type) {
   int symbol_table_index;
 
-  // 解析类似于 int x,y,z; 这样的声明
-  while (1) {
-    // 把这个标识符加入 global symbol table
-    symbol_table_index = add_global_symbol(text_buffer, primitive_type, STRUCTURAL_VARIABLE, 0);
+  // 解析数组变量
+  // 如果是 [
+  if (token_from_file.token == TOKEN_LEFT_BRACE) {
+    // 跳过 [
+    scan(&token_from_file);
+
+    if (token_from_file.token == TOKEN_INTEGER_LITERAL) {
+      // 把这个标识符加入 global symbol table
+      symbol_table_index = add_global_symbol(
+        text_buffer,
+        pointer_to(primitive_type), // 变成指针类型
+        STRUCTURAL_ARRAY,
+        0,
+        token_from_file.integer_value);
+      // 并接着生成对应的汇编代码
+      generate_global_symbol_table_code(symbol_table_index);
+    }
+
+    // 检查 ]
+    scan(&token_from_file);
+    verify_right_brace();
+  } else {
+    symbol_table_index = add_global_symbol(
+      text_buffer,
+      primitive_type,
+      STRUCTURAL_VARIABLE,
+      0,
+      1);
 
     // 并接着生成对应的汇编代码
     generate_global_symbol_table_code(symbol_table_index);
-
-    if (token_from_file.token == TOKEN_SEMICOLON) {
-      scan(&token_from_file);
-      return;
-    }
-
-    if (token_from_file.token == TOKEN_COMMA) {
-      scan(&token_from_file);
-      verify_identifier();
-      continue;
-    }
-    error("Missing , or ; after identifier");
   }
+
+  verify_semicolon();
 }
 
 struct ASTNode *parse_function_declaration_statement(int primitive_type) {
