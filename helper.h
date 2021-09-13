@@ -11,6 +11,8 @@ void verify_left_paren();
 void verify_right_paren();
 void verify_left_brace();
 void verify_right_brace();
+void verify_left_bracket();
+void verify_right_bracket();
 
 void error(char *string);
 void error_with_message(char *string, char *message);

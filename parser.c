@@ -55,9 +55,10 @@ static struct ASTNode *create_ast_node_from_expression() {
         token_from_file.integer_value);
       break;
     case TOKEN_IDENTIFIER:
-      // 解析类似的语句时需要注意的问题，即区别是变量名还是函数调用
+      // 解析类似的语句时需要注意的问题，即区别是变量名还是函数调用还是数组访问
       //  x = fred + jim;
       //  x = fred(5) + jim;
+      //  x = a[12];
 
       // 扫描下一个，继续判断
       scan(&token_from_file);
@@ -65,6 +66,11 @@ static struct ASTNode *create_ast_node_from_expression() {
       // 如果是左 (，则直接看作是函数调用
       if (token_from_file.token == TOKEN_LEFT_PAREN)
         return convert_function_call_2_ast();
+
+      // 如果是左 [，则直接看作是访问数组
+      if (token_from_file.token == TOKEN_LEFT_BRACKET)
+        return convert_array_access_2_ast();
+
       // 如果不是函数调用，则需要丢掉这个新的 token
       reject_token(&token_from_file);
 
@@ -130,7 +136,8 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
   // 如果遇到')' 说明这个节点已经构建完成，直接返回 left
   if (TOKEN_SEMICOLON == node_operation_type ||
     TOKEN_EOF == node_operation_type ||
-    TOKEN_RIGHT_PAREN == node_operation_type
+    TOKEN_RIGHT_PAREN == node_operation_type ||
+    TOKEN_RIGHT_BRACKET == node_operation_type
     ) return left;
 
   // 如果这次扫描得到的操作符比之前的优先级高，
@@ -177,7 +184,8 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
     node_operation_type = token_from_file.token;
     if (TOKEN_SEMICOLON == node_operation_type ||
       TOKEN_EOF == node_operation_type ||
-      TOKEN_RIGHT_PAREN == node_operation_type
+      TOKEN_RIGHT_PAREN == node_operation_type ||
+      TOKEN_RIGHT_BRACKET == node_operation_type
       ) break;
   }
 
@@ -214,6 +222,46 @@ struct ASTNode *convert_function_call_2_ast() {
   verify_right_paren();
 
   return tree;
+}
+
+struct ASTNode *convert_array_access_2_ast() {
+  struct ASTNode *left, *right;
+  struct SymbolTable t;
+  int symbol_table_index = find_global_symbol_table_index(text_buffer);
+
+  // 解析类似于 x = a[12];
+  if (symbol_table_index == -1 ||
+      global_symbol_table[symbol_table_index].structural_type
+        != STRUCTURAL_ARRAY)
+    error_with_message("Undeclared array", text_buffer);
+
+  // 为数组变量创建一个子节点，这个子节点指向数组的基
+  t = global_symbol_table[symbol_table_index];
+  left = create_ast_leaf(AST_IDENTIFIER_ADDRESS, t.primitive_type, symbol_table_index);
+
+  // 跳过 [
+  scan(&token_from_file);
+
+  // 解析在中括号之间的表达式
+  right = converse_token_2_ast(0);
+
+  // 检查 ]
+  verify_right_bracket();
+
+  // 检查中括号中间的表达式中的 type 是否是一个 int 数值
+  if (!check_int_type(right->primitive_type))
+    error("Array index is not of integer type");
+
+  // 对于 int a[20]; 数组索引 a[12] 来说，需要用 int 类型(4) 来扩展 数组索引(12)
+  // 以便在生成汇编代码时增加偏移量
+  right = modify_type(right, left->primitive_type, AST_PLUS);
+
+  // 返回一个 AST 树，其中数组的基添加了偏移量
+  left = create_ast_node(AST_PLUS, t.primitive_type, left, NULL, right, 0);
+  // 这个时候也必须要解除引用，因为可能后面会有 a[12] = 100; 这样的语句出现，所以把它看作左值 lvalue
+  left = create_ast_left_node(AST_DEREFERENCE_POINTER, value_at(left->primitive_type), left, 0);
+
+  return left;
 }
 
 // prefix_expression: primary

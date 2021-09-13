@@ -36,7 +36,7 @@ void parse_var_declaration_statement(int primitive_type) {
 
   // 解析数组变量
   // 如果是 [
-  if (token_from_file.token == TOKEN_LEFT_BRACE) {
+  if (token_from_file.token == TOKEN_LEFT_BRACKET) {
     // 跳过 [
     scan(&token_from_file);
 
@@ -54,7 +54,7 @@ void parse_var_declaration_statement(int primitive_type) {
 
     // 检查 ]
     scan(&token_from_file);
-    verify_right_brace();
+    verify_right_bracket();
   } else {
     symbol_table_index = add_global_symbol(
       text_buffer,

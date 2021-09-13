@@ -53,6 +53,14 @@ void verify_right_brace() {
   verify_token_and_fetch_next_token(TOKEN_RIGHT_BRACE, "}");
 }
 
+void verify_left_bracket() {
+  verify_token_and_fetch_next_token(TOKEN_LEFT_BRACKET, "[");
+}
+
+void verify_right_bracket() {
+  verify_token_and_fetch_next_token(TOKEN_RIGHT_BRACKET, "]");
+}
+
 
 void error(char *string) {
   fprintf(stderr, "%s on line %d\n", string, line);

@@ -54,6 +54,8 @@ enum {
   TOKEN_RIGHT_BRACE, // }
   TOKEN_LEFT_PAREN, // (
   TOKEN_RIGHT_PAREN, // )
+  TOKEN_LEFT_BRACKET, // [
+  TOKEN_RIGHT_BRACKET, // ]
 
   TOKEN_PRINT, // 关键字 print
   TOKEN_INT, // 关键字 int

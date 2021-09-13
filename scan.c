@@ -187,6 +187,12 @@ int scan(struct Token *t) {
     case '}':
       t->token = TOKEN_RIGHT_BRACE;
       break;
+    case '[':
+      t->token = TOKEN_LEFT_BRACKET;
+      break;
+    case ']':
+      t->token = TOKEN_RIGHT_BRACKET;
+      break;
     case ',':
       t->token = TOKEN_COMMA;
       break;
