@@ -209,12 +209,6 @@ int interpret_ast_with_register(
       // 返回上一个回调交给 AST_ASSIGN 处理
       return left_register;
 
-    case AST_PRINT:
-      // 打印左子树的值
-      register_print(left_register);
-      clear_all_registers();
-      return NO_REGISTER;
-
     // 对 char/int/long 类型转换的处理
     case AST_WIDEN:
       return register_widen(left_register, node->left->primitive_type, node->primitive_type);
@@ -234,17 +228,6 @@ int interpret_ast_with_register(
   }
 
   return NO_REGISTER;
-}
-
-void generate_code(struct ASTNode *node) {
-  int register_index;
-
-  // 增加汇编前置代码
-  register_preamble();
-  register_index = interpret_ast_with_register(node, NO_REGISTER, node->operation);
-  register_print(register_index);
-  // 增加汇编后置代码
-  register_postamble();
 }
 
 void generate_preamble_code() {

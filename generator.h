@@ -6,7 +6,6 @@ int interpret_ast_with_register(
   struct ASTNode *node,
   int register_index,
   int parent_ast_operation);
-void generate_code(struct ASTNode *node);
 void generate_preamble_code();
 void generate_postamble_code();
 void generate_clearable_registers();
