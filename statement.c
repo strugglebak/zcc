@@ -34,31 +34,6 @@ static struct ASTNode *parse_single_statement() {
   }
 }
 
-struct ASTNode *parse_print_statement() {
-  struct ASTNode *tree;
-  int register_index = 0;
-  int left_primitive_type, right_primitive_type = 0;
-
-  verify_token_and_fetch_next_token(TOKEN_PRINT, "print");
-
-  // 解析带 print 的 statement，并创建汇编代码
-  tree = converse_token_2_ast(0);
-
-  // 检查类型是否兼容
-  left_primitive_type = PRIMITIVE_INT;
-  right_primitive_type = tree->primitive_type;
-  if (!check_type_compatible(&left_primitive_type, &right_primitive_type, 0))
-    error("Incompatible types");
-
-  // 扩大类型
-  if (right_primitive_type)
-    tree = create_ast_left_node(right_primitive_type, PRIMITIVE_INT, tree, 0);
-
-  tree = create_ast_left_node(AST_PRINT, PRIMITIVE_NONE, tree, 0);
-
-  return tree;
-}
-
  struct ASTNode *parse_assignment_statement() {
   struct ASTNode *tree, *left, *right;
   int symbol_table_index;
@@ -203,10 +178,10 @@ struct ASTNode *parse_for_statement() {
 
 static struct ASTNode *parse_return_statement() {
   struct ASTNode *tree;
-  int return_type, function_type;
+  struct SymbolTable t = global_symbol_table[current_function_symbol_id];
 
   // 如果函数返回的是 void 则不能进行返回
-  if (global_symbol_table[current_function_symbol_id].primitive_type == PRIMITIVE_VOID)
+  if (t.primitive_type == PRIMITIVE_VOID)
     error("Can't return from a void function");
 
   // 检查 return (
@@ -217,17 +192,9 @@ static struct ASTNode *parse_return_statement() {
   tree = converse_token_2_ast(0);
 
   // 检查 return type 和 function type 是否兼容
-  return_type = tree->primitive_type;
-  function_type = global_symbol_table[current_function_symbol_id].primitive_type;
-  if (!check_type_compatible(&return_type, &function_type, 1)) // 不允许强制转换
-    error("Incompatible types");
-
-  // 举例:
-  // 如果 return_type 在检查之前的类型为 char
-  // 而 function_type 在检查之前的类型为 int
-  // 那么这个时候是可以做兼容处理的
-  if (return_type)
-    tree = create_ast_left_node(return_type, function_type, tree, 0);
+  tree = modify_type(tree, t.primitive_type, 0);
+  if (!tree) // 不允许强制转换
+    error("Incompatible types to return");
 
   // 生成 return_statement 的 node
   tree = create_ast_left_node(AST_RETURN, PRIMITIVE_NONE, tree, 0);

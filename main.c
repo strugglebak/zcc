@@ -28,7 +28,7 @@ static void init() {
 }
 
 static void usage_info(char *info) {
-  fprintf(stderr, "Usage: %s input_file", info);
+  fprintf(stderr, "Usage: %s [-T] input_file", info);
   exit(1);
 }
 
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     for (int j = 1; argv[i][j]; j++) {
       switch (argv[i][j]) {
         case 'T': output_dump_ast = 1; break;
-        default: usage(argv[0]);
+        default: usage_info(argv[0]);
       }
     }
   }
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
   }
 
   // 确保 print_int 是已经定义的
-  add_global_symbol("print_int", PRIMITIVE_CHAR, STRUCTURAL_FUNCTION, 0);
+  add_global_symbol("print_int", PRIMITIVE_CHAR, STRUCTURAL_FUNCTION, 0, 0);
 
   // 扫描文件中的字符串，并将其赋值给 token_from_file 这个全局变量
   scan(&token_from_file);

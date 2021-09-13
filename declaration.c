@@ -75,7 +75,12 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
   int name_slot, end_label;
 
   end_label = generate_label();
-  name_slot = add_global_symbol(text_buffer, primitive_type, STRUCTURAL_FUNCTION, end_label);
+  name_slot = add_global_symbol(
+    text_buffer,
+    primitive_type,
+    STRUCTURAL_FUNCTION,
+    end_label,
+    0);
   current_function_symbol_id = name_slot;
 
   verify_left_paren();

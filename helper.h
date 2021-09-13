@@ -1,6 +1,8 @@
 #ifndef __HELPER_H__
 #define __HELPER_H__
 
+#include "definations.h"
+
 void verify_token_and_fetch_next_token(int token, char *wanted_identifier);
 void verify_semicolon();
 void verify_identifier();
