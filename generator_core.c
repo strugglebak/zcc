@@ -202,9 +202,9 @@ void register_generate_global_symbol(int symbol_table_index) {
   // 支持类似 char a[10]; 这样的写法，size 就是 10
   for (int i = 0; i < t.size; i++) {
     switch(primitive_type_size) {
-      case 1: fprintf(output_file, "%s:\t.byte\t0\n", t.name); break;
-      case 4: fprintf(output_file, "%s:\t.long\t0\n", t.name); break;
-      case 8: fprintf(output_file, "%s:\t.quad\t0\n", t.name); break;
+      case 1: fprintf(output_file, "\t.byte\t0\n"); break;
+      case 4: fprintf(output_file, "\t.long\t0\n"); break;
+      case 8: fprintf(output_file, "\t.quad\t0\n"); break;
       default: error_with_digital("Unknown typesize in register_generate_global_symbol: ", primitive_type_size);
     }
   }
