@@ -28,7 +28,7 @@ static int interpret_if_ast_with_register(struct ASTNode *node) {
   clear_all_registers();
 
   // 解析 true 部分的 statements，并生成对应汇编代码
-  interpret_ast_with_register(node->middle, NO_REGISTER, node->operation);
+  interpret_ast_with_register(node->middle, NO_LABEL, node->operation);
   clear_all_registers();
 
   // 如果有 ELSE 分支，则跳转到 label_end
@@ -37,7 +37,7 @@ static int interpret_if_ast_with_register(struct ASTNode *node) {
   // 开始写 label_start 定义的代码
   register_label(label_start);
   if (node->right) {
-    interpret_ast_with_register(node->right, NO_REGISTER, node->operation);
+    interpret_ast_with_register(node->right, NO_LABEL, node->operation);
     clear_all_registers();
     register_label(label_end);
   }
@@ -72,7 +72,7 @@ static int interpret_while_ast_with_register(struct ASTNode *node) {
 
   // 解析 while 下面的复合语句
   // statements
-  interpret_ast_with_register(node->right, NO_REGISTER, node->operation);
+  interpret_ast_with_register(node->right, NO_LABEL, node->operation);
   clear_all_registers();
 
   // jump to Lstart
@@ -123,25 +123,25 @@ int interpret_ast_with_register(
     case AST_IF:
       return interpret_if_ast_with_register(node);
     case AST_GLUE:
-      interpret_ast_with_register(node->left, NO_REGISTER, node->operation);
+      interpret_ast_with_register(node->left, NO_LABEL, node->operation);
       clear_all_registers();
-      interpret_ast_with_register(node->right, NO_REGISTER, node->operation);
+      interpret_ast_with_register(node->right, NO_LABEL, node->operation);
       clear_all_registers();
       return NO_REGISTER;
     case AST_WHILE:
       return interpret_while_ast_with_register(node);
     case AST_FUNCTION:
       register_function_preamble(node->value.symbol_table_index);
-      interpret_ast_with_register(node->left, NO_REGISTER, node->operation);
+      interpret_ast_with_register(node->left, NO_LABEL, node->operation);
       register_function_postamble(node->value.symbol_table_index);
       return NO_REGISTER;
   }
 
   if (node->left) {
-    left_register = interpret_ast_with_register(node->left, NO_REGISTER, node->operation);
+    left_register = interpret_ast_with_register(node->left, NO_LABEL, node->operation);
   }
   if (node->right) {
-    right_register = interpret_ast_with_register(node->right, left_register, node->operation);
+    right_register = interpret_ast_with_register(node->right, NO_LABEL, node->operation);
   }
 
   switch (node->operation) {
@@ -232,6 +232,8 @@ int interpret_ast_with_register(
     default:
       error_with_digital("Unknown AST operator", node->operation);
   }
+
+  return NO_REGISTER;
 }
 
 void generate_code(struct ASTNode *node) {

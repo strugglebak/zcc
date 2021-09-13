@@ -114,7 +114,7 @@ void parse_global_declaration_statement() {
         dump_ast(tree, NO_LABEL, 0);
         fprintf(stdout, "\n\n");
       }
-      interpret_ast_with_register(tree, NO_REGISTER, 0);
+      interpret_ast_with_register(tree, NO_LABEL, 0);
     } else
       // 否则就是变量
       parse_var_declaration_statement(primitive_type);
