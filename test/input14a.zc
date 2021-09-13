@@ -1,0 +1,11 @@
+int   a;
+int  *b;
+char  c;
+char *d;
+
+int main()
+{
+  b= &a; *b= 15; print_int(a);
+  d= &c; *d= 16; print_int(c);
+  return(0);
+}

@@ -1,0 +1,9 @@
+int main()
+{
+  int a;
+  int b;
+  a= b= 34;
+  print_int(a);
+  print_int(b);
+  return(0);
+}
