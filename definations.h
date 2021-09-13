@@ -34,53 +34,46 @@ struct SymbolTable {
 // + - * / [0-9] 文件结尾
 enum {
   TOKEN_EOF,
-
+  // 操作符
   TOKEN_ASSIGN, // = 赋值操作
   TOKEN_PLUS, TOKEN_MINUS, TOKEN_MULTIPLY, TOKEN_DIVIDE,
-
   TOKEN_COMPARE_EQUALS,
   TOKEN_COMPARE_NOT_EQUALS,
   TOKEN_COMPARE_LESS_THAN,
   TOKEN_COMPARE_GREATER_THAN,
   TOKEN_COMPARE_LESS_EQUALS,
   TOKEN_COMPARE_GREATER_EQUALS,
-
+  // 类型关键字
+  TOKEN_VOID, // void
+  TOKEN_CHAR, // char
+  TOKEN_INT,  // int
+  TOKEN_LONG, // long
+  // 结构化符
   TOKEN_INTEGER_LITERAL,
   TOKEN_SEMICOLON,// 分号 ;
-  TOKEN_EQUALS, // 等号 =
   TOKEN_IDENTIFIER, // 标识符
-
   TOKEN_LEFT_BRACE, // {
   TOKEN_RIGHT_BRACE, // }
   TOKEN_LEFT_PAREN, // (
   TOKEN_RIGHT_PAREN, // )
   TOKEN_LEFT_BRACKET, // [
   TOKEN_RIGHT_BRACKET, // ]
-
-  TOKEN_PRINT, // 关键字 print
-  TOKEN_INT, // 关键字 int
-
+  TOKEN_AMPERSAND, // &
+  TOKEN_LOGICAL_AND, // &&
+  // 其他关键字
   TOKEN_IF, // if
   TOKEN_ELSE, // else
   TOKEN_WHILE, // while
   TOKEN_FOR, // for
-
-  TOKEN_VOID, // void
-  TOKEN_FUNCTION,
-  TOKEN_CHAR, // char
-
-  TOKEN_LONG, // long
   TOKEN_RETURN, // return
 
-  TOKEN_AMPERSAND, // &
-  TOKEN_LOGICAL_AND, // &&
   TOKEN_COMMA, // ,
+  TOKEN_PRINT, // 关键字 print
 };
 
 // AST 节点类型
 enum {
-  AST_ASSIGNMENT_STATEMENT = 1, // 赋值语句
-
+  AST_ASSIGN = 1, // 赋值语句
   AST_PLUS, AST_MINUS, AST_MULTIPLY, AST_DIVIDE,
 
   AST_COMPARE_EQUALS,
@@ -92,27 +85,21 @@ enum {
 
   AST_INTEGER_LITERAL,
   AST_IDENTIFIER, // 普通标识符
-
-  AST_LVALUE_IDENTIFIER, // 左值
-
-  AST_PRINT,
   AST_GLUE,
+
   AST_IF,
   AST_WHILE,
-  AST_FOR,
-
-  AST_VOID,
   AST_FUNCTION,
-  AST_CHAR,
-  AST_INT,
-
   AST_WIDEN,
-  AST_SCALE,
-  AST_FUNCTION_CALL,
   AST_RETURN,
 
+  AST_FUNCTION_CALL,
   AST_DEREFERENCE_POINTER, // 间接引用指针
   AST_IDENTIFIER_ADDRESS, // 指针变量地址
+  AST_SCALE,
+
+  AST_LVALUE_IDENTIFIER, // 左值
+  AST_PRINT,
 };
 
 // Primitive types 原始类型

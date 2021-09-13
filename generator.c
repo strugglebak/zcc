@@ -185,7 +185,7 @@ int interpret_ast_with_register(
       return NO_REGISTER;
     case AST_LVALUE_IDENTIFIER:
       return register_store_value_2_variable(register_index, node->value.symbol_table_index);
-    case AST_ASSIGNMENT_STATEMENT:
+    case AST_ASSIGN:
       // 是赋值给一个变量还是给一个指针赋值?
       // x = y
       // *x = y
@@ -206,7 +206,7 @@ int interpret_ast_with_register(
     case AST_DEREFERENCE_POINTER:
       if (node->rvalue)
         return register_dereference_pointer(left_register, node->left->primitive_type);
-      // 返回上一个回调交给 AST_ASSIGNMENT_STATEMENT 处理
+      // 返回上一个回调交给 AST_ASSIGN 处理
       return left_register;
 
     case AST_PRINT:

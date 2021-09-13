@@ -155,7 +155,7 @@ void dump_ast(struct ASTNode *n, int label, int level) {
         ? fprintf(stdout, "AST_IDENT rval %s\n", t.name)
         : fprintf(stdout, "AST_IDENT %s\n", t.name);
       return;
-    case AST_ASSIGNMENT_STATEMENT:
+    case AST_ASSIGN:
       fprintf(stdout, "AST_ASSIGN\n"); return;
     case AST_FUNCTION_CALL:
       fprintf(stdout, "AST_FUNCCALL %s\n", t.name); return;

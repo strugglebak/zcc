@@ -26,6 +26,8 @@ static int check_right_associative(int token) {
 // 确定操作符的优先级
 static int operation_precedence(int operation_in_token) {
   int precedence = operation_precedence_array[operation_in_token];
+  if (operation_in_token >= TOKEN_VOID)
+    error_with_digital("Token with no precedence in op_precedence:", operation_in_token);
   if (!precedence) {
     fprintf(stderr, "Syntax error on line %d, token %d\n", line, operation_in_token);
     exit(1);
@@ -157,7 +159,7 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
     // 将 Token 操作符类型转换成 AST 操作符类型
     ast_operation_type = convert_token_operation_2_ast_operation(node_operation_type);
     right->rvalue = 1;
-    if (ast_operation_type == AST_ASSIGNMENT_STATEMENT) {
+    if (ast_operation_type == AST_ASSIGN) {
       // 确保 right 和 left 的类型匹配
       right = modify_type(right, left->primitive_type, 0);
       if (!left) error("Incompatible expression in assignment");

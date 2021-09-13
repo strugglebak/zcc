@@ -210,7 +210,7 @@ int scan(struct Token *t) {
         t->token = TOKEN_COMPARE_EQUALS;
       } else {
         put_back(c);
-        t->token = TOKEN_EQUALS;
+        t->token = TOKEN_ASSIGN;
       }
       break;
     case '!':

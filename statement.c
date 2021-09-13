@@ -90,7 +90,7 @@ struct ASTNode *parse_print_statement() {
     symbol_table_index);
 
   // 解析 statement 中是否有 = 号
-  verify_token_and_fetch_next_token(TOKEN_EQUALS, "=");
+  verify_token_and_fetch_next_token(TOKEN_ASSIGN, "=");
 
   // 解析 statement（也就是右值），并创建左节点
   left = converse_token_2_ast(0);
@@ -100,7 +100,7 @@ struct ASTNode *parse_print_statement() {
   if (!left) error("Incompatible expression in assignment");
 
   // 根据左右节点创建一颗有关 statement 的 ast 树
-  tree = create_ast_node(AST_ASSIGNMENT_STATEMENT, PRIMITIVE_INT, left, NULL, right, 0);
+  tree = create_ast_node(AST_ASSIGN, PRIMITIVE_INT, left, NULL, right, 0);
 
   return tree;
 }
@@ -331,7 +331,7 @@ struct ASTNode *parse_compound_statement() {
 
     // 既然是解析 stmt，那么必须后面带 ;
     if (tree &&
-        (tree->operation == AST_ASSIGNMENT_STATEMENT ||
+        (tree->operation == AST_ASSIGN ||
          tree->operation == AST_RETURN ||
          tree->operation == AST_FUNCTION_CALL))
       verify_semicolon();
