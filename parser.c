@@ -140,7 +140,10 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
     TOKEN_EOF == node_operation_type ||
     TOKEN_RIGHT_PAREN == node_operation_type ||
     TOKEN_RIGHT_BRACKET == node_operation_type
-    ) return left;
+    ) {
+      left->rvalue = 1;
+      return left;
+    }
 
   // 如果这次扫描得到的操作符比之前的优先级高，
   // 或者它是个右结合操作符 =，并且优先级和上一个操作符相同
