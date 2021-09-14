@@ -24,7 +24,7 @@ test_arm: parser_arm test/run_test
 	(cd test; chmod +x make_test; chmod +x run_test; ./make_test && ./run_test)
 
 test_single: parser $(TEST_CASE) $(LIB)
-	./parser $(TEST_CASE)
+	./parser -T $(TEST_CASE)
 	cc -o out out.s $(LIB)
 	./out
 

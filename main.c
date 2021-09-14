@@ -17,9 +17,6 @@
 #include "declaration.h"
 #include "symbol_table.h"
 
-// 声明 token 字符串数组
-const char *token_string[] = { "+", "-", "*", "/", "integer_literal" };
-
 static void init() {
   line = 1;
   putback_buffer = '\n';
@@ -33,7 +30,6 @@ static void usage_info(char *info) {
 }
 
 int main(int argc, char *argv[]) {
-  struct ASTNode *tree;
   int i;
 
   init();
@@ -49,9 +45,9 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  if (i > argc) usage_info(argv[0]);
+  if (i >= argc) usage_info(argv[0]);
 
-  if (!(input_file = fopen(argv[1], "r"))) {
+  if (!(input_file = fopen(argv[i], "r"))) {
     fprintf(stderr, "Unable to open %s: %s\n", argv[1], strerror(errno));
     exit(1);
   }
