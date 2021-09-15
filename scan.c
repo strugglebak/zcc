@@ -108,6 +108,32 @@ static int scan_identifier(int c, char *buffer, int limit_length) {
   return length;
 }
 
+// 扫描单引号中的字符
+// 转义部分字符，这里暂时不考虑 8 进制或者其他类型的字符
+static int escape_character() {
+  int c = next();
+  // 处理类似于 \r\n 这种特殊字符
+  // 符号 '\'
+  if (c == '\\') {
+    // 符号 'r'、'n' 等
+    switch (c = next()) {
+      case 'a': return '\a';
+      case 'b': return '\b';
+      case 'f': return '\f';
+      case 'n': return '\n';
+      case 'r': return '\r';
+      case 't': return '\t';
+      case 'v': return '\v';
+      case '\\': return '\\';
+      case '"': return '"' ;
+      case '\'': return '\'';
+      default:
+        error_with_character("unknown escape sequence", c);
+    }
+  }
+  return c;
+}
+
 // 这里只做简单的判断，如果首字母是对应关键字的首字母，则直接返回关键字
 static int get_keyword(char *s) {
   switch (*s) {
@@ -195,6 +221,14 @@ int scan(struct Token *t) {
       break;
     case ',':
       t->token = TOKEN_COMMA;
+      break;
+
+    case '\'':
+      // 如果是单引号，则扫描引号中字符的值以及尾单引号
+      t->integer_value = escape_character();
+      t->token = TOKEN_INTEGER_LITERAL;
+      if (next() != '\'')
+        error("Expected '\\'' at end of char literal");
       break;
 
     case '&':
