@@ -134,6 +134,21 @@ static int escape_character() {
   return c;
 }
 
+// 扫描 sting，并存入 text_buffer 中
+// 返回 string 的长度
+static int scan_string(char *buffer) {
+  int c;
+  for (int i = 0; i < TEXT_LENGTH-1; i++) {
+    if ((c = escape_character()) == '"') {
+      buffer[i] = 0;
+      return i;
+    }
+    buffer[i] = c;
+  }
+  error("String literal too long");
+  return 0;
+}
+
 // 这里只做简单的判断，如果首字母是对应关键字的首字母，则直接返回关键字
 static int get_keyword(char *s) {
   switch (*s) {
@@ -229,6 +244,10 @@ int scan(struct Token *t) {
       t->token = TOKEN_INTEGER_LITERAL;
       if (next() != '\'')
         error("Expected '\\'' at end of char literal");
+      break;
+    case '"':
+      scan_string(text_buffer);
+      t->token = TOKEN_STRING_LITERAL;
       break;
 
     case '&':
