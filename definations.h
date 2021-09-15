@@ -69,6 +69,8 @@ enum {
 
   TOKEN_COMMA, // ,
   TOKEN_PRINT, // 关键字 print
+
+  TOKEN_STRING_LITERAL, // 字符串
 };
 
 // AST 节点类型
