@@ -223,6 +223,10 @@ int interpret_ast_with_register(
           return register_multiply(left_register, right_register);
       }
 
+    // 处理 string
+    case AST_STRING_LITERAL:
+      return register_load_global_string(node->value.symbol_table_index);
+
     default:
       error_with_digital("Unknown AST operator", node->operation);
   }
@@ -248,4 +252,10 @@ void generate_printable_code(int register_index) {
 
 void generate_global_symbol_table_code(int symbol_table_index) {
   register_generate_global_symbol(symbol_table_index);
+}
+
+int generate_global_string_code(char *string_value) {
+  int label = generate_label();
+  register_generate_global_string(label, string_value);
+  return label;
 }

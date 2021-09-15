@@ -46,6 +46,12 @@ static struct ASTNode *create_ast_node_from_expression() {
   int symbol_table_index;
 
   switch (token_from_file.token) {
+    case TOKEN_STRING_LITERAL:
+      // 先生成全局 string 的汇编代码，然后再解析 ast，因为这个 string 是要放在 .s 文件的最前面
+      symbol_table_index = generate_global_string_code(text_buffer);
+      // symbole_table_index 留给 generator 解析时用
+      node = create_ast_leaf(AST_STRING_LITERAL, PRIMITIVE_CHAR_POINTER, symbol_table_index);
+      break;
     // 解析类似   char j; j= 2; 这样的语句需要考虑的情况
     // 即把 2 这个 int 数值转换成 char 类型的
     case TOKEN_INTEGER_LITERAL:

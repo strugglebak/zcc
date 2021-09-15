@@ -127,15 +127,6 @@ int register_divide(int left_register, int right_register) {
 }
 
 /**
- * 打印指定的寄存器
-*/
-void register_print(int register_index) {
-  fprintf(output_file, "\tmovq\t%s, %%rdi\n", register_list[register_index]);
-  fprintf(output_file, "\tcall\tregister_print\n");
-  clear_register(register_index);
-}
-
-/**
  * 将一个变量的值保存到寄存器中
 */
 int register_load_value_from_variable(int symbol_table_index) {
@@ -208,6 +199,17 @@ void register_generate_global_symbol(int symbol_table_index) {
       default: error_with_digital("Unknown typesize in register_generate_global_symbol: ", primitive_type_size);
     }
   }
+}
+
+/**
+ * 创建全局字符串
+*/
+void register_generate_global_string(int label, char *string_value) {
+  register_label(label);
+  for (char *p = string_value; *p; p++) {
+    fprintf(output_file, "\t.byte\t%d\n", *p);
+  }
+  fprintf(output_file, "\t.byte\t0\n");
 }
 
 /**
@@ -402,5 +404,14 @@ int register_store_dereference_pointer(int left_register, int right_register, in
 int register_shift_left_by_constant(int register_index, int value) {
   char *r = register_list[register_index];
   fprintf(output_file, "\tsalq\t$%d, %s\n", value, r);
+  return register_index;
+}
+
+/**
+ * 给定一个全局 string 的 label id，把它的地址加载进一个寄存器中
+*/
+int register_load_global_string(int label) {
+  int register_index = allocate_register();
+  fprintf(output_file, "\tleaq\tL%d(\%%rip), %s\n", label, register_list[register_index]);
   return register_index;
 }

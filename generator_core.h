@@ -13,11 +13,10 @@ int register_minus(int left_register, int right_register);
 int register_multiply(int left_register, int right_register);
 int register_divide(int left_register, int right_register);
 
-void register_print(int register_index);
-
 int register_load_value_from_variable(int symbol_table_index);
 int register_store_value_2_variable(int register_index, int symbol_table_index);
 void register_generate_global_symbol(int symbol_table_index);
+void register_generate_global_string(int label, char *string_value);
 
 int register_compare_and_set(
   int ast_operation,
@@ -51,5 +50,7 @@ int register_load_identifier_address(int symbol_table_index);
 int register_dereference_pointer(int register_index, int primitive_type);
 int register_store_dereference_pointer(int left_register, int right_register, int primitive_type);
 int register_shift_left_by_constant(int register_index, int value);
+
+int register_load_global_string(int label);
 
 #endif

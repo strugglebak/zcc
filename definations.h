@@ -102,6 +102,8 @@ enum {
 
   AST_LVALUE_IDENTIFIER, // 左值
   AST_PRINT,
+
+  AST_STRING_LITERAL,
 };
 
 // Primitive types 原始类型
