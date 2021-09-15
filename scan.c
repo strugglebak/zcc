@@ -157,9 +157,6 @@ static int get_keyword(char *s) {
       break;
     case 'l':
       if (!strcmp(s, "long")) return TOKEN_LONG;
-    case 'p':
-      if (!strcmp(s, "print")) return TOKEN_PRINT;
-      break;
     case 'i':
       if (!strcmp(s, "if")) return TOKEN_IF;
       else if (!strcmp(s, "int")) return TOKEN_INT;
