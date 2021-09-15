@@ -246,10 +246,6 @@ void generate_clearable_registers() {
   clear_all_registers();
 }
 
-void generate_printable_code(int register_index) {
-  register_print(register_index);
-}
-
 void generate_global_symbol_table_code(int symbol_table_index) {
   register_generate_global_symbol(symbol_table_index);
 }

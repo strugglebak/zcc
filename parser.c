@@ -9,6 +9,7 @@
 #include "symbol_table.h"
 #include "types.h"
 #include "parser.h"
+#include "generator.h"
 
 static int operation_precedence_array[] = {
   0, // TOKEN_EOF

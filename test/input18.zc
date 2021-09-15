@@ -1,0 +1,11 @@
+char  c;
+char *str;
+
+int main() {
+  c= '\n'; print_int(c);
+
+  for (str= "Hello world\n"; *str != 0; str= str + 1) {
+    print_char(*str);
+  }
+  return(0);
+}
