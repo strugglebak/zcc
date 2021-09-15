@@ -235,11 +235,25 @@ void register_generate_global_symbol(int symbol_table_index) {
   int primitive_type_size
     = register_get_primitive_type_size(t.primitive_type);
   fprintf(output_file, "\t.data\n" "\t.globl\t%s\n", t.name);
-  switch(primitive_type_size) {
-    case 1: fprintf(output_file, "%s:\t.byte\t0\n", t.name); break;
-    case 4: fprintf(output_file, "%s:\t.long\t0\n", t.name); break;
-    default: fatald("Unknown typesize in register_generate_global_symbol: ", primitive_type_size);
+  fprintf(output_file, "%s:", t.name);
+  for (int i = 0; i < t.size; i++) {
+    switch(primitive_type_size) {
+      case 1: fprintf(output_file, "\t.byte\t0\n"); break;
+      case 4: fprintf(output_file, "\t.long\t0\n"); break;
+      default: fatald("Unknown typesize in register_generate_global_symbol: ", primitive_type_size);
+    }
   }
+}
+
+/**
+ * 创建全局字符串
+*/
+void register_generate_global_string(int label, char *string_value) {
+  register_label(label);
+  for (char *p = string_value; *p; p++) {
+    fprintf(output_file, "\t.byte\t%d\n", *p);
+  }
+  fprintf(output_file, "\t.byte\t0\n");
 }
 
 /**
@@ -423,5 +437,14 @@ int register_store_dereference_pointer(int left_register, int right_register, in
 int register_shift_left_by_constant(int register_index, int value) {
   char *r = register_list[register_index];
   fprintf(output_file, "\tlsl\t%s, %s, #%d\n", r, r, value);
+  return register_index;
+}
+
+/**
+ * 给定一个全局 string 的 label id，把它的地址加载进一个寄存器中
+*/
+int register_load_global_string(int label) {
+  int register_index = allocate_register();
+  // fprintf(output_file, "\tleaq\tL%d(\%%rip), %s\n", label, register_list[register_index]);
   return register_index;
 }
