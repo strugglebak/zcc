@@ -412,6 +412,6 @@ int register_shift_left_by_constant(int register_index, int value) {
 */
 int register_load_global_string(int label) {
   int register_index = allocate_register();
-  // fprintf(output_file, "\tleaq\tL%d(\%%rip), %s\n", label, register_list[register_index]);
+  fprintf(output_file, "\tleaq\tL%d(\%%rip), %s\n", label, register_list[register_index]);
   return register_index;
 }
