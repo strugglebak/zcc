@@ -69,6 +69,8 @@ struct ASTNode *modify_type(
             right_primitive_type,
             tree,
             right_primitive_size);
+        // 如果 size 就是 int，那么就返回这颗树
+        return tree;
       }
     }
 
