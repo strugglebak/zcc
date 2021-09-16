@@ -389,7 +389,9 @@ struct ASTNode *convert_postfix_expression_2_ast() {
   reject_token(&token_from_file);
 
   // 检查标识符是否存在
-  if ((symbol_table_index = find_global_symbol_table_index(text_buffer)) == -1)
+  if ((symbol_table_index
+      = find_global_symbol_table_index(text_buffer)) == -1 ||
+      global_symbol_table[symbol_table_index].structural_type != STRUCTURAL_VARIABLE)
     error_with_message("Unknown variable", text_buffer);
 
   t = global_symbol_table[symbol_table_index];
