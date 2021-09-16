@@ -129,22 +129,52 @@ int register_divide(int left_register, int right_register) {
 /**
  * 将一个变量的值保存到寄存器中
 */
-int register_load_value_from_variable(int symbol_table_index) {
+int register_load_value_from_variable(int symbol_table_index, int operation) {
   int register_index = allocate_register();
   struct SymbolTable t = global_symbol_table[symbol_table_index];
   char *r = register_list[register_index];
   switch (t.primitive_type) {
     case PRIMITIVE_CHAR:
+      if (operation == AST_PRE_INCREASE)
+        fprintf(output_file, "\tincb\t%s(\%%rip)\n", t.name);
+      if (operation == AST_PRE_DECREASE)
+        fprintf(output_file, "\tdecb\t%s(\%%rip)\n", t.name);
+
       fprintf(output_file, "\tmovzbq\t%s(\%%rip), %s\n", t.name, r);
+
+      if (operation == AST_POST_INCREASE)
+        fprintf(output_file, "\tincb\t%s(\%%rip)\n", t.name);
+      if (operation == AST_POST_DECREASE)
+        fprintf(output_file, "\tdecb\t%s(\%%rip)\n", t.name);
       break;
     case PRIMITIVE_INT:
+      if (operation == AST_PRE_INCREASE)
+        fprintf(output_file, "\tincl\t%s(\%%rip)\n", t.name);
+      if (operation == AST_PRE_DECREASE)
+        fprintf(output_file, "\tdecl\t%s(\%%rip)\n", t.name);
+
       fprintf(output_file, "\tmovzbl\t%s(\%%rip), %s\n", t.name, r);
+
+      if (operation == AST_POST_INCREASE)
+        fprintf(output_file, "\tincl\t%s(\%%rip)\n", t.name);
+      if (operation == AST_POST_DECREASE)
+        fprintf(output_file, "\tdecl\t%s(\%%rip)\n", t.name);
       break;
     case PRIMITIVE_LONG:
     case PRIMITIVE_CHAR_POINTER:
     case PRIMITIVE_INT_POINTER:
     case PRIMITIVE_LONG_POINTER:
+      if (operation == AST_PRE_INCREASE)
+        fprintf(output_file, "\tincq\t%s(\%%rip)\n", t.name);
+      if (operation == AST_PRE_DECREASE)
+        fprintf(output_file, "\tdecq\t%s(\%%rip)\n", t.name);
+
       fprintf(output_file, "\tmovq\t%s(\%%rip), %s\n", t.name, r);
+
+      if (operation == AST_POST_INCREASE)
+        fprintf(output_file, "\tincq\t%s(\%%rip)\n", t.name);
+      if (operation == AST_POST_DECREASE)
+        fprintf(output_file, "\tdecq\t%s(\%%rip)\n", t.name);
       break;
     default:
       error_with_digital("Bad type in register_load_value_from_variable:", t.primitive_type);

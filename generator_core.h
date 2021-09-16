@@ -13,7 +13,7 @@ int register_minus(int left_register, int right_register);
 int register_multiply(int left_register, int right_register);
 int register_divide(int left_register, int right_register);
 
-int register_load_value_from_variable(int symbol_table_index);
+int register_load_value_from_variable(int symbol_table_index, int operation);
 int register_store_value_2_variable(int register_index, int symbol_table_index);
 void register_generate_global_symbol(int symbol_table_index);
 void register_generate_global_string(int label, char *string_value);
