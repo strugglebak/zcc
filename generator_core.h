@@ -53,4 +53,14 @@ int register_shift_left_by_constant(int register_index, int value);
 
 int register_load_global_string(int label);
 
+int register_and(int left_register, int right_register);
+int register_or(int left_register, int right_register);
+int register_xor(int left_register, int right_register);
+int register_negate(int register_index);
+int register_invert(int register_index);
+int register_shift_left(int left_register, int right_register);
+int register_shift_right(int left_register, int right_register);
+int register_logic_not(int register_index);
+int register_to_be_boolean(int register_index, int operaion, int label);
+
 #endif

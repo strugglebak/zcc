@@ -62,6 +62,7 @@ static int operation_precedence(int operation_in_token) {
 //         : '&'
 //         | '*'
 //         | '-'
+//         | '+'
 //         | '~'
 //         | '!'
 //         ;

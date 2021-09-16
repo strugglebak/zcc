@@ -415,3 +415,71 @@ int register_load_global_string(int label) {
   fprintf(output_file, "\tleaq\tL%d(\%%rip), %s\n", label, register_list[register_index]);
   return register_index;
 }
+
+int register_and(int left_register, int right_register) {
+  fprintf(output_file, "\tandq\t%s, %s\n",
+    register_list[left_register],
+    register_list[right_register]);
+  clear_register(left_register);
+  return right_register;
+}
+
+int register_or(int left_register, int right_register) {
+  fprintf(output_file, "\torq\t%s, %s\n",
+    register_list[left_register],
+    register_list[right_register]);
+  clear_register(left_register);
+  return right_register;
+}
+
+int register_xor(int left_register, int right_register) {
+  fprintf(output_file, "\txorq\t%s, %s\n",
+    register_list[left_register],
+    register_list[right_register]);
+  clear_register(left_register);
+  return right_register;
+}
+
+int register_negate(int register_index) {
+  fprintf(output_file, "\tnegq\t%s\n",
+    register_list[register_index]);
+  return register_index;
+}
+
+int register_invert(int register_index) {
+  fprintf(output_file, "\tnotq\t%s\n",
+    register_list[register_index]);
+  return register_index;
+}
+
+int register_shift_left(int left_register, int right_register) {
+  fprintf(output_file, "\tmovb\t%s, %%cl\n", lower_8_bits_register_list[right_register]);
+  fprintf(output_file, "\tshlq\t%%cl, %s\n", register_list[left_register]);
+  clear_register(right_register);
+  return left_register;
+}
+
+int register_shift_right(int left_register, int right_register) {
+  fprintf(output_file, "\tmovb\t%s, %%cl\n", lower_8_bits_register_list[right_register]);
+  fprintf(output_file, "\tshrq\t%%cl, %s\n", register_list[left_register]);
+  clear_register(right_register);
+  return left_register;
+}
+
+int register_logic_not(int register_index) {
+  fprintf(output_file, "\ttest\t%s, %s\n", register_list[register_index], register_list[register_index]);
+  fprintf(output_file, "\tsete\t%s\n", lower_8_bits_register_list[register_index]);
+  fprintf(output_file, "\tmovzbq\t%s, %s\n", lower_8_bits_register_list[register_index], register_list[register_index]);
+  return register_index;
+}
+
+int register_to_be_boolean(int register_index, int operaion, int label) {
+  fprintf(output_file, "\ttest\t%s, %s\n", register_list[register_index], register_list[register_index]);
+  if (operaion == AST_IF || operaion == AST_WHILE)
+    fprintf(output_file, "\tje\tL%d\n", label);
+  else {
+    fprintf(output_file, "\tsetnz\t%s\n", lower_8_bits_register_list[register_index]);
+    fprintf(output_file, "\tmovzbq\t%s, %s\n", lower_8_bits_register_list[register_index], register_list[register_index]);
+  }
+  return register_index;
+}
