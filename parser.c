@@ -30,19 +30,48 @@ static int operation_precedence(int operation_in_token) {
   int precedence = operation_precedence_array[operation_in_token];
   if (operation_in_token >= TOKEN_VOID)
     error_with_digital("Token with no precedence in op_precedence:", operation_in_token);
-  if (!precedence) {
-    fprintf(stderr, "Syntax error on line %d, token %d\n", line, operation_in_token);
-    exit(1);
-  }
+  if (!precedence)
+    error_with_digital("Syntax error, token", operation_in_token);
   return precedence;
 }
 
 // 逐个字的读取文件，并将文件中读取到的数字字符构建成一颗树
-// primary_expression: IDENTIFIER
-//                   | CONSTANT
-//                   | STRING_LITERAL
-//                   | '(' expression ')'
-//                   ;
+// primary_expression
+//         : IDENTIFIER
+//         | CONSTANT
+//         | STRING_LITERAL
+//         | '(' expression ')'
+//         ;
+
+// postfix_expression
+//         : primary_expression
+//         | postfix_expression '[' expression ']'
+//         | postfix_expression '(' expression ')'
+//         | postfix_expression '++'
+//         | postfix_expression '--'
+//         ;
+
+// prefix_expression
+//         : postfix_expression
+//         | '++' prefix_expression
+//         | '--' prefix_expression
+//         | prefix_operator prefix_expression
+//         ;
+
+// prefix_operator
+//         : '&'
+//         | '*'
+//         | '-'
+//         | '~'
+//         | '!'
+//         ;
+
+// multiplicative_expression
+//         : prefix_expression
+//         | multiplicative_expression '*' prefix_expression
+//         | multiplicative_expression '/' prefix_expression
+//         | multiplicative_expression '%' prefix_expression
+//         ;
 static struct ASTNode *create_ast_node_from_expression() {
   struct ASTNode *node;
   int symbol_table_index;
@@ -112,9 +141,8 @@ static struct ASTNode *create_ast_node_from_expression() {
 
 // 将 token 中的 + - * / 等转换成 ast 中的类型
 int convert_token_operation_2_ast_operation(int operation_in_token) {
-  if (operation_in_token > TOKEN_EOF && operation_in_token < TOKEN_INTEGER_LITERAL) {
+  if (operation_in_token > TOKEN_EOF && operation_in_token < TOKEN_INTEGER_LITERAL)
     return operation_in_token;
-  }
   error_with_digital("Syntax error, token", operation_in_token);
 }
 
@@ -277,41 +305,81 @@ struct ASTNode *convert_array_access_2_ast() {
   return left;
 }
 
-// prefix_expression: primary
-//     | '*' prefix_expression
-//     | '&' prefix_expression
-//     ;
+
 struct ASTNode *convert_prefix_expression_2_ast() {
-  // 解析类似于
-  // a= &&&b;
-  // x= ***y;
-  // 这样的表达式
   struct ASTNode *tree;
   switch (token_from_file.token) {
     case TOKEN_AMPERSAND:
-      // 递归，看下一个是不是 &
+      // 解析类似于 x= &&&y;
       scan(&token_from_file);
       tree = convert_prefix_expression_2_ast();
+
       if (tree->operation != AST_IDENTIFIER)
         error("& operator must be followed by an identifier");
-
       tree->operation = AST_IDENTIFIER_ADDRESS;
       tree->primitive_type = pointer_to(tree->primitive_type);
       break;
     case TOKEN_MULTIPLY:
-      // 递归，看下一个是不是 *
+      // 解析类似于 x= ***y;
       scan(&token_from_file);
       tree = convert_prefix_expression_2_ast();
+
       if (tree->operation != AST_IDENTIFIER &&
         tree->operation != AST_DEREFERENCE_POINTER)
         error("* operator must be followed by an identifier or *");
-
       // 生成一个父级节点
       tree = create_ast_left_node(
         AST_DEREFERENCE_POINTER,
         value_at(tree->primitive_type),
         tree,
         0);
+      break;
+    case TOKEN_MINUS:
+      // 解析类似 x = -y; 这样的表达式
+      scan(&token_from_file);
+      tree = convert_prefix_expression_2_ast();
+
+      tree->rvalue = 1;
+      // 有可能 y 是 char(unsigned)，而 x 是 int 型的，所以需要做一个拓展让其变成有符号(signed)的
+      // 并且 unsigned 值不能取负数
+      tree = modify_type(tree, PRIMITIVE_INT, 0);
+      tree = create_ast_left_node(AST_NEGATE, tree->primitive_type, tree, 0);
+      break;
+    case TOKEN_INVERT:
+      // 解析类似 x = ~y; 这样的表达式
+      scan(&token_from_file);
+      tree = convert_prefix_expression_2_ast();
+
+      tree->rvalue = 1;
+      tree = create_ast_left_node(AST_INVERT, tree->primitive_type, tree, 0);
+      break;
+    case TOKEN_LOGIC_NOT:
+      // 解析类似 x = !y; 这样的表达式
+      scan(&token_from_file);
+      tree = convert_prefix_expression_2_ast();
+
+      tree->rvalue = 1;
+      tree = create_ast_left_node(AST_LOGIC_NOT, tree->primitive_type, tree, 0);
+      break;
+    case TOKEN_INCREASE:
+      // 解析类似 x = ++y; 这样的表达式
+      scan(&token_from_file);
+      tree = convert_prefix_expression_2_ast();
+
+      if (tree->operation != AST_IDENTIFIER)
+        error("++ operator must be followed by an identifier");
+
+      tree = create_ast_left_node(AST_PRE_INCREASE, tree->primitive_type, tree, 0);
+      break;
+    case TOKEN_DECREASE:
+      // 解析类似 x = --y; 这样的表达式
+      scan(&token_from_file);
+      tree = convert_prefix_expression_2_ast();
+
+      if (tree->operation != AST_IDENTIFIER)
+        error("-- operator must be followed by an identifier");
+
+      tree = create_ast_left_node(AST_PRE_DECREASE, tree->primitive_type, tree, 0);
       break;
     default:
       tree = create_ast_node_from_expression();

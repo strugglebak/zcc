@@ -23,7 +23,7 @@ int check_pointer_type(int primitive_type) {
 }
 
 // 修改一个 ast node 的 type 类型，以便与给定的类型兼容
-// 如果是一个二元运算(+ 或者 -)，那么 ast 的 operation 就是非 0
+// 对于指针来说，如果是一个二元运算(+ 或者 -)，那么 ast 的 operation 就是非 0
 struct ASTNode *modify_type(
   struct ASTNode *tree,
   int right_primitive_type,
