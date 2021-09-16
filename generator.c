@@ -227,6 +227,31 @@ int interpret_ast_with_register(
     case AST_STRING_LITERAL:
       return register_load_global_string(node->value.symbol_table_index);
 
+    case AST_AMPERSAND:
+      return register_and(left_register, right_register);
+    case AST_OR:
+      return register_or(left_register, right_register);
+    case AST_XOR:
+      return register_xor(left_register, right_register);
+    case AST_LEFT_SHIFT:
+      return register_shift_left(left_register, right_register);
+    case AST_RIGHT_SHIFT:
+      return register_shift_right(left_register, right_register);
+    case AST_POST_INCREASE:
+    case AST_POST_DECREASE:
+      return register_load_value_from_variable(node->value.symbol_table_index, node->operation);
+    case AST_PRE_INCREASE:
+    case AST_PRE_DECREASE:
+      return register_load_value_from_variable(node->left->value.symbol_table_index, node->operation);
+    case AST_NEGATE:
+      return register_negate(left_register);
+    case AST_INVERT:
+      return register_invert(left_register);
+    case AST_LOGIC_NOT:
+      return register_logic_not(left_register);
+    case AST_TO_BE_BOOLEAN:
+      return register_to_be_boolean(left_register, parent_ast_operation, register_index);
+
     default:
       error_with_digital("Unknown AST operator", node->operation);
   }
