@@ -181,7 +181,7 @@ int interpret_ast_with_register(
       //                     /  \
       // parent_ast_operation  node
       if (node->rvalue || parent_ast_operation == AST_DEREFERENCE_POINTER)
-        return register_load_value_from_variable(node->value.symbol_table_index);
+        return register_load_value_from_variable(node->value.symbol_table_index, node->operation);
       return NO_REGISTER;
     case AST_LVALUE_IDENTIFIER:
       return register_store_value_2_variable(register_index, node->value.symbol_table_index);

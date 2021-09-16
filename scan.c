@@ -249,7 +249,7 @@ int scan(struct Token *t) {
 
     case '&':
       if ((c = next()) == '&') {
-        t->token = TOKEN_LOGICAL_AND;
+        t->token = TOKEN_LOGIC_AND;
       } else {
         put_back(c);
         t->token = TOKEN_AMPERSAND;
