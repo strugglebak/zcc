@@ -93,35 +93,10 @@ static struct ASTNode *create_ast_node_from_expression() {
           : PRIMITIVE_INT,
         token_from_file.integer_value);
       break;
+
     case TOKEN_IDENTIFIER:
-      // 解析类似的语句时需要注意的问题，即区别是变量名还是函数调用还是数组访问
-      //  x = fred + jim;
-      //  x = fred(5) + jim;
-      //  x = a[12];
+      return convert_postfix_expression_2_ast();
 
-      // 扫描下一个，继续判断
-      scan(&token_from_file);
-
-      // 如果是左 (，则直接看作是函数调用
-      if (token_from_file.token == TOKEN_LEFT_PAREN)
-        return convert_function_call_2_ast();
-
-      // 如果是左 [，则直接看作是访问数组
-      if (token_from_file.token == TOKEN_LEFT_BRACKET)
-        return convert_array_access_2_ast();
-
-      // 如果不是函数调用，则需要丢掉这个新的 token
-      reject_token(&token_from_file);
-
-      // 检查标识符是否存在
-      if ((symbol_table_index = find_global_symbol_table_index(text_buffer)) == -1) {
-        error_with_message("Unknown variable", text_buffer);
-      }
-      node = create_ast_leaf(
-        AST_IDENTIFIER,
-        global_symbol_table[symbol_table_index].primitive_type,
-        symbol_table_index);
-      break;
     case TOKEN_LEFT_PAREN:
       // 解析 e= (a+b) * (c+d); 类似的语句
       // 如果表达式以 ( 开头，略过它
@@ -383,6 +358,54 @@ struct ASTNode *convert_prefix_expression_2_ast() {
       break;
     default:
       tree = create_ast_node_from_expression();
+  }
+
+  return tree;
+}
+
+struct ASTNode *convert_postfix_expression_2_ast() {
+  struct ASTNode *tree;
+  struct SymbolTable t;
+  int symbol_table_index;
+
+  // 解析类似的语句时需要注意的问题，即区别是变量名还是函数调用还是数组访问
+  //  x = fred + jim;
+  //  x = fred(5) + jim;
+  //  x = a[12];
+
+  // 扫描下一个，继续判断
+  scan(&token_from_file);
+
+  // 如果是左 (，则直接看作是函数调用
+  if (token_from_file.token == TOKEN_LEFT_PAREN)
+    return convert_function_call_2_ast();
+
+  // 如果是左 [，则直接看作是访问数组
+  if (token_from_file.token == TOKEN_LEFT_BRACKET)
+    return convert_array_access_2_ast();
+
+  // 如果不是函数调用，则需要丢掉这个新的 token
+  reject_token(&token_from_file);
+
+  // 检查标识符是否存在
+  if ((symbol_table_index = find_global_symbol_table_index(text_buffer)) == -1)
+    error_with_message("Unknown variable", text_buffer);
+
+  t = global_symbol_table[symbol_table_index];
+  switch (token_from_file.token) {
+    case TOKEN_INCREASE:
+      // 解析类似 x = y++; 语句
+      scan(&token_from_file);
+      tree = create_ast_leaf(AST_POST_INCREASE, t.primitive_type, symbol_table_index);
+      break;
+    case TOKEN_DECREASE:
+      // 解析类似 x = y--; 语句
+      scan(&token_from_file);
+      tree = create_ast_leaf(AST_POST_DECREASE, t.primitive_type, symbol_table_index);
+      break;
+    default:
+      tree = create_ast_leaf(AST_IDENTIFIER, t.primitive_type, symbol_table_index);
+      break;
   }
 
   return tree;
