@@ -45,9 +45,9 @@ struct ASTNode *parse_if_statement() {
 
   // 确保条件语句中出现的是正确的符号
   if (condition_node->operation < AST_COMPARE_EQUALS ||
-    condition_node->operation > AST_COMPARE_GREATER_EQUALS) {
-    error("Bad comparison operator");
-  }
+    condition_node->operation > AST_COMPARE_GREATER_EQUALS)
+    // 说明是一个条件语句或者是一个 int 数字之类的，将其 bool 化
+    condition_node = create_ast_left_node(AST_TO_BE_BOOLEAN, condition_node->primitive_type, condition_node, 0);
   verify_right_paren();
 
   // 为复合语句创建 ast
@@ -72,9 +72,9 @@ struct ASTNode *parse_while_statement() {
   condition_node = converse_token_2_ast(0);
   // 确保条件语句中出现的是正确的符号
   if (condition_node->operation < AST_COMPARE_EQUALS ||
-    condition_node->operation > AST_COMPARE_GREATER_EQUALS) {
-    error("Bad comparison operator");
-  }
+    condition_node->operation > AST_COMPARE_GREATER_EQUALS)
+    // 说明是一个条件语句或者是一个 int 数字之类的，将其 bool 化
+    condition_node = create_ast_left_node(AST_TO_BE_BOOLEAN, condition_node->primitive_type, condition_node, 0);
 
   verify_right_paren();
 
@@ -104,9 +104,9 @@ struct ASTNode *parse_for_statement() {
   condition_node = converse_token_2_ast(0);
   // 确保条件语句中出现的是正确的符号
   if (condition_node->operation < AST_COMPARE_EQUALS ||
-    condition_node->operation > AST_COMPARE_GREATER_EQUALS) {
-    error("Bad comparison operator");
-  }
+    condition_node->operation > AST_COMPARE_GREATER_EQUALS)
+    // 说明是一个条件语句或者是一个 int 数字之类的，将其 bool 化
+    condition_node = create_ast_left_node(AST_TO_BE_BOOLEAN, condition_node->primitive_type, condition_node, 0);
   verify_semicolon();
 
   // 解析 i = i+1)
