@@ -106,7 +106,7 @@ static struct ASTNode *create_ast_node_from_expression() {
       verify_right_paren();
       return node;
     default:
-      error_with_digital("Syntax error on line", line);
+      error_with_digital("Expecting a primary expression, got token", token_from_file.token);
   }
 
   // 扫描下一个，继续判断
