@@ -12,12 +12,13 @@
 #include "generator.h"
 
 static int operation_precedence_array[] = {
-  0, // TOKEN_EOF
-  10, // TOKEN_ASSIGN
-  20, 20, // + -
-  30, 30, // * /
-  40, 40, // == !=
-  50, 50, 50, 50 // < > <= >=
+  0, 10, 20, 30,  // EOF = || &&
+  40, 50, 60,     // | ^ &
+  70, 70,         // == !=
+  80, 80, 80, 80, // < > <= >=
+  90, 90,         // << >>
+  100, 100,       // + -
+  110, 110        // * /
 };
 
 static int check_right_associative(int token) {
