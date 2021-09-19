@@ -197,12 +197,22 @@ int scan(struct Token *t) {
   switch (c) {
     case EOF:
       t->token = TOKEN_EOF;
-      return (0);
+      return 0;
     case '+':
-      t->token = TOKEN_PLUS;
+      if ((c = next()) == '+') {
+        t->token = TOKEN_INCREASE;
+      } else {
+        put_back(c);
+        t->token = TOKEN_PLUS;
+      }
       break;
     case '-':
-      t->token = TOKEN_MINUS;
+      if ((c = next()) == '-') {
+        t->token = TOKEN_DECREASE;
+      } else {
+        put_back(c);
+        t->token = TOKEN_MINUS;
+      }
       break;
     case '*':
       t->token = TOKEN_MULTIPLY;
@@ -234,6 +244,12 @@ int scan(struct Token *t) {
     case ',':
       t->token = TOKEN_COMMA;
       break;
+    case '~':
+      t->token = TOKEN_INVERT;
+      break;
+    case '^':
+      t->token = TOKEN_XOR;
+      break;
 
     case '\'':
       // 如果是单引号，则扫描引号中字符的值以及尾单引号
@@ -255,6 +271,14 @@ int scan(struct Token *t) {
         t->token = TOKEN_AMPERSAND;
       }
       break;
+    case '|':
+      if ((c = next()) == '|') {
+        t->token = TOKEN_LOGIC_OR;
+      } else {
+        put_back(c);
+        t->token = TOKEN_OR;
+      }
+      break;
     case '=':
       if ((c = next()) == '=') {
         t->token = TOKEN_COMPARE_EQUALS;
@@ -267,12 +291,15 @@ int scan(struct Token *t) {
       if ((c = next()) == '=') {
         t->token = TOKEN_COMPARE_NOT_EQUALS;
       } else {
-        error_with_character("Unrecognised character", c);
+        put_back(c);
+        t->token = TOKEN_LOGIC_NOT;
       }
       break;
     case '<':
       if ((c = next()) == '=') {
         t->token = TOKEN_COMPARE_LESS_EQUALS;
+      } else if (c == '<') {
+        t->token = TOKEN_LEFT_SHIFT;
       } else {
         put_back(c);
         t->token = TOKEN_COMPARE_LESS_THAN;
@@ -281,7 +308,9 @@ int scan(struct Token *t) {
     case '>':
       if ((c = next()) == '=') {
         t->token = TOKEN_COMPARE_GREATER_EQUALS;
-      } else {
+      } else if (c == '>') {
+        t->token = TOKEN_RIGHT_SHIFT;
+      }else {
         put_back(c);
         t->token = TOKEN_COMPARE_GREATER_THAN;
       }
@@ -306,8 +335,7 @@ int scan(struct Token *t) {
         break;
       }
       error_with_character("Unrecognised character", c);
-      exit(1);
   }
 
-  return (1);
+  return 1;
 }

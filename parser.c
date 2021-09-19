@@ -28,7 +28,7 @@ static int check_right_associative(int token) {
 // 确定操作符的优先级
 static int operation_precedence(int operation_in_token) {
   int precedence = operation_precedence_array[operation_in_token];
-  if (operation_in_token >= TOKEN_VOID)
+  if (operation_in_token > TOKEN_DIVIDE)
     error_with_digital("Token with no precedence in op_precedence:", operation_in_token);
   if (!precedence)
     error_with_digital("Syntax error, token", operation_in_token);
@@ -384,9 +384,6 @@ struct ASTNode *convert_postfix_expression_2_ast() {
   // 如果是左 [，则直接看作是访问数组
   if (token_from_file.token == TOKEN_LEFT_BRACKET)
     return convert_array_access_2_ast();
-
-  // 如果不是函数调用，则需要丢掉这个新的 token
-  reject_token(&token_from_file);
 
   // 检查标识符是否存在
   if ((symbol_table_index
