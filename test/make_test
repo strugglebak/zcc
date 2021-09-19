@@ -3,8 +3,9 @@
 for i in input*zc
 do if [ ! -f "out.$i" ]
    then
-     cc -o out $i ../lib/print_int.c ../lib/print_char.c
+     cp $i ${i%%.*}.c
+     cc -o out ${i%%.*}.c ../lib/print_int.c ../lib/print_char.c
      ./out > out.$i
-     rm -f out out.s
+     rm -f out out.s ${i%%.*}.c
    fi
 done
