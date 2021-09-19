@@ -1,4 +1,4 @@
-void main()
+int main()
 {
   int i; int j;
   i=6; j=12;
@@ -7,4 +7,6 @@ void main()
   } else {
     print_int(j);
   }
+
+  return (0);
 }

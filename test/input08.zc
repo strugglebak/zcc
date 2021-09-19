@@ -1,7 +1,9 @@
-void main()
+int main()
 {
   int i;
   for (i= 1; i <= 10; i= i + 1) {
     print_int(i);
   }
+
+  return (0);
 }

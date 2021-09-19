@@ -1,4 +1,4 @@
-void main()
+int main()
 {
   int x;
   x= 1;     print_int(x);
@@ -6,4 +6,6 @@ void main()
   x= x + 1; print_int(x);
   x= x + 1; print_int(x);
   x= x + 1; print_int(x);
+
+  return (0);
 }

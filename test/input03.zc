@@ -1,8 +1,10 @@
-void main()
+int main()
 {
   int fred;
   int jim;
   fred= 5;
   jim= 12;
   print_int(fred + jim);
+
+  return (0);
 }

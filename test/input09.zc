@@ -1,4 +1,4 @@
-void main()
+int main()
 {
   int i; char j;
 
@@ -7,4 +7,6 @@ void main()
 
   for (i= 1;   i <= 5; i= i + 1) { print_int(i); }
   for (j= 253; j != 2; j= j + 1) { print_int(j); }
+
+  return (0);
 }
