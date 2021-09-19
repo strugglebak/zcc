@@ -1,15 +1,10 @@
-int main()
+void main()
 {
-  int x;
-  x= 7 < 9;  print_int(x);
-  x= 7 <= 9; print_int(x);
-  x= 7 != 9; print_int(x);
-  x= 7 == 7; print_int(x);
-  x= 7 >= 7; print_int(x);
-  x= 7 <= 7; print_int(x);
-  x= 9 > 7;  print_int(x);
-  x= 9 >= 7; print_int(x);
-  x= 9 != 7; print_int(x);
-
-  return (0);
+  int i; int j;
+  i=6; j=12;
+  if (i < j) {
+    print_int(i);
+  } else {
+    print_int(j);
+  }
 }

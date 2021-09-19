@@ -1,12 +1,10 @@
-int a;
-int b;
-int c;
-int d;
-int e;
-int main()
-{
-  a= 2; b= 4; c= 3; d= 2;
-  e= (a+b) * (c+d);
-  print_int(e);
+int main() {
+  char  a;
+  char *b;
+  int   d;
+  int  *e;
+
+  b= &a; *b= 19; print_int(a);
+  e= &d; *e= 12; print_int(d);
   return(0);
 }

@@ -1,11 +1,16 @@
-int   a;
-int  *b;
-char  c;
-char *d;
+int main() {
+  char  a;
+  char *b;
+  char  c;
 
-int main()
-{
-  b= &a; *b= 15; print_int(a);
-  d= &c; *d= 16; print_int(c);
+  int   d;
+  int  *e;
+  int   f;
+
+  a= 18; print_int(a);
+  b= &a; c= *b; print_int(c);
+
+  d= 12; print_int(d);
+  e= &d; f= *e; print_int(f);
   return(0);
 }

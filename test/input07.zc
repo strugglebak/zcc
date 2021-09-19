@@ -1,12 +1,7 @@
-int main()
+void main()
 {
-  int i; int j;
-  i=6; j=12;
-  if (i < j) {
+  int i;
+  for (i= 1; i <= 10; i= i + 1) {
     print_int(i);
-  } else {
-    print_int(j);
   }
-
-  return (0);
 }

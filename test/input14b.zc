@@ -1,9 +1,10 @@
-int main()
-{
-  int a;
-  int b;
-  a= b= 34;
-  print_int(a);
-  print_int(b);
+int   c;
+int   d;
+int  *e;
+int   f;
+
+int main() {
+  c= 12; d=18; print_int(c);
+  e= &c + 1; f= *e; print_int(f);
   return(0);
 }

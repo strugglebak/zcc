@@ -1,8 +1,8 @@
-int main()
+void main()
 {
-  print_int(12 * 3);
-  print_int(18 - 2 * 4);
-  print_int(1 + 2 + 9 - 5/2 + 3*5);
-
-  return (0);
+  int fred;
+  int jim;
+  fred= 5;
+  jim= 12;
+  print_int(fred + jim);
 }

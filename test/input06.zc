@@ -1,12 +1,8 @@
-int main()
-{
-  int i; int j;
-  i=6; j=12;
-  if (i < j) {
+void main()
+{ int i;
+  i=1;
+  while (i <= 10) {
     print_int(i);
-  } else {
-    print_int(j);
+    i= i + 1;
   }
-
-  return (0);
 }

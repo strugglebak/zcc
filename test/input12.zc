@@ -1,12 +1,11 @@
-int   d, f;
-int  *e;
+int fred() {
+  return(56);
+}
 
-int main() {
-  int a, b, c;
-  b= 3; c= 5; a= b + c * 10;
-  print_int(a);
-
-  d= 12; print_int(d);
-  e= &d; f= *e; print_int(f);
-  return(0);
+void main() {
+  int dummy;
+  int result;
+  dummy= print_int(23);
+  result= fred(10);
+  dummy= print_int(result);
 }

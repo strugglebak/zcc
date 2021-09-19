@@ -1,11 +1,13 @@
-int main()
+void main()
 {
   int x;
-  x= 1;     print_int(x);
-  x= x + 1; print_int(x);
-  x= x + 1; print_int(x);
-  x= x + 1; print_int(x);
-  x= x + 1; print_int(x);
-
-  return (0);
+  x= 7 < 9;  print_int(x);
+  x= 7 <= 9; print_int(x);
+  x= 7 != 9; print_int(x);
+  x= 7 == 7; print_int(x);
+  x= 7 >= 7; print_int(x);
+  x= 7 <= 7; print_int(x);
+  x= 9 > 7;  print_int(x);
+  x= 9 >= 7; print_int(x);
+  x= 9 != 7; print_int(x);
 }

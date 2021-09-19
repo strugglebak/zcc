@@ -1,10 +1,9 @@
-int main()
+void main()
 {
-  int fred;
-  int jim;
-  fred= 5;
-  jim= 12;
-  print_int(fred + jim);
-
-  return (0);
+  int x;
+  x= 1;     print_int(x);
+  x= x + 1; print_int(x);
+  x= x + 1; print_int(x);
+  x= x + 1; print_int(x);
+  x= x + 1; print_int(x);
 }

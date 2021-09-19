@@ -1,12 +1,15 @@
-int fred() {
-  return(20);
-}
+int main()
+{
+  int i; char j; long k;
 
-int main() {
-  int result;
-  print_int(10);
-  result= fred(15);
-  print_int(result);
-  print_int(fred(15)+10);
-  return(0);
+  i= 10; print_int(i);
+  j= 20; print_int(j);
+  k= 30; print_int(k);
+
+  for (i= 1;   i <= 5; i= i + 1) { print_int(i); }
+  for (j= 253; j != 4; j= j + 1) { print_int(j); }
+  for (k= 1;   k <= 5; k= k + 1) { print_int(k); }
+  return(i);
+  print_int(12345);
+  return(3);
 }

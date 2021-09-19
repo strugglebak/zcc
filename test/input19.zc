@@ -1,22 +1,9 @@
-char *str;
-int   x;
+int a;
+int b[25];
 
 int main() {
-  x= -23; print_int(x);
-  print_int(-10 * -10);
-
-  x= 1; x= ~x; print_int(x);
-
-  x= 2 > 5; print_int(x);
-  x= !x; print_int(x);
-  x= !x; print_int(x);
-
-  x= 13; if (x) { print_int(13); }
-  x= 0; if (!x) { print_int(14); }
-
-  for (str= "Hello world\n"; *str; str++) {
-    print_char(*str);
-  }
-
+  b[3]= 12;
+  a= b[3];
+  print_int(a);
   return(0);
 }

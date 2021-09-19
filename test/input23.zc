@@ -1,0 +1,12 @@
+int a;
+int b;
+int c;
+int main() {
+  a= 42; b= 19;
+  print_int(a & b);
+  print_int(a | b);
+  print_int(a ^ b);
+  print_int(1 << 3);
+  print_int(63 >> 3);
+  return(0);
+}
