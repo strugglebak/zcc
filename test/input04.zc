@@ -1,4 +1,9 @@
-23 +
-18 -
-45.6 * 2
-/ 18
+void main()
+{
+  int x;
+  x= 1;     print_int(x);
+  x= x + 1; print_int(x);
+  x= x + 1; print_int(x);
+  x= x + 1; print_int(x);
+  x= x + 1; print_int(x);
+}

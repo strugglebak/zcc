@@ -5,7 +5,7 @@ DEBUG= -T
 COMMON= parser.c interpreter.c main.c scan.c ast.c generator.c  statement.c helper.c symbol_table.c types.c declaration.c
 SRCS= $(COMMON) generator_core.c
 ARM_SRCS= $(COMMON) generator_core_arm.c
-TEST_CASE_NAME= 21
+TEST_CASE_NAME= 20
 TEST_CASE= test/input$(TEST_CASE_NAME).zc
 
 clean:
@@ -19,10 +19,10 @@ parser_arm: $(ARM_SRCS)
 	cp parser_arm parser
 
 test: parser test/run_test
-	(cd test; chmod +x make_test; chmod +x run_test; ./make_test && ./run_test)
+	(cd test; chmod +x run_test; ./run_test)
 
 test_arm: parser_arm test/run_test
-	(cd test; chmod +x make_test; chmod +x run_test; ./make_test && ./run_test)
+	(cd test; chmod +x run_test; ./run_test)
 
 t: parser $(TEST_CASE) $(LIB)
 	./parser $(TEST_CASE)
