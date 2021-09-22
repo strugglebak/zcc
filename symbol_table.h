@@ -10,6 +10,13 @@ int add_global_symbol(
   int end_label,
   int size
 );
+int add_local_symbol(
+  char *symbol_string,
+  int primitive_type,
+  int structural_type,
+  int end_label,
+  int size
+);
 int find_symbol(char *string);
 
 #endif

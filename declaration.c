@@ -31,9 +31,7 @@ int convert_token_2_primitive_type() {
 //  variable_declaration: type identifier ';'
 //                      | type identifier '[' TOKEN_INTEGER_LITERAL ']' ';'
 //                      ;
-void parse_var_declaration_statement(int primitive_type) {
-  int symbol_table_index;
-
+void parse_var_declaration_statement(int primitive_type, int is_local) {
   // 解析数组变量
   // 如果是 [
   if (token_from_file.token == TOKEN_LEFT_BRACKET) {
@@ -41,30 +39,42 @@ void parse_var_declaration_statement(int primitive_type) {
     scan(&token_from_file);
 
     if (token_from_file.token == TOKEN_INTEGER_LITERAL) {
-      // 把这个标识符加入 global symbol table
-      symbol_table_index = add_global_symbol(
-        text_buffer,
-        pointer_to(primitive_type), // 变成指针类型
-        STRUCTURAL_ARRAY,
-        0,
-        token_from_file.integer_value);
-      // 并接着生成对应的汇编代码
-      generate_global_symbol_table_code(symbol_table_index);
+      if (is_local) {
+        add_local_symbol(
+          text_buffer,
+          pointer_to(primitive_type), // 变成指针类型
+          STRUCTURAL_ARRAY,
+          0,
+          token_from_file.integer_value);
+      } else {
+        add_global_symbol(
+          text_buffer,
+          pointer_to(primitive_type), // 变成指针类型
+          STRUCTURAL_ARRAY,
+          0,
+          token_from_file.integer_value);
+      }
     }
 
     // 检查 ]
     scan(&token_from_file);
     verify_right_bracket();
   } else {
-    symbol_table_index = add_global_symbol(
-      text_buffer,
-      primitive_type,
-      STRUCTURAL_VARIABLE,
-      0,
-      1);
-
-    // 并接着生成对应的汇编代码
-    generate_global_symbol_table_code(symbol_table_index);
+    if (is_local) {
+      add_local_symbol(
+        text_buffer,
+        primitive_type,
+        STRUCTURAL_VARIABLE,
+        0,
+        1);
+    } else {
+      add_global_symbol(
+        text_buffer,
+        primitive_type,
+        STRUCTURAL_VARIABLE,
+        0,
+        1);
+    }
   }
 
   verify_semicolon();
@@ -117,6 +127,6 @@ void parse_global_declaration_statement() {
       interpret_ast_with_register(tree, NO_LABEL, 0);
     } else
       // 否则就是变量
-      parse_var_declaration_statement(primitive_type);
+      parse_var_declaration_statement(primitive_type, 0);
   }
 }
