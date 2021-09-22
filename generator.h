@@ -12,5 +12,7 @@ void generate_clearable_registers();
 void generate_global_symbol_table_code(int symbol_table_index);
 int generate_global_string_code(char *string_value);
 void generate_global_symbol(int symbol_table_index);
+void generate_reset_local_variables();
+int generate_get_local_offset(int primitive_type, int is_parameter);
 
 #endif

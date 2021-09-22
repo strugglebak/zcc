@@ -284,3 +284,10 @@ int generate_global_string_code(char *string_value) {
   register_generate_global_string(label, string_value);
   return label;
 }
+
+void generate_reset_local_variables() {
+  register_reset_local_variables();
+}
+int generate_get_local_offset(int primitive_type, int is_parameter) {
+  return register_get_local_offset(primitive_type, is_parameter);
+}

@@ -63,4 +63,7 @@ int register_shift_right(int left_register, int right_register);
 int register_logic_not(int register_index);
 int register_to_be_boolean(int register_index, int operaion, int label);
 
+void register_reset_local_variables();
+int register_get_local_offset(int primitive_type, int is_parameter);
+
 #endif

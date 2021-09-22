@@ -93,6 +93,8 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
     0);
   current_function_symbol_id = name_slot;
 
+  generate_reset_local_variables();
+
   verify_left_paren();
   verify_right_paren();
 

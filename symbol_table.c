@@ -131,11 +131,13 @@ int add_local_symbol(
   int size
 ) {
   int index = 0;
+  int position = 0;
   if ((index = find_local_symbol_table_index(symbol_string)) != -1) {
     return index;
   }
 
   index = new_local_symbol_string();
+  position = generate_get_local_offset(primitive_type, 0);
   // 将字符串复制一份放入到内存中，并返回这个内存的地址
   // 初始化
   update_symbol_table(
@@ -146,7 +148,7 @@ int add_local_symbol(
     end_label,
     size,
     CENTRAL_LOCAL,
-    0
+    position
   );
   return index;
 }

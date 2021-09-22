@@ -19,6 +19,10 @@ static char *inverted_compare_list[] = { "jne", "je", "jge", "jle", "jg", "jl" }
 // none/void/char/int/long
 static int primitive_size[] = { 0, 0, 1, 4, 8, 8, 8, 8 };
 
+// 相对于栈基指针的本地变量的位置
+static int local_offset;
+static int stack_offset;
+
 void clear_all_registers() {
   free_registers[0] = free_registers[1] = free_registers[2] = free_registers[3] = 1;
 }
@@ -512,4 +516,15 @@ int register_to_be_boolean(int register_index, int operaion, int label) {
     fprintf(output_file, "\tmovzbq\t%s, %s\n", lower_8_bits_register_list[register_index], register_list[register_index]);
   }
   return register_index;
+}
+
+void register_reset_local_variables() {
+  local_offset = 0;
+}
+
+int register_get_local_offset(int primitive_type, int is_parameter) {
+  int primitive_type_size = register_get_primitive_type_size(primitive_type);
+  // 栈上位置至少间隔为 4 byte
+  local_offset += primitive_type_size > 4 ? primitive_type_size : 4;
+  return -local_offset;
 }
