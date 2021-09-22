@@ -14,7 +14,9 @@ int register_multiply(int left_register, int right_register);
 int register_divide(int left_register, int right_register);
 
 int register_load_value_from_variable(int symbol_table_index, int operation);
+int register_load_local_value_from_variable(int symbol_table_index, int operation);
 int register_store_value_2_variable(int register_index, int symbol_table_index);
+int register_store_local_value_2_variable(int register_index, int symbol_table_index);
 void register_generate_global_symbol(int symbol_table_index);
 void register_generate_global_string(int label, char *string_value);
 
@@ -65,5 +67,8 @@ int register_to_be_boolean(int register_index, int operaion, int label);
 
 void register_reset_local_variables();
 int register_get_local_offset(int primitive_type, int is_parameter);
+
+void register_text_section_flag();
+void register_data_section_flag();
 
 #endif

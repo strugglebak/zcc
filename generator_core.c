@@ -6,6 +6,12 @@
 #include "helper.h"
 #include "generator_core.h"
 
+enum {
+  NO_SECTION_FLAG,
+  TEXT_SECTION_FLAG,
+  DATA_SECTION_FLAG,
+} current_section_flag = NO_SECTION_FLAG;
+
 static int free_registers[4] = { 1 };
 static char *register_list[4] = { "%r8", "%r9", "%r10", "%r11" }; // 64 位寄存器
 static char *lower_8_bits_register_list[4] = { "%r8b", "%r9b", "%r10b", "%r11b" }; // 低 8 位寄存器
@@ -187,6 +193,62 @@ int register_load_value_from_variable(int symbol_table_index, int operation) {
 }
 
 /**
+ * 将一个局部变量的值保存到寄存器中
+*/
+int register_load_local_value_from_variable(int symbol_table_index, int operation) {
+  int register_index = allocate_register();
+  struct SymbolTable t = symbol_table[symbol_table_index];
+  char *r = register_list[register_index];
+  switch (t.primitive_type) {
+    case PRIMITIVE_CHAR:
+      if (operation == AST_PRE_INCREASE)
+        fprintf(output_file, "\tincb\t%d(\%%rbp)\n", t.position);
+      if (operation == AST_PRE_DECREASE)
+        fprintf(output_file, "\tdecb\t%d(\%%rbp)\n", t.position);
+
+      fprintf(output_file, "\tmovzbq\t%d(\%%rbp), %d\n", t.position, r);
+
+      if (operation == AST_POST_INCREASE)
+        fprintf(output_file, "\tincb\t%d(\%%rbp)\n", t.position);
+      if (operation == AST_POST_DECREASE)
+        fprintf(output_file, "\tdecb\t%d(\%%rbp)\n", t.position);
+      break;
+    case PRIMITIVE_INT:
+      if (operation == AST_PRE_INCREASE)
+        fprintf(output_file, "\tincl\t%d(\%%rbp)\n", t.position);
+      if (operation == AST_PRE_DECREASE)
+        fprintf(output_file, "\tdecl\t%d(\%%rbp)\n", t.position);
+
+      fprintf(output_file, "\tmovzbl\t%d(\%%rbp), %d\n", t.position, r);
+
+      if (operation == AST_POST_INCREASE)
+        fprintf(output_file, "\tincl\t%d(\%%rbp)\n", t.position);
+      if (operation == AST_POST_DECREASE)
+        fprintf(output_file, "\tdecl\t%d(\%%rbp)\n", t.position);
+      break;
+    case PRIMITIVE_LONG:
+    case PRIMITIVE_CHAR_POINTER:
+    case PRIMITIVE_INT_POINTER:
+    case PRIMITIVE_LONG_POINTER:
+      if (operation == AST_PRE_INCREASE)
+        fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t.position);
+      if (operation == AST_PRE_DECREASE)
+        fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t.position);
+
+      fprintf(output_file, "\tmovq\t%d(\%%rbp), %d\n", t.position, r);
+
+      if (operation == AST_POST_INCREASE)
+        fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t.position);
+      if (operation == AST_POST_DECREASE)
+        fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t.position);
+      break;
+    default:
+      error_with_digital("Bad type in register_load_local_value_from_variable:", t.primitive_type);
+  }
+  return register_index;
+}
+
+/**
  * 将寄存器中的值保存到一个变量中
 */
 int register_store_value_2_variable(int register_index, int symbol_table_index) {
@@ -217,12 +279,44 @@ int register_store_value_2_variable(int register_index, int symbol_table_index) 
 }
 
 /**
+ * 将寄存器中的值保存到一个局部变量中
+*/
+int register_store_local_value_2_variable(int register_index, int symbol_table_index) {
+  struct SymbolTable t = symbol_table[symbol_table_index];
+  switch (t.primitive_type) {
+    case PRIMITIVE_CHAR:
+      fprintf(output_file, "\tmovb\t%s, %s(\%%rbp)\n",
+       lower_8_bits_register_list[register_index],
+       t.name);
+      break;
+    case PRIMITIVE_INT:
+      fprintf(output_file, "\tmovl\t%s, %s(\%%rbp)\n",
+       lower_32_bits_register_list[register_index],
+       t.name);
+      break;
+    case PRIMITIVE_LONG:
+    case PRIMITIVE_CHAR_POINTER:
+    case PRIMITIVE_INT_POINTER:
+    case PRIMITIVE_LONG_POINTER:
+      fprintf(output_file, "\tmovq\t%s, %s(\%%rbp)\n",
+      register_list[register_index],
+      t.name);
+      break;
+    default:
+      error_with_digital("Bad type in register_store_value_2_variable:", t.primitive_type);
+  }
+  return register_index;
+}
+
+/**
  * 创建全局变量
 */
 void register_generate_global_symbol(int symbol_table_index) {
   struct SymbolTable t = symbol_table[symbol_table_index];
   int primitive_type_size = register_get_primitive_type_size(t.primitive_type);
-  fprintf(output_file, "\t.data\n" "\t.globl\t%s\n", t.name);
+  if (t.structural_type == STRUCTURAL_FUNCTION) return;
+  register_data_section_flag();
+  fprintf(output_file, "\t.globl\t%s\n", t.name);
   fprintf(output_file, "%s:", t.name);
   // 支持类似 char a[10]; 这样的写法，size 就是 10
   for (int i = 0; i < t.size; i++) {
@@ -317,14 +411,18 @@ void register_jump(int label) {
 */
 void register_function_preamble(int symbol_table_index) {
   char *name = symbol_table[symbol_table_index].name;
+  register_text_section_flag();
+
+  // 将栈指针对齐为 16 的倍数
+  stack_offset = (local_offset+15) & (~15);
   fprintf(output_file,
-            "\t.text\n"
             "\t.globl\t%s\n"
             "\t.type\t%s, @function\n"
             "%s:\n"
             "\tpushq\t%%rbp\n"
-            "\tmovq\t%%rsp, %%rbp\n",
-            name, name, name);
+            "\tmovq\t%%rsp, %%rbp\n"
+            "\taddq\t$%d,%%rsp\n",
+            name, name, name, -stack_offset);
 }
 
 /**
@@ -333,7 +431,8 @@ void register_function_preamble(int symbol_table_index) {
 void register_function_postamble(int symbol_table_index) {
   struct SymbolTable t = symbol_table[symbol_table_index];
   register_label(t.end_label);
-  fputs("\tpopq     %rbp\n"
+  fprintf(output_file, "\taddq\t$%d,%%rsp\n", stack_offset);
+  fputs("\tpopq %rbp\n"
         "\tret\n", output_file);
 }
 
@@ -527,4 +626,16 @@ int register_get_local_offset(int primitive_type, int is_parameter) {
   // 栈上位置至少间隔为 4 byte
   local_offset += primitive_type_size > 4 ? primitive_type_size : 4;
   return -local_offset;
+}
+
+void register_text_section_flag() {
+  if (current_section_flag == TEXT_SECTION_FLAG) return;
+  fputs("\t.text\n", output_file);
+  current_section_flag = TEXT_SECTION_FLAG;
+}
+
+void register_data_section_flag() {
+  if (current_section_flag == DATA_SECTION_FLAG) return;
+  fputs("\t.data\n", output_file);
+  current_section_flag = DATA_SECTION_FLAG;
 }
