@@ -206,7 +206,7 @@ int register_load_local_value_from_variable(int symbol_table_index, int operatio
       if (operation == AST_PRE_DECREASE)
         fprintf(output_file, "\tdecb\t%d(\%%rbp)\n", t.position);
 
-      fprintf(output_file, "\tmovzbq\t%d(\%%rbp), %d\n", t.position, r);
+      fprintf(output_file, "\tmovzbq\t%d(\%%rbp), %s\n", t.position, r);
 
       if (operation == AST_POST_INCREASE)
         fprintf(output_file, "\tincb\t%d(\%%rbp)\n", t.position);
@@ -219,7 +219,7 @@ int register_load_local_value_from_variable(int symbol_table_index, int operatio
       if (operation == AST_PRE_DECREASE)
         fprintf(output_file, "\tdecl\t%d(\%%rbp)\n", t.position);
 
-      fprintf(output_file, "\tmovzbl\t%d(\%%rbp), %d\n", t.position, r);
+      fprintf(output_file, "\tmovzbl\t%d(\%%rbp), %s\n", t.position, r);
 
       if (operation == AST_POST_INCREASE)
         fprintf(output_file, "\tincl\t%d(\%%rbp)\n", t.position);
@@ -235,7 +235,7 @@ int register_load_local_value_from_variable(int symbol_table_index, int operatio
       if (operation == AST_PRE_DECREASE)
         fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t.position);
 
-      fprintf(output_file, "\tmovq\t%d(\%%rbp), %d\n", t.position, r);
+      fprintf(output_file, "\tmovq\t%d(\%%rbp), %s\n", t.position, r);
 
       if (operation == AST_POST_INCREASE)
         fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t.position);
