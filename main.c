@@ -22,6 +22,7 @@ static void init() {
   putback_buffer = '\n';
   global_symbol_table_index = 0;
   output_dump_ast = 0;
+  local_symbol_table_index = SYMBOL_TABLE_ENTRIES_NUMBER - 1;
 }
 
 static void usage_info(char *info) {
