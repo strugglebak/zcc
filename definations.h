@@ -152,7 +152,7 @@ enum {
 enum {
   CENTRAL_GLOBAL = 1,
   CENTRAL_LOCAL,
-}
+};
 
 // 如果在 generator.c 中的 interpret_ast_with_register
 // 函数没有 register id 返回了，就用这个标志位
