@@ -11,5 +11,6 @@ void generate_postamble_code();
 void generate_clearable_registers();
 void generate_global_symbol_table_code(int symbol_table_index);
 int generate_global_string_code(char *string_value);
+void generate_global_symbol(int symbol_table_index);
 
 #endif

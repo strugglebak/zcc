@@ -231,7 +231,7 @@ struct ASTNode *convert_function_call_2_ast() {
   // 保存函数名在这个 symbol table 中的 index 索引
   tree = create_ast_left_node(
     AST_FUNCTION_CALL,
-    global_symbol_table[symbol_table_index].primitive_type,
+    symbol_table[symbol_table_index].primitive_type,
     tree,
     symbol_table_index);
 
@@ -248,12 +248,12 @@ struct ASTNode *convert_array_access_2_ast() {
 
   // 解析类似于 x = a[12];
   if (symbol_table_index == -1 ||
-      global_symbol_table[symbol_table_index].structural_type
+      symbol_table[symbol_table_index].structural_type
         != STRUCTURAL_ARRAY)
     error_with_message("Undeclared array", text_buffer);
 
   // 为数组变量创建一个子节点，这个子节点指向数组的基
-  t = global_symbol_table[symbol_table_index];
+  t = symbol_table[symbol_table_index];
   left = create_ast_leaf(AST_IDENTIFIER_ADDRESS, t.primitive_type, symbol_table_index);
 
   // 跳过 [
@@ -388,10 +388,10 @@ struct ASTNode *convert_postfix_expression_2_ast() {
   // 检查标识符是否存在
   if ((symbol_table_index
       = find_global_symbol_table_index(text_buffer)) == -1 ||
-      global_symbol_table[symbol_table_index].structural_type != STRUCTURAL_VARIABLE)
+      symbol_table[symbol_table_index].structural_type != STRUCTURAL_VARIABLE)
     error_with_message("Unknown variable", text_buffer);
 
-  t = global_symbol_table[symbol_table_index];
+  t = symbol_table[symbol_table_index];
   switch (token_from_file.token) {
     case TOKEN_INCREASE:
       // 解析类似 x = y++; 语句

@@ -131,7 +131,7 @@ int register_divide(int left_register, int right_register) {
 */
 int register_load_value_from_variable(int symbol_table_index, int operation) {
   int register_index = allocate_register();
-  struct SymbolTable t = global_symbol_table[symbol_table_index];
+  struct SymbolTable t = symbol_table[symbol_table_index];
   char *r = register_list[register_index];
   switch (t.primitive_type) {
     case PRIMITIVE_CHAR:
@@ -186,7 +186,7 @@ int register_load_value_from_variable(int symbol_table_index, int operation) {
  * 将寄存器中的值保存到一个变量中
 */
 int register_store_value_2_variable(int register_index, int symbol_table_index) {
-  struct SymbolTable t = global_symbol_table[symbol_table_index];
+  struct SymbolTable t = symbol_table[symbol_table_index];
   switch (t.primitive_type) {
     case PRIMITIVE_CHAR:
       fprintf(output_file, "\tmovb\t%s, %s(\%%rip)\n",
@@ -216,7 +216,7 @@ int register_store_value_2_variable(int register_index, int symbol_table_index) 
  * 创建全局变量
 */
 void register_generate_global_symbol(int symbol_table_index) {
-  struct SymbolTable t = global_symbol_table[symbol_table_index];
+  struct SymbolTable t = symbol_table[symbol_table_index];
   int primitive_type_size = register_get_primitive_type_size(t.primitive_type);
   fprintf(output_file, "\t.data\n" "\t.globl\t%s\n", t.name);
   fprintf(output_file, "%s:", t.name);
@@ -312,7 +312,7 @@ void register_jump(int label) {
  * 解析函数定义的前置汇编代码
 */
 void register_function_preamble(int symbol_table_index) {
-  char *name = global_symbol_table[symbol_table_index].name;
+  char *name = symbol_table[symbol_table_index].name;
   fprintf(output_file,
             "\t.text\n"
             "\t.globl\t%s\n"
@@ -327,7 +327,7 @@ void register_function_preamble(int symbol_table_index) {
  * 解析函数定义的后置汇编代码
 */
 void register_function_postamble(int symbol_table_index) {
-  struct SymbolTable t = global_symbol_table[symbol_table_index];
+  struct SymbolTable t = symbol_table[symbol_table_index];
   register_label(t.end_label);
   fputs("\tpopq     %rbp\n"
         "\tret\n", output_file);
@@ -359,7 +359,7 @@ int register_get_primitive_type_size(int primitive_type) {
 int register_function_call(int register_index, int symbol_table_index) {
   int out_register_index = allocate_register();
   fprintf(output_file, "\tmovq\t%s, %%rdi\n", register_list[register_index]);
-  fprintf(output_file, "\tcall\t%s\n", global_symbol_table[symbol_table_index].name);
+  fprintf(output_file, "\tcall\t%s\n", symbol_table[symbol_table_index].name);
   fprintf(output_file, "\tmovq\t%%rax, %s\n", register_list[out_register_index]);
   clear_register(register_index);
   return out_register_index;
@@ -369,7 +369,7 @@ int register_function_call(int register_index, int symbol_table_index) {
  * 处理函数返回 function_return
 */
 void register_function_return(int register_index, int symbol_table_index) {
-  struct SymbolTable t = global_symbol_table[symbol_table_index];
+  struct SymbolTable t = symbol_table[symbol_table_index];
   char *r = register_list[register_index];
   switch (t.primitive_type) {
     case PRIMITIVE_CHAR:
@@ -389,7 +389,7 @@ void register_function_return(int register_index, int symbol_table_index) {
 
 int register_load_identifier_address(int symbol_table_index) {
   int register_index = allocate_register();
-  struct SymbolTable t = global_symbol_table[symbol_table_index];
+  struct SymbolTable t = symbol_table[symbol_table_index];
   fprintf(output_file, "\tleaq\t%s(%%rip), %s\n",
     t.name,
     register_list[register_index]);

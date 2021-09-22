@@ -259,6 +259,10 @@ int interpret_ast_with_register(
   return NO_REGISTER;
 }
 
+void generate_global_symbol(int symbol_table_index) {
+  register_generate_global_symbol(symbol_table_index);
+}
+
 void generate_preamble_code() {
   register_preamble();
 }

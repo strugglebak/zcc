@@ -18,8 +18,9 @@ extern_ FILE *input_file;
 extern_ FILE *output_file;
 extern_ struct Token token_from_file;
 extern_ char text_buffer[TEXT_LENGTH + 1];
-extern_ struct SymbolTable global_symbol_table[SYMBOL_TABLE_ENTRIES_NUMBER];
+extern_ struct SymbolTable symbol_table[SYMBOL_TABLE_ENTRIES_NUMBER];
 extern_ int global_symbol_table_index;
+extern_ int local_symbol_table_index;
 
 extern_ int current_function_symbol_id;
 extern_ int output_dump_ast;

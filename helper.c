@@ -89,7 +89,7 @@ static int generate_dump_label(void) {
 // 递归打印 ast
 void dump_ast(struct ASTNode *n, int label, int level) {
   int label_false, label_start, label_end;
-  struct SymbolTable t = global_symbol_table[n->value.symbol_table_index];
+  struct SymbolTable t = symbol_table[n->value.symbol_table_index];
 
   switch (n->operation) {
     case AST_IF:

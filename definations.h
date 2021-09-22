@@ -28,6 +28,8 @@ struct SymbolTable {
   int structural_type;// 每个变量的结构类型
   int end_label; // 对于 STRUCTURAL_FUNCTION 来说的 end label
   int size; // 在 symbol 中元素的个数
+  int storage_class;
+  int position; // 本地变量相对于栈基指针的负向距离
 };
 
 
@@ -146,6 +148,11 @@ enum {
   STRUCTURAL_FUNCTION,
   STRUCTURAL_ARRAY
 };
+
+enum {
+  CENTRAL_GLOBAL = 1,
+  CENTRAL_LOCAL,
+}
 
 // 如果在 generator.c 中的 interpret_ast_with_register
 // 函数没有 register id 返回了，就用这个标志位

@@ -85,7 +85,7 @@ static void set_large_integer_offset(int value) {
 static void set_variable_offset(int symbol_table_index) {
   int offset = 0;
   for (int i = 0; i < symbol_table_index; i++) {
-    if (global_symbol_table[i].structural_type == STRUCTURAL_VARIABLE)
+    if (symbol_table[i].structural_type == STRUCTURAL_VARIABLE)
       offset += 4;
   }
   // 用 offset 写入 r3 这个寄存器
@@ -106,8 +106,8 @@ void register_preamble() {
 void register_postamble() {
   fprintf(output_file, ".L2:\n");
   for (int i = 0; i < global_symbol_table_index; i++) {
-    if (global_symbol_table[i].structural_type == STRUCTURAL_VARIABLE)
-      fprintf(output_file, "\t.word %s\n", global_symbol_table[i].name);
+    if (symbol_table[i].structural_type == STRUCTURAL_VARIABLE)
+      fprintf(output_file, "\t.word %s\n", symbol_table[i].name);
   }
   fprintf(output_file, ".L3:\n");
   for (int i = 0; i < integer_list_index; i++) {
@@ -206,7 +206,7 @@ int register_load_value_from_variable(int symbol_table_index) {
  * 将寄存器中的值保存到一个变量中
 */
 int register_store_value_2_variable(int register_index, int symbol_table_index) {
-  struct SymbolTable t = global_symbol_table[symbol_table_index];
+  struct SymbolTable t = symbol_table[symbol_table_index];
   set_variable_offset(symbol_table_index);
   switch (t.primitive_type) {
     case PRIMITIVE_CHAR:
@@ -231,7 +231,7 @@ int register_store_value_2_variable(int register_index, int symbol_table_index) 
  * 创建全局变量
 */
 void register_generate_global_symbol(int symbol_table_index) {
-  struct SymbolTable t = global_symbol_table[symbol_table_index];
+  struct SymbolTable t = symbol_table[symbol_table_index];
   int primitive_type_size
     = register_get_primitive_type_size(t.primitive_type);
   fprintf(output_file, "\t.data\n" "\t.globl\t%s\n", t.name);
@@ -330,7 +330,7 @@ void register_jump(int label) {
  * 解析函数定义的前置汇编代码
 */
 void register_function_preamble(int symbol_table_index) {
-  char *name = global_symbol_table[symbol_table_index].name;
+  char *name = symbol_table[symbol_table_index].name;
   fprintf(output_file,
           "\t.text\n"
           "\t.globl\t%s\n"
@@ -346,7 +346,7 @@ void register_function_preamble(int symbol_table_index) {
  * 解析函数定义的后置汇编代码
 */
 void register_function_postamble(int symbol_table_index) {
-  struct SymbolTable t = global_symbol_table[symbol_table_index];
+  struct SymbolTable t = symbol_table[symbol_table_index];
   register_label(t.end_label);
   fputs("\tsub\tsp, fp, #4\n"
         "\tpop\t{fp, pc}\n"
@@ -379,7 +379,7 @@ int register_get_primitive_type_size(int primitive_type) {
 */
 int register_function_call(int register_index, int symbol_table_index) {
   fprintf(output_file, "\tmov\tr0, %s\n", register_list[register_index]);
-  fprintf(output_file, "\tbl\t%s\n", global_symbol_table[symbol_table_index].name);
+  fprintf(output_file, "\tbl\t%s\n", symbol_table[symbol_table_index].name);
   fprintf(output_file, "\tmov\t%s, r0\n", register_list[register_index]);
   return register_index;
 }
@@ -388,7 +388,7 @@ int register_function_call(int register_index, int symbol_table_index) {
  * 处理函数返回 function_return
 */
 void register_function_return(int register_index, int symbol_table_index) {
-  struct SymbolTable t = global_symbol_table[symbol_table_index];
+  struct SymbolTable t = symbol_table[symbol_table_index];
   char *r = register_list[register_index];
   fprintf(output_file, "\tmov\tr0, %s\n", r);
   register_jump(t.end_label);

@@ -132,7 +132,7 @@ struct ASTNode *parse_for_statement() {
 
 static struct ASTNode *parse_return_statement() {
   struct ASTNode *tree;
-  struct SymbolTable t = global_symbol_table[current_function_symbol_id];
+  struct SymbolTable t = symbol_table[current_function_symbol_id];
 
   // 如果函数返回的是 void 则不能进行返回
   if (t.primitive_type == PRIMITIVE_VOID)
