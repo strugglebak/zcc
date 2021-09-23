@@ -162,7 +162,7 @@ int register_load_value_from_variable(int symbol_table_index, int operation) {
       if (operation == AST_PRE_DECREASE)
         fprintf(output_file, "\tdecl\t%s(\%%rip)\n", t.name);
 
-      fprintf(output_file, "\tmovzbl\t%s(\%%rip), %s\n", t.name, r);
+      fprintf(output_file, "\tmovslq\t%s(\%%rip), %s\n", t.name, r);
 
       if (operation == AST_POST_INCREASE)
         fprintf(output_file, "\tincl\t%s(\%%rip)\n", t.name);
@@ -218,7 +218,7 @@ int register_load_local_value_from_variable(int symbol_table_index, int operatio
       if (operation == AST_PRE_DECREASE)
         fprintf(output_file, "\tdecl\t%d(\%%rbp)\n", t.position);
 
-      fprintf(output_file, "\tmovzbl\t%d(\%%rbp), %s\n", t.position, r);
+      fprintf(output_file, "\tmovslq\t%d(\%%rbp), %s\n", t.position, r);
 
       if (operation == AST_POST_INCREASE)
         fprintf(output_file, "\tincl\t%d(\%%rbp)\n", t.position);
@@ -431,7 +431,7 @@ void register_function_postamble(int symbol_table_index) {
   struct SymbolTable t = symbol_table[symbol_table_index];
   register_label(t.end_label);
   fprintf(output_file, "\taddq\t$%d,%%rsp\n", stack_offset);
-  fputs("\tpopq %rbp\n"
+  fputs("\tpopq\t%rbp\n"
         "\tret\n", output_file);
 }
 
@@ -492,9 +492,11 @@ void register_function_return(int register_index, int symbol_table_index) {
 int register_load_identifier_address(int symbol_table_index) {
   int register_index = allocate_register();
   struct SymbolTable t = symbol_table[symbol_table_index];
-  fprintf(output_file, "\tleaq\t%s(%%rip), %s\n",
-    t.name,
-    register_list[register_index]);
+  char *r = register_list[register_index];
+  if (t.storage_class == CENTRAL_LOCAL)
+    fprintf(output_file, "\tleaq\t%d(%%rbp), %s\n", t.position, r);
+  else
+    fprintf(output_file, "\tleaq\t%s(%%rip), %s\n", t.name, r);
   return register_index;
 }
 
@@ -505,6 +507,8 @@ int register_dereference_pointer(int register_index, int primitive_type) {
       fprintf(output_file, "\tmovzbq\t(%s), %s\n", r, r);
       break;
     case PRIMITIVE_INT_POINTER:
+      fprintf(output_file, "\tmovslq\t(%s), %s\n", r, r);
+      break;
     case PRIMITIVE_LONG_POINTER:
       fprintf(output_file, "\tmovq\t(%s), %s\n", r, r);
       break;
