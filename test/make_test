@@ -1,11 +1,11 @@
 #!/bin/sh
 
 for i in input*zc
-do if [ ! -f "out.$i" ]
+do if [ ! -f "assert/out.$i" ]
    then
      cp $i ${i%%.*}.c
      cc -o out ${i%%.*}.c ../lib/print_int.c ../lib/print_char.c
-     ./out > out.$i
+     ./out > assert/out.$i
      rm -f out out.s ${i%%.*}.c
    fi
 done
