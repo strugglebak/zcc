@@ -7,4 +7,3 @@ parser
 parser2
 parser.dSYM/
 .vscode/
-test/out.*
