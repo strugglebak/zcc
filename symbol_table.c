@@ -48,14 +48,13 @@ static void update_symbol_table(
 ) {
   if (index < 0 || index >= SYMBOL_TABLE_ENTRIES_NUMBER)
     error("Invalid symbol slot number in update_symbol_table()");
-  struct SymbolTable t = symbol_table[index];
-  t.name = strdup(name);
-  t.primitive_type = primitive_type;
-  t.structural_type = structural_type;
-  t.end_label = end_label;
-  t.size = size;
-  t.storage_class = storage_class;
-  t.position = position;
+  symbol_table[index].name = strdup(name);
+  symbol_table[index].primitive_type = primitive_type;
+  symbol_table[index].structural_type = structural_type;
+  symbol_table[index].end_label = end_label;
+  symbol_table[index].size = size;
+  symbol_table[index].storage_class = storage_class;
+  symbol_table[index].position = position;
 }
 
 /**

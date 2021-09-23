@@ -218,7 +218,7 @@ struct ASTNode *convert_function_call_2_ast() {
   // 解析类似于 xxx(1); 这样的函数调用
 
   // 检查是否未声明
-  if ((symbol_table_index = find_global_symbol_table_index(text_buffer)) == -1)
+  if ((symbol_table_index = find_symbol(text_buffer)) == -1)
     error_with_message("Undeclared function", text_buffer);
 
   // 解析左 (
@@ -244,7 +244,7 @@ struct ASTNode *convert_function_call_2_ast() {
 struct ASTNode *convert_array_access_2_ast() {
   struct ASTNode *left, *right;
   struct SymbolTable t;
-  int symbol_table_index = find_global_symbol_table_index(text_buffer);
+  int symbol_table_index = find_symbol(text_buffer);
 
   // 解析类似于 x = a[12];
   if (symbol_table_index == -1 ||
@@ -386,10 +386,9 @@ struct ASTNode *convert_postfix_expression_2_ast() {
     return convert_array_access_2_ast();
 
   // 检查标识符是否存在
-  if ((symbol_table_index
-      = find_global_symbol_table_index(text_buffer)) == -1 ||
+  if ((symbol_table_index = find_symbol(text_buffer)) == -1 ||
       symbol_table[symbol_table_index].structural_type != STRUCTURAL_VARIABLE)
-    error_with_message("Unknown variable", text_buffer);
+        error_with_message("Unknown variable", text_buffer);
 
   t = symbol_table[symbol_table_index];
   switch (token_from_file.token) {

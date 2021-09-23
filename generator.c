@@ -180,8 +180,12 @@ int interpret_ast_with_register(
       //                     | |
       //                     /  \
       // parent_ast_operation  node
-      if (node->rvalue || parent_ast_operation == AST_DEREFERENCE_POINTER)
-        return register_load_value_from_variable(node->value.symbol_table_index, node->operation);
+      if (node->rvalue ||
+        parent_ast_operation == AST_DEREFERENCE_POINTER) {
+          if (symbol_table[node->value.symbol_table_index].storage_class == CENTRAL_LOCAL)
+            return register_load_local_value_from_variable(node->value.symbol_table_index, node->operation);
+          return register_load_value_from_variable(node->value.symbol_table_index, node->operation);
+        }
       return NO_REGISTER;
     case AST_LVALUE_IDENTIFIER:
       return register_store_value_2_variable(register_index, node->value.symbol_table_index);
@@ -192,6 +196,8 @@ int interpret_ast_with_register(
       // 在 parser 中 left 和 right 做了交换，所以这里要对 right 的 operation 做判断
       switch (node->right->operation) {
         case AST_IDENTIFIER:
+          if (symbol_table[node->right->value.symbol_table_index].storage_class == CENTRAL_LOCAL)
+              return register_store_local_value_2_variable(left_register, node->right->value.symbol_table_index);
           return register_store_value_2_variable(left_register, node->right->value.symbol_table_index);
         case AST_DEREFERENCE_POINTER:
           return register_store_dereference_pointer(left_register, right_register, node->right->primitive_type);

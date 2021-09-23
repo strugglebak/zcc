@@ -77,7 +77,6 @@ static int compare_register(int left_register, int right_register, char *set_ins
 */
 void register_preamble() {
   clear_all_registers();
-  fputs( "\t.text\n", output_file);
 }
 
 /**
@@ -285,25 +284,25 @@ int register_store_local_value_2_variable(int register_index, int symbol_table_i
   struct SymbolTable t = symbol_table[symbol_table_index];
   switch (t.primitive_type) {
     case PRIMITIVE_CHAR:
-      fprintf(output_file, "\tmovb\t%s, %s(\%%rbp)\n",
+      fprintf(output_file, "\tmovb\t%s, %d(\%%rbp)\n",
        lower_8_bits_register_list[register_index],
-       t.name);
+       t.position);
       break;
     case PRIMITIVE_INT:
-      fprintf(output_file, "\tmovl\t%s, %s(\%%rbp)\n",
+      fprintf(output_file, "\tmovl\t%s, %d(\%%rbp)\n",
        lower_32_bits_register_list[register_index],
-       t.name);
+       t.position);
       break;
     case PRIMITIVE_LONG:
     case PRIMITIVE_CHAR_POINTER:
     case PRIMITIVE_INT_POINTER:
     case PRIMITIVE_LONG_POINTER:
-      fprintf(output_file, "\tmovq\t%s, %s(\%%rbp)\n",
+      fprintf(output_file, "\tmovq\t%s, %d(\%%rbp)\n",
       register_list[register_index],
-      t.name);
+      t.position);
       break;
     default:
-      error_with_digital("Bad type in register_store_value_2_variable:", t.primitive_type);
+      error_with_digital("Bad type in register_store_local_value_2_variable:", t.primitive_type);
   }
   return register_index;
 }
