@@ -16,9 +16,7 @@ static int parse_parameter_declaration() {
   // 解析类似 void xxx(int a, int b) {} 函数中间的参数
   int primitive_type;
   int parameter_count = 0;
-  int token = token_from_file.token;
-
-  while (token != TOKEN_RIGHT_PAREN) {
+  while (token_from_file.token != TOKEN_RIGHT_PAREN) {
     primitive_type = convert_token_2_primitive_type();
     verify_identifier();
     // 函数参数中的这些定义属于 局部变量，同时也属于 参数定义
@@ -26,13 +24,13 @@ static int parse_parameter_declaration() {
     parameter_count++;
 
     // 检查 , 或者 )，因为下一个 token 必然是 , 或者 )
-    switch (token) {
+    switch (token_from_file.token) {
       case TOKEN_COMMA:
         scan(&token_from_file);
         break;
       case TOKEN_RIGHT_PAREN: break;
       default:
-        error_with_digital("Unexpected token in parameter list", token);
+        error_with_digital("Unexpected token in parameter list", token_from_file.token);
     }
   }
 
@@ -105,13 +103,12 @@ void parse_var_declaration_statement(int primitive_type, int is_local, int is_pa
         1);
     }
   }
-
-  verify_semicolon();
 }
 
 struct ASTNode *parse_function_declaration_statement(int primitive_type) {
   struct ASTNode *tree, *final_statement;
   int name_slot, end_label;
+  int parameter_count;
 
   end_label = generate_label();
   name_slot = add_global_symbol(
@@ -122,15 +119,17 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
     0);
   current_function_symbol_id = name_slot;
 
-  generate_reset_local_variables();
-
   verify_left_paren();
+  // 开始扫描函数参数
+  parameter_count = parse_parameter_declaration();
+  symbol_table[name_slot].element_number = parameter_count;
   verify_right_paren();
 
   tree = parse_compound_statement();
 
   // 确保非 void 返回的函数始终有返回一个值
   if (primitive_type != PRIMITIVE_VOID) {
+    if (!tree) error("No statements in function with non-void type");
     final_statement = tree->operation == AST_GLUE ? tree->right : tree;
     if (!final_statement ||
       final_statement->operation != AST_RETURN)
@@ -157,8 +156,10 @@ void parse_global_declaration_statement() {
       }
       interpret_ast_with_register(tree, NO_LABEL, 0);
       reset_local_symbol_index();
-    } else
+    } else {
       // 否则就是变量
       parse_var_declaration_statement(primitive_type, 0, 0);
+      verify_semicolon();
+    }
   }
 }

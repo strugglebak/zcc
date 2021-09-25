@@ -30,6 +30,11 @@ struct SymbolTable {
   int size; // 在 symbol 中元素的个数
   int storage_class;
   int position; // 本地变量相对于栈基指针的负向距离
+
+// 对于函数，为参数的个数
+// 对于结构体，为结构体的 field
+#define element_number position
+
 };
 
 
