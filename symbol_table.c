@@ -62,6 +62,9 @@ static void update_symbol_table(
 */
 int find_global_symbol_table_index(char *symbol_string) {
   for (int i = 0; i < global_symbol_table_index; i++) {
+    // 忽略掉在 global index 区域的参数变量 string
+    if (symbol_table[i].storage_class == STORAGE_CLASS_FUNCTION_PARAMETER)
+      continue;
     // 如果首字母相同, 并且后续的字符串都相同
     if (*symbol_string == *(symbol_table[i].name)
       && !strcmp(symbol_string, symbol_table[i].name)) {
@@ -126,30 +129,53 @@ int add_local_symbol(
   char *symbol_string,
   int primitive_type,
   int structural_type,
-  int end_label,
+  int is_parameter,
   int size
 ) {
-  int index = 0;
-  int position = 0;
-  if ((index = find_local_symbol_table_index(symbol_string)) != -1) {
-    return index;
+  int local_var_index, global_var_index;
+  if ((local_var_index = find_local_symbol_table_local_var_index(symbol_string)) != -1) {
+    return local_var_index;
   }
 
-  index = new_local_symbol_string();
-  position = generate_get_local_offset(primitive_type, 0);
-  // 将字符串复制一份放入到内存中，并返回这个内存的地址
-  // 初始化
-  update_symbol_table(
-    index,
-    symbol_string,
-    primitive_type,
-    structural_type,
-    end_label,
-    size,
-    STORAGE_CLASS_LOCAL,
-    position
-  );
-  return index;
+  local_var_index = new_local_symbol_string();
+  if (is_parameter) {
+    update_symbol_table(
+      local_var_index,
+      symbol_string,
+      primitive_type,
+      structural_type,
+      0,
+      size,
+      STORAGE_CLASS_FUNCTION_PARAMETER,
+      0
+    );
+    // 同时创建函数的 prototype
+    global_var_index = new_global_symbol_string();
+    update_symbol_table(
+      global_var_index,
+      symbol_string,
+      primitive_type,
+      structural_type,
+      0,
+      size,
+      STORAGE_CLASS_FUNCTION_PARAMETER,
+      0
+    );
+  } else
+    // 将字符串复制一份放入到内存中，并返回这个内存的地址
+    // 初始化
+    update_symbol_table(
+      local_var_index,
+      symbol_string,
+      primitive_type,
+      structural_type,
+      0,
+      size,
+      STORAGE_CLASS_LOCAL,
+      0
+    );
+
+  return local_var_index;
 }
 
 int find_symbol(char *string) {

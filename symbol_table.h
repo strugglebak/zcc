@@ -14,7 +14,7 @@ int add_local_symbol(
   char *symbol_string,
   int primitive_type,
   int structural_type,
-  int end_label,
+  int is_parameter,
   int size
 );
 int find_symbol(char *string);
