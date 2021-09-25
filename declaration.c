@@ -8,6 +8,36 @@
 #include "statement.h"
 #include "types.h"
 
+// param_declaration: <null>
+//           | variable_declaration
+//           | variable_declaration ',' param_declaration
+static int parse_parameter_declaration() {
+  // 解析类似 void xxx(int a, int b) {} 函数中间的参数
+  int primitive_type;
+  int parameter_count = 0;
+  int token = token_from_file.token;
+
+  while (token != TOKEN_RIGHT_PAREN) {
+    primitive_type = convert_token_2_primitive_type();
+    verify_identifier();
+    // 函数参数中的这些定义属于 局部变量，同时也属于 参数定义
+    parse_var_declaration_statement(primitive_type, 1, 1);
+    parameter_count++;
+
+    // 检查 , 或者 )，因为下一个 token 必然是 , 或者 )
+    switch (token) {
+      case TOKEN_COMMA:
+        scan(&token_from_file);
+        break;
+      case TOKEN_RIGHT_PAREN: break;
+      default:
+        error_with_digital("Unexpected token in parameter list", token);
+    }
+  }
+
+  return parameter_count;
+}
+
 int convert_token_2_primitive_type() {
   int new_type;
   switch (token_from_file.token) {
@@ -31,7 +61,8 @@ int convert_token_2_primitive_type() {
 //  variable_declaration: type identifier ';'
 //                      | type identifier '[' TOKEN_INTEGER_LITERAL ']' ';'
 //                      ;
-void parse_var_declaration_statement(int primitive_type, int is_local) {
+void parse_var_declaration_statement(int primitive_type, int is_local, int is_parameter) {
+  int index;
   // 解析数组变量
   // 如果是 [
   if (token_from_file.token == TOKEN_LEFT_BRACKET) {
@@ -40,12 +71,8 @@ void parse_var_declaration_statement(int primitive_type, int is_local) {
 
     if (token_from_file.token == TOKEN_INTEGER_LITERAL) {
       if (is_local) {
-        add_local_symbol(
-          text_buffer,
-          pointer_to(primitive_type), // 变成指针类型
-          STRUCTURAL_ARRAY,
-          0,
-          token_from_file.integer_value);
+        // 目前来说不支持解析局部数组变量
+        error("For now, declaration of local arrays is not implemented");
       } else {
         add_global_symbol(
           text_buffer,
@@ -61,12 +88,13 @@ void parse_var_declaration_statement(int primitive_type, int is_local) {
     verify_right_bracket();
   } else {
     if (is_local) {
-      add_local_symbol(
+      index = add_local_symbol(
         text_buffer,
         primitive_type,
         STRUCTURAL_VARIABLE,
-        0,
+        is_parameter,
         1);
+      if (index < 0) error_with_message("Duplicate local variable declaration", text_buffer);
     } else {
       add_global_symbol(
         text_buffer,

@@ -20,7 +20,7 @@ static struct ASTNode *parse_single_statement() {
       primitive_type = convert_token_2_primitive_type();
       verify_identifier();
       // 单个语句在大括号内，所以是局部变量
-      parse_var_declaration_statement(primitive_type, 1);
+      parse_var_declaration_statement(primitive_type, 1, 0);
       return NULL;
     case TOKEN_IF:
       return parse_if_statement();
