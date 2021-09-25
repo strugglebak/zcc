@@ -7,6 +7,7 @@
 #include "ast.h"
 #include "statement.h"
 #include "types.h"
+#include "declaration.h"
 
 // param_declaration: <null>
 //           | variable_declaration
@@ -155,8 +156,9 @@ void parse_global_declaration_statement() {
         fprintf(stdout, "\n\n");
       }
       interpret_ast_with_register(tree, NO_LABEL, 0);
+      reset_local_symbol_index();
     } else
       // 否则就是变量
-      parse_var_declaration_statement(primitive_type, 0);
+      parse_var_declaration_statement(primitive_type, 0, 0);
   }
 }

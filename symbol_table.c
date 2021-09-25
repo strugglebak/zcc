@@ -134,7 +134,7 @@ int add_local_symbol(
   int size
 ) {
   int local_var_index, global_var_index;
-  if ((local_var_index = find_local_symbol_table_local_var_index(symbol_string)) != -1) {
+  if ((local_var_index = find_local_symbol_table_index(symbol_string)) != -1) {
     return local_var_index;
   }
 
@@ -186,4 +186,8 @@ int find_symbol(char *string) {
     // local 找不到再去找全局
     index = find_global_symbol_table_index(string);
   return index;
+}
+
+void reset_local_symbol_index() {
+  local_symbol_table_index = SYMBOL_TABLE_ENTRIES_NUMBER - 1;
 }

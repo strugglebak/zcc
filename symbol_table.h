@@ -18,5 +18,6 @@ int add_local_symbol(
   int size
 );
 int find_symbol(char *string);
+void reset_local_symbol_index();
 
 #endif
