@@ -6,16 +6,28 @@
 #include "helper.h"
 #include "generator_core.h"
 
+#define FREE_REGISTER_NUMBER 4
+#define FIRST_PARAMETER_REGISTER_NUMBER 9
+
 enum {
   NO_SECTION_FLAG,
   TEXT_SECTION_FLAG,
   DATA_SECTION_FLAG,
 } current_section_flag = NO_SECTION_FLAG;
 
-static int free_registers[4] = { 1 };
-static char *register_list[4] = { "%r8", "%r9", "%r10", "%r11" }; // 64 位寄存器
-static char *lower_8_bits_register_list[4] = { "%r8b", "%r9b", "%r10b", "%r11b" }; // 低 8 位寄存器
-static char *lower_32_bits_register_list[4] = { "%r8d", "%r9d", "%r10d", "%r11d" }; // 低 32 位寄存器
+static int free_registers[FREE_REGISTER_NUMBER] = { 1 };
+static char *register_list[] = {
+  "%r8", "%r9", "%r10", "%r11", "%r12", "%r13",
+  "%rcx", "%rdx", "%rsi", "%rdi"
+}; // 64 位寄存器
+static char *lower_8_bits_register_list[] = {
+  "%r8b", "%r9b", "%r10b", "%r11b", "%r12b", "%r13b",
+  "%cl", "%dl", "%sil", "%dil"
+}; // 低 8 位寄存器
+static char *lower_32_bits_register_list[] = {
+  "%r8d", "%r9d", "%r10d", "%r11d", "%r12d", "%r13d",
+  "%ecx", "%edx", "%esi", "%edi"
+}; // 低 32 位寄存器
 
 static char *compare_list[] =
   { "sete", "setne", "setl", "setg", "setle", "setge" };
@@ -410,18 +422,49 @@ void register_jump(int label) {
 */
 void register_function_preamble(int symbol_table_index) {
   char *name = symbol_table[symbol_table_index].name;
-  register_text_section_flag();
+  int i;
+  int parameter_offset = 16;
+  int parameter_register_number = FIRST_PARAMETER_REGISTER_NUMBER;
 
-  // 将栈指针对齐为 16 的倍数
-  stack_offset = (local_offset+15) & (~15);
+  register_text_section_flag();
+  register_reset_local_variables();
+
   fprintf(output_file,
             "\t.globl\t%s\n"
             "\t.type\t%s, @function\n"
             "%s:\n"
             "\tpushq\t%%rbp\n"
-            "\tmovq\t%%rsp, %%rbp\n"
-            "\taddq\t$%d,%%rsp\n",
-            name, name, name, -stack_offset);
+            "\tmovq\t%%rsp, %%rbp\n",
+            name, name, name);
+
+  // 把在寄存器中的函数参数复制放入栈中
+  // 超过 6 个参数寄存器就 break
+  // position 将在后面解析的时候用到
+  for (i = SYMBOL_TABLE_ENTRIES_NUMBER - 1;
+    i > local_symbol_table_index &&
+    symbol_table[i].storage_class == STORAGE_CLASS_FUNCTION_PARAMETER &&
+    i >= SYMBOL_TABLE_ENTRIES_NUMBER - 6; i--) {
+      // 注意这里是负数
+      symbol_table[i].position =
+        register_new_local_offset(symbol_table[i].primitive_type, 1);
+      register_store_local_value_2_variable(parameter_register_number--, i);
+    }
+
+  // 剩下的如果是参数变量，继续放入栈中
+  // 如果是局部变量，创建新的 position
+  for (; i > local_symbol_table_index; i--) {
+    if (symbol_table[i].storage_class == STORAGE_CLASS_FUNCTION_PARAMETER) {
+      // 注意这里是正数
+      symbol_table[i].position = parameter_offset;
+      parameter_offset += 8;
+    } else
+      symbol_table[i].position =
+        register_new_local_offset(symbol_table[i].primitive_type, 0);
+  }
+
+  // 将栈指针对齐为 16 的倍数
+  stack_offset = (local_offset+15) & (~15);
+  fprintf(output_file, "\taddq\t$%d,%%rsp\n", -stack_offset);
 }
 
 /**
@@ -430,6 +473,7 @@ void register_function_preamble(int symbol_table_index) {
 void register_function_postamble(int symbol_table_index) {
   struct SymbolTable t = symbol_table[symbol_table_index];
   register_label(t.end_label);
+  // 栈指针回到最初的位置
   fprintf(output_file, "\taddq\t$%d,%%rsp\n", stack_offset);
   fputs("\tpopq\t%rbp\n"
         "\tret\n", output_file);
@@ -624,7 +668,7 @@ void register_reset_local_variables() {
   local_offset = 0;
 }
 
-int register_get_local_offset(int primitive_type, int is_parameter) {
+int register_new_local_offset(int primitive_type, int is_parameter) {
   int primitive_type_size = register_get_primitive_type_size(primitive_type);
   // 栈上位置至少间隔为 4 byte
   local_offset += primitive_type_size > 4 ? primitive_type_size : 4;

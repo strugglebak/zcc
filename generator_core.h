@@ -66,7 +66,7 @@ int register_logic_not(int register_index);
 int register_to_be_boolean(int register_index, int operaion, int label);
 
 void register_reset_local_variables();
-int register_get_local_offset(int primitive_type, int is_parameter);
+int register_new_local_offset(int primitive_type, int is_parameter);
 
 void register_text_section_flag();
 void register_data_section_flag();

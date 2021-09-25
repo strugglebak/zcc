@@ -295,5 +295,5 @@ void generate_reset_local_variables() {
   register_reset_local_variables();
 }
 int generate_get_local_offset(int primitive_type, int is_parameter) {
-  return register_get_local_offset(primitive_type, is_parameter);
+  return register_new_local_offset(primitive_type, is_parameter);
 }
