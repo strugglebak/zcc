@@ -1,0 +1,16 @@
+int main(int a, char b, long c, int d, int e, int f, int g, int h) {
+  int i; int j; int k;
+
+  a= 13; print_int(a);
+  b= 23; print_int(b);
+  c= 34; print_int(c);
+  d= 44; print_int(d);
+  e= 54; print_int(e);
+  f= 64; print_int(f);
+  g= 74; print_int(g);
+  h= 84; print_int(h);
+  i= 94; print_int(i);
+  j= 95; print_int(j);
+  k= 96; print_int(k);
+  return(0);
+}

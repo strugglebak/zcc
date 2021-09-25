@@ -1,5 +1,39 @@
 #!/bin/sh
 
+TEST="test"
+ASSERT="assert"
+
+cd $TEST
+
+if [ "$1" = "-s" ];
+then
+  # 不能为空串
+  if [ -z "$2" ];
+  then
+    echo "Warning:"
+    echo "-s means make a single test"
+    echo "You should type like './make_test -s 01'"
+    exit 1
+  fi
+
+  if [ ! -f "input$2.zc" ];
+  then
+    echo "Can't find file input$2.zc"
+    exit 1
+  fi
+
+  if [ ! -f "${ASSERT}/out.input$2.zc" ];
+  then
+    cp input$2.zc input$2.c
+    cc -o out input$2.c ../lib/print_int.c ../lib/print_char.c
+    ./out > assert/out.input$2.zc
+    rm -f out out.s input$2.c
+  fi
+
+  cd ..
+  exit 0
+fi
+
 for i in input*zc
 do if [ ! -f "assert/out.$i" ]
    then

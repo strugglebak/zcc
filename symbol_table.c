@@ -2,6 +2,7 @@
 #include "helper.h"
 #include "data.h"
 #include "generator.h"
+#include "symbol_table.h"
 
 // symbol_table
 // ^
