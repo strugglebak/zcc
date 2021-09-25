@@ -493,7 +493,7 @@ int register_load_identifier_address(int symbol_table_index) {
   int register_index = allocate_register();
   struct SymbolTable t = symbol_table[symbol_table_index];
   char *r = register_list[register_index];
-  if (t.storage_class == CENTRAL_LOCAL)
+  if (t.storage_class == STORAGE_CLASS_LOCAL)
     fprintf(output_file, "\tleaq\t%d(%%rbp), %s\n", t.position, r);
   else
     fprintf(output_file, "\tleaq\t%s(%%rip), %s\n", t.name, r);

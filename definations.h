@@ -150,8 +150,9 @@ enum {
 };
 
 enum {
-  CENTRAL_GLOBAL = 1,
-  CENTRAL_LOCAL,
+  STORAGE_CLASS_GLOBAL = 1,
+  STORAGE_CLASS_LOCAL,
+  STORAGE_CLASS_FUNCTION_PARAMETER,
 };
 
 // 如果在 generator.c 中的 interpret_ast_with_register

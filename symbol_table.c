@@ -112,7 +112,7 @@ int add_global_symbol(
     structural_type,
     end_label,
     size,
-    CENTRAL_GLOBAL,
+    STORAGE_CLASS_GLOBAL,
     0
   );
   generate_global_symbol(index);
@@ -146,7 +146,7 @@ int add_local_symbol(
     structural_type,
     end_label,
     size,
-    CENTRAL_LOCAL,
+    STORAGE_CLASS_LOCAL,
     position
   );
   return index;
