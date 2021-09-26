@@ -29,7 +29,7 @@ static int check_right_associative(int token) {
 static int operation_precedence(int operation_in_token) {
   int precedence = operation_precedence_array[operation_in_token];
   if (operation_in_token > TOKEN_DIVIDE)
-    error_with_digital("Token with no precedence in op_precedence:", operation_in_token);
+    error_with_digital("Token with no precedence in op_precedence", operation_in_token);
   if (!precedence)
     error_with_digital("Syntax error, token", operation_in_token);
   return precedence;
@@ -134,7 +134,7 @@ static struct ASTNode *create_ast_node_from_expression() {
 //  NULL  expr1(1)
 // 确保处理顺序为 expr4 expr3 expr2 expr1，以便生成汇编代码时压栈顺序正确
 static struct ASTNode *parse_expression_list_in_function_call() {
-  struct ASTNode *tree, *right;
+  struct ASTNode *tree = NULL, *right = NULL;
   int expression_count;
 
   while (token_from_file.token != TOKEN_RIGHT_PAREN) {
@@ -201,7 +201,8 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
   if (TOKEN_SEMICOLON == node_operation_type ||
     TOKEN_EOF == node_operation_type ||
     TOKEN_RIGHT_PAREN == node_operation_type ||
-    TOKEN_RIGHT_BRACKET == node_operation_type
+    TOKEN_RIGHT_BRACKET == node_operation_type ||
+    TOKEN_COMMA == node_operation_type
     ) {
       left->rvalue = 1;
       return left;
@@ -252,7 +253,8 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
     if (TOKEN_SEMICOLON == node_operation_type ||
       TOKEN_EOF == node_operation_type ||
       TOKEN_RIGHT_PAREN == node_operation_type ||
-      TOKEN_RIGHT_BRACKET == node_operation_type
+      TOKEN_RIGHT_BRACKET == node_operation_type ||
+      TOKEN_COMMA == node_operation_type
       ) break;
   }
 

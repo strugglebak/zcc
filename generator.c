@@ -161,6 +161,8 @@ int interpret_ast_with_register(
       return NO_REGISTER;
     case AST_WHILE:
       return interpret_while_ast_with_register(node);
+    case AST_FUNCTION_CALL:
+      return interpret_function_call_with_register(node);
     case AST_FUNCTION:
       register_function_preamble(node->value.symbol_table_index);
       interpret_ast_with_register(node->left, NO_LABEL, node->operation);
@@ -197,9 +199,6 @@ int interpret_ast_with_register(
           node->operation, left_register,
           right_register, register_index);
       return register_compare_and_set(node->operation, left_register, right_register);
-
-    case AST_FUNCTION_CALL:
-      return interpret_function_call_with_register(node);
     case AST_RETURN:
       register_function_return(left_register, current_function_symbol_id);
       return NO_REGISTER;
