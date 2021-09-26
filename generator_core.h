@@ -45,7 +45,7 @@ int register_widen(
   int new_primitive_type);
 
 int register_get_primitive_type_size(int primitive_type);
-int register_function_call(int register_index, int symbol_table_index);
+int register_function_call(int symbol_table_index, int argument_number);
 void register_function_return(int register_index, int symbol_table_index);
 
 int register_load_identifier_address(int symbol_table_index);
@@ -70,5 +70,7 @@ int register_new_local_offset(int primitive_type, int is_parameter);
 
 void register_text_section_flag();
 void register_data_section_flag();
+
+void register_copy_argument(int register_index, int argument_position);
 
 #endif

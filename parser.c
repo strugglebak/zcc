@@ -125,13 +125,13 @@ static struct ASTNode *create_ast_node_from_expression() {
 //                 /
 //             A_GLUE
 //              /   \
-//          A_GLUE  expr4
+//          A_GLUE  expr4(4)
 //           /   \
-//       A_GLUE  expr3
+//       A_GLUE  expr3(3)
 //        /   \
-//    A_GLUE  expr2
+//    A_GLUE  expr2(2)
 //    /    \
-//  NULL  expr1
+//  NULL  expr1(1)
 // 确保处理顺序为 expr4 expr3 expr2 expr1，以便生成汇编代码时压栈顺序正确
 static struct ASTNode *parse_expression_list_in_function_call() {
   struct ASTNode *tree, *right;

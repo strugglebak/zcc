@@ -84,6 +84,37 @@ static int interpret_while_ast_with_register(struct ASTNode *node) {
   return NO_REGISTER;
 }
 
+static int interpret_function_call_with_register(struct ASTNode *node) {
+  struct ASTNode *glue_node = node->left;
+  int register_index;
+  int function_argument_number = 0;
+
+  // 处理如下的 tree
+  //                A_FUNCCALL
+  //                 /
+  //             A_GLUE
+  //              /   \
+  //          A_GLUE  expr4(4)
+  //           /   \
+  //       A_GLUE  expr3(3)
+  //        /   \
+  //    A_GLUE  expr2(2)
+  //    /    \
+  //  NULL  expr1(1)
+  while(glue_node) {
+    // 先生成相关表达式的汇编代码
+    register_index = interpret_ast_with_register(glue_node->right, NO_LABEL, glue_node->operation);
+    // 将其复制到第 n 个函数参数中
+    register_copy_argument(register_index, glue_node->value.scale_size);
+    // 保留第一个参数
+    if (!function_argument_number) function_argument_number = glue_node->value.scale_size;
+    clear_all_registers();
+    glue_node = glue_node->left;
+  }
+
+  return register_function_call(node->value.symbol_table_index, function_argument_number);
+}
+
 /**
  * 这里主要将 ast 中的代码取出来，然后用汇编的方式进行值的加减乘除
  * 这里加减乘除后返回的是寄存器的标识
@@ -168,7 +199,7 @@ int interpret_ast_with_register(
       return register_compare_and_set(node->operation, left_register, right_register);
 
     case AST_FUNCTION_CALL:
-      return register_function_call(left_register, node->value.symbol_table_index);
+      return interpret_function_call_with_register(node);
     case AST_RETURN:
       register_function_return(left_register, current_function_symbol_id);
       return NO_REGISTER;

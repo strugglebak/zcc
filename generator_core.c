@@ -502,12 +502,17 @@ int register_get_primitive_type_size(int primitive_type) {
 /**
  * 处理函数调用 function_call
 */
-int register_function_call(int register_index, int symbol_table_index) {
+int register_function_call(int symbol_table_index, int argument_number) {
   int out_register_index = allocate_register();
-  fprintf(output_file, "\tmovq\t%s, %%rdi\n", register_list[register_index]);
+  // 调用函数
   fprintf(output_file, "\tcall\t%s\n", symbol_table[symbol_table_index].name);
+
+  // 如果参数大于 6 个，移除在栈上的参数
+  if (argument_number > 6)
+    fprintf(output_file, "\taddq\t$%d, %%rsp\n", 8 * (argument_number - 6));
+
+  // 把返回值复制进寄存器
   fprintf(output_file, "\tmovq\t%%rax, %s\n", register_list[out_register_index]);
-  clear_register(register_index);
   return out_register_index;
 }
 
@@ -685,4 +690,16 @@ void register_data_section_flag() {
   if (current_section_flag == DATA_SECTION_FLAG) return;
   fputs("\t.data\n", output_file);
   current_section_flag = DATA_SECTION_FLAG;
+}
+
+void register_copy_argument(int register_index, int argument_position) {
+  char *r = register_list[register_index];
+  if (argument_position > 6) {
+    fprintf(output_file, "\tpushq\t%s\n", r);
+    return;
+  }
+  // 如果参数在 6 个以内，则用其他寄存器的值存这些参数
+  fprintf(output_file, "\tmovq\t%s, %s\n",
+    r,
+    register_list[FIRST_PARAMETER_REGISTER_NUMBER - argument_position + 1]);
 }
