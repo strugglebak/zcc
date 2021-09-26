@@ -115,6 +115,56 @@ static struct ASTNode *create_ast_node_from_expression() {
   return node;
 }
 
+// expression_list: <null>
+//        | expression
+//        | expression ',' expression_list
+//        ;
+// 解析类似 function(expr1, expr2, expr3, expr4); 的语句
+// 然后创建如下形式的 tree
+//                A_FUNCCALL
+//                 /
+//             A_GLUE
+//              /   \
+//          A_GLUE  expr4
+//           /   \
+//       A_GLUE  expr3
+//        /   \
+//    A_GLUE  expr2
+//    /    \
+//  NULL  expr1
+// 确保处理顺序为 expr4 expr3 expr2 expr1，以便生成汇编代码时压栈顺序正确
+static struct ASTNode *parse_expression_list_in_function_call() {
+  struct ASTNode *tree, *right;
+  int expression_count;
+
+  while (token_from_file.token != TOKEN_RIGHT_PAREN) {
+    right = converse_token_2_ast(0);
+    expression_count++;
+
+    // 开始生成一颗树
+    tree = create_ast_node(
+      AST_GLUE,
+      PRIMITIVE_NONE,
+      tree,
+      NULL,
+      right,
+      expression_count
+    );
+
+    // 检查 , 或者 )，因为下一个 token 必然是 , 或者 )
+    switch (token_from_file.token) {
+      case TOKEN_COMMA:
+        scan(&token_from_file);
+        break;
+      case TOKEN_RIGHT_PAREN: break;
+      default:
+        error_with_digital("Unexpected token in expression list", token_from_file.token);
+    }
+  }
+
+  return tree;
+}
+
 // 将 token 中的 + - * / 等转换成 ast 中的类型
 int convert_token_operation_2_ast_operation(int operation_in_token) {
   if (operation_in_token > TOKEN_EOF && operation_in_token < TOKEN_INTEGER_LITERAL)
@@ -218,14 +268,15 @@ struct ASTNode *convert_function_call_2_ast() {
   // 解析类似于 xxx(1); 这样的函数调用
 
   // 检查是否未声明
-  if ((symbol_table_index = find_symbol(text_buffer)) == -1)
+  if ((symbol_table_index = find_symbol(text_buffer)) == -1 ||
+      symbol_table[symbol_table_index].structural_type != STRUCTURAL_FUNCTION)
     error_with_message("Undeclared function", text_buffer);
 
   // 解析左 (
   verify_left_paren();
 
   // 解析括号中的语句
-  tree = converse_token_2_ast(0);
+  tree = parse_expression_list_in_function_call();
 
   // 保存函数返回的类型作为这个 node 的类型
   // 保存函数名在这个 symbol table 中的 index 索引

@@ -8,6 +8,7 @@
 #include "statement.h"
 #include "types.h"
 #include "declaration.h"
+#include "parser.h"
 
 // param_declaration: <null>
 //           | variable_declaration
