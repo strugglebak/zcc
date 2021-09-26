@@ -135,7 +135,7 @@ static struct ASTNode *create_ast_node_from_expression() {
 // 确保处理顺序为 expr4 expr3 expr2 expr1，以便生成汇编代码时压栈顺序正确
 static struct ASTNode *parse_expression_list_in_function_call() {
   struct ASTNode *tree = NULL, *right = NULL;
-  int expression_count;
+  int expression_count = 0;
 
   while (token_from_file.token != TOKEN_RIGHT_PAREN) {
     right = converse_token_2_ast(0);
