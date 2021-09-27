@@ -60,8 +60,8 @@ int main(int argc, char *argv[]) {
   }
 
   // 确保 print_int 是已经定义的
-  add_global_symbol("print_int", PRIMITIVE_INT, STRUCTURAL_FUNCTION, 0, 0);
-  add_global_symbol("print_char", PRIMITIVE_VOID, STRUCTURAL_FUNCTION, 0, 0);
+  add_global_symbol("print_int", PRIMITIVE_INT, STRUCTURAL_FUNCTION, 0, 0, STORAGE_CLASS_GLOBAL);
+  add_global_symbol("print_char", PRIMITIVE_VOID, STRUCTURAL_FUNCTION, 0, 0, STORAGE_CLASS_GLOBAL);
 
   // 扫描文件中的字符串，并将其赋值给 token_from_file 这个全局变量
   scan(&token_from_file);

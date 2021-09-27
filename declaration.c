@@ -79,7 +79,8 @@ void parse_var_declaration_statement(int primitive_type, int is_local, int is_pa
           pointer_to(primitive_type), // 变成指针类型
           STRUCTURAL_ARRAY,
           0,
-          token_from_file.integer_value);
+          token_from_file.integer_value,
+          STORAGE_CLASS_GLOBAL);
       }
     }
 
@@ -93,7 +94,7 @@ void parse_var_declaration_statement(int primitive_type, int is_local, int is_pa
         primitive_type,
         STRUCTURAL_VARIABLE,
         is_parameter,
-        1);
+        STORAGE_CLASS_LOCAL);
       if (index < 0) error_with_message("Duplicate local variable declaration", text_buffer);
     } else {
       add_global_symbol(
@@ -101,7 +102,8 @@ void parse_var_declaration_statement(int primitive_type, int is_local, int is_pa
         primitive_type,
         STRUCTURAL_VARIABLE,
         0,
-        1);
+        1,
+        STORAGE_CLASS_GLOBAL);
     }
   }
 }
@@ -117,7 +119,8 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
     primitive_type,
     STRUCTURAL_FUNCTION,
     end_label,
-    0);
+    0,
+    STORAGE_CLASS_GLOBAL);
   current_function_symbol_id = name_slot;
 
   verify_left_paren();

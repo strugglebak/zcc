@@ -3,6 +3,7 @@
 #include "data.h"
 #include "generator.h"
 #include "symbol_table.h"
+#include "definations.h"
 
 // symbol_table
 // ^
@@ -99,7 +100,8 @@ int add_global_symbol(
   int primitive_type,
   int structural_type,
   int end_label,
-  int size
+  int size,
+  int storage_class
 ) {
   int index = 0;
   if ((index = find_global_symbol_table_index(symbol_string)) != -1) {
@@ -116,10 +118,12 @@ int add_global_symbol(
     structural_type,
     end_label,
     size,
-    STORAGE_CLASS_GLOBAL,
+    storage_class,
     0
   );
-  generate_global_symbol(index);
+
+  if (storage_class == STORAGE_CLASS_GLOBAL) generate_global_symbol(index);
+
   return index;
 }
 
@@ -130,51 +134,25 @@ int add_local_symbol(
   char *symbol_string,
   int primitive_type,
   int structural_type,
-  int is_parameter,
-  int size
+  int size,
+  int storage_class
 ) {
-  int local_var_index, global_var_index;
+  int local_var_index;
   if ((local_var_index = find_local_symbol_table_index(symbol_string)) != -1) {
     return local_var_index;
   }
 
   local_var_index = new_local_symbol_string();
-  if (is_parameter) {
-    update_symbol_table(
-      local_var_index,
-      symbol_string,
-      primitive_type,
-      structural_type,
-      0,
-      size,
-      STORAGE_CLASS_FUNCTION_PARAMETER,
-      0
-    );
-    // 同时创建函数的 prototype
-    global_var_index = new_global_symbol_string();
-    update_symbol_table(
-      global_var_index,
-      symbol_string,
-      primitive_type,
-      structural_type,
-      0,
-      size,
-      STORAGE_CLASS_FUNCTION_PARAMETER,
-      0
-    );
-  } else
-    // 将字符串复制一份放入到内存中，并返回这个内存的地址
-    // 初始化
-    update_symbol_table(
-      local_var_index,
-      symbol_string,
-      primitive_type,
-      structural_type,
-      0,
-      size,
-      STORAGE_CLASS_LOCAL,
-      0
-    );
+  update_symbol_table(
+    local_var_index,
+    symbol_string,
+    primitive_type,
+    structural_type,
+    0,
+    size,
+    storage_class,
+    0
+  );
 
   return local_var_index;
 }
@@ -190,4 +168,21 @@ int find_symbol(char *string) {
 
 void reset_local_symbol_index() {
   local_symbol_table_index = SYMBOL_TABLE_ENTRIES_NUMBER - 1;
+}
+
+void copy_function_parameter(int function_name_index_in_symbol_table) {
+  for (
+    int i = 0,
+    index = function_name_index_in_symbol_table + 1;
+    i < symbol_table[function_name_index_in_symbol_table].element_number;
+    i++, index++) {
+      // 复制进 symbol table local 区域
+      add_local_symbol(
+        symbol_table[index].name,
+        symbol_table[index].primitive_type,
+        symbol_table[index].structural_type,
+        symbol_table[index].size,
+        symbol_table[index].storage_class
+      );
+    }
 }

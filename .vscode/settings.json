@@ -8,6 +8,8 @@
     "stdio.h": "c",
     "statement.h": "c",
     "generator_core.h": "c",
-    "declaraion.h": "c"
+    "declaraion.h": "c",
+    "helper.h": "c",
+    "symbol_table.h": "c"
   }
 }
