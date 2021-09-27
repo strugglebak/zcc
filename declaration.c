@@ -204,7 +204,7 @@ void parse_global_declaration_statement() {
       reset_local_symbol_index();
     } else {
       // 否则就是变量
-      parse_var_declaration_statement(primitive_type, 0, 0);
+      parse_var_declaration_statement(primitive_type, STORAGE_CLASS_GLOBAL);
       verify_semicolon();
     }
   }
