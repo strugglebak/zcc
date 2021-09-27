@@ -10,34 +10,77 @@
 #include "declaration.h"
 #include "parser.h"
 
+/**
+ * 如何解析函数声明和定义？
+ * 比如
+ * void xxx(int a, char b, long c);
+ *
+ * void xxx(int a, char b, long c) {...}
+ *
+ * 1. 解析 identifier 和 '('
+ *
+ * 2. 在 symbol table 中搜索这个 identifier
+ *    2.1 如果这个 identifier 存在，说明之前的 identifier 已经被【声明】过
+ *    2.2 拿到这个 identifier 在 symbole table 中的位置，以及它的参数个数
+ *
+ * 3. 循环地解析 parameters (也就是 int a, char b, long c...)
+ *    3.1 如果之前的 identifier 已经被【声明】过，就用当前【定义】的 parameters 的类型和
+ * 已经【声明】过的 parameters 的类型做比较。如果当前【定义】的 identifier 是一个完整的函数
+ * ，就更新 symbol table 中对应的 parameters
+ *    3.2 如果之前的 identifier 没有被【声明】过，直接把 parameters 加入 symbol table
+ *
+ * 4. 对于函数参数个数，确保定义的和声明的一致
+ *
+ * 5. 解析 ')'
+ *    5.1 如果下一个 token 是 ';' 就结束
+ *    5.2 如果下一个 token 是 '{'，循环地将 parameters 从 symbol table 的【全局区】复制到【
+ * 局部区】，这样可以让它们在【局部区】的排列方式是反着的。
+*/
+
 // param_declaration: <null>
 //           | variable_declaration
 //           | variable_declaration ',' param_declaration
 static int parse_parameter_declaration(int symbol_table_index) {
   // 解析类似 void xxx(int a, int b) {} 函数中间的参数
   int primitive_type = 0,
+      // symbol_table_index >= -1
+      // 所以 parameter_symbol_table_index >= 0
       parameter_symbol_table_index = symbol_table_index + 1;
-  int old_parameter_count = 0;
+
+  //【声明】的函数的参数个数
+  int pre_parameter_count = 0;
+  //【定义】的函数的参数个数
   int parameter_count = 0;
 
+  // parameter_symbol_table_index 不是 0 说明有【声明】过的函数
+  // 先拿到【声明】过的函数的参数变量个数
   if (parameter_symbol_table_index)
-    old_parameter_count = symbol_table[symbol_table_index].element_number;
+    pre_parameter_count = symbol_table[symbol_table_index].element_number;
 
+  // 开始解析参数
   while (token_from_file.token != TOKEN_RIGHT_PAREN) {
     primitive_type = convert_token_2_primitive_type();
     verify_identifier();
 
+    // 如果已经有【声明】过的函数
+    // 比较【定义】的函数和【声明】的函数的参数的类型
     if (parameter_symbol_table_index) {
       if (primitive_type
         != symbol_table[symbol_table_index].primitive_type)
+        // 比较出错在第几个参数
         error_with_digital(
           "Type doesn't match prototype for parameter",
           parameter_count + 1);
+      // 要比较的参数可能不止一个，所以这里要 ++
       parameter_symbol_table_index++;
     } else {
+      // 如果没有【声明】过的函数
+      // 把这些参数加入 symbol table
       // 函数参数中的这些定义属于 局部变量，同时也属于 参数定义
       parse_var_declaration_statement(primitive_type, STORAGE_CLASS_FUNCTION_PARAMETER);
     }
+
+    // 解析完一轮参数，需要将个数记录下来
     parameter_count++;
 
     // 检查 , 或者 )，因为下一个 token 必然是 , 或者 )
@@ -51,8 +94,11 @@ static int parse_parameter_declaration(int symbol_table_index) {
     }
   }
 
+  // 如果
+  // 1. 已经【声明】过的函数
+  // 2. 解析完的参数个数跟已经【声明】过的函数的参数个数不一致
   if ((symbol_table_index != -1) &&
-      (parameter_count != old_parameter_count))
+      (parameter_count != pre_parameter_count))
     error_with_message("Parameter count mismatch for function",
       symbol_table[symbol_table_index].name);
 
@@ -110,6 +156,9 @@ void parse_var_declaration_statement(int primitive_type, int storage_class) {
     return;
   }
 
+  // 解析普通变量
+
+  // 1. 局部变量
   if (storage_class == STORAGE_CLASS_LOCAL) {
     index = add_local_symbol(
       text_buffer,
@@ -122,6 +171,7 @@ void parse_var_declaration_statement(int primitive_type, int storage_class) {
     return;
   }
 
+  // 2. 全局变量
   add_global_symbol(
     text_buffer,
     primitive_type,

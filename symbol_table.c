@@ -122,7 +122,8 @@ int add_global_symbol(
     0
   );
 
-  if (storage_class == STORAGE_CLASS_GLOBAL) generate_global_symbol(index);
+  if (storage_class == STORAGE_CLASS_GLOBAL)
+    generate_global_symbol(index);
 
   return index;
 }
@@ -137,14 +138,13 @@ int add_local_symbol(
   int size,
   int storage_class
 ) {
-  int local_var_index;
-  if ((local_var_index = find_local_symbol_table_index(symbol_string)) != -1) {
-    return local_var_index;
-  }
+  int index;
+  if ((index = find_local_symbol_table_index(symbol_string)) != -1)
+    return -1;
 
-  local_var_index = new_local_symbol_string();
+  index = new_local_symbol_string();
   update_symbol_table(
-    local_var_index,
+    index,
     symbol_string,
     primitive_type,
     structural_type,
@@ -154,7 +154,7 @@ int add_local_symbol(
     0
   );
 
-  return local_var_index;
+  return index;
 }
 
 int find_symbol(char *string) {
@@ -170,6 +170,7 @@ void reset_local_symbol_index() {
   local_symbol_table_index = SYMBOL_TABLE_ENTRIES_NUMBER - 1;
 }
 
+// 将全局变量区声明的参数复制到局部变量区
 void copy_function_parameter(int function_name_index_in_symbol_table) {
   for (
     int i = 0,
