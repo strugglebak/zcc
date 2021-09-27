@@ -189,7 +189,7 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
 
   // 如果之前有相同的 identifier，但是这个 identifier 不是函数
   // 把 symbol_table_index 设置为 -1
-  if (symbol_table_index = find_symbol(text_buffer) != -1)
+  if ((symbol_table_index = find_symbol(text_buffer)) != -1)
     if (symbol_table[symbol_table_index].structural_type != STRUCTURAL_FUNCTION)
       symbol_table_index = -1;
 
@@ -254,6 +254,10 @@ void parse_global_declaration_statement() {
     // 解析到 ( 说明是个函数
     if (token_from_file.token == TOKEN_LEFT_PAREN) {
       tree = parse_function_declaration_statement(primitive_type);
+
+      // 如果是【声明】函数，则不用生成汇编
+      if (!tree) continue;
+
       if (output_dump_ast) {
         dump_ast(tree, NO_LABEL, 0);
         fprintf(stdout, "\n\n");
