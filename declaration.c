@@ -26,10 +26,10 @@
  * 3. 循环地解析 parameters (也就是 int a, char b, long c...)
  *    3.1 如果之前的 identifier 已经被【声明】过，就用当前【定义】的 parameters 的类型和
  * 已经【声明】过的 parameters 的类型做比较。如果当前【定义】的 identifier 是一个完整的函数
- * ，就更新 symbol table 中对应的 parameters
+ * ，就更新 symbol table 中对应的 parameters 的个数
  *    3.2 如果之前的 identifier 没有被【声明】过，直接把 parameters 加入 symbol table
  *
- * 4. 对于函数参数个数，确保定义的和声明的一致
+ * 4. 对于函数参数个数，确保【定义】的和【声明】的一致
  *
  * 5. 解析 ')'
  *    5.1 如果下一个 token 是 ';' 就结束
@@ -187,10 +187,14 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
   int parameter_count;
   int symbol_table_index;
 
+  // 如果之前有相同的 identifier，但是这个 identifier 不是函数
+  // 把 symbol_table_index 设置为 -1
   if (symbol_table_index = find_symbol(text_buffer) != -1)
     if (symbol_table[symbol_table_index].structural_type != STRUCTURAL_FUNCTION)
       symbol_table_index = -1;
 
+  // 满足上述情况，那么说明这个 identifier 是要被声明成函数的
+  // 把它加入 symbol table
   if (symbol_table_index == -1) {
     end_label = generate_label();
     name_slot = add_global_symbol(
@@ -202,24 +206,28 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
       STORAGE_CLASS_GLOBAL);
   }
 
-  // 开始扫描函数参数
+  // 开始解析函数参数
   verify_left_paren();
   parameter_count = parse_parameter_declaration(symbol_table_index);
   verify_right_paren();
 
+  // 新【声明】或者【定义】函数对应的位置需要记录函数参数的个数
   if (symbol_table_index == -1)
     symbol_table[name_slot].element_number = parameter_count;
 
+  // 如果此时的 token 是 ';'，说明只是【声明】函数而不是【定义】函数
+  // 可以直接退出
   if (token_from_file.token == TOKEN_SEMICOLON) {
     scan(&token_from_file);
     return NULL;
   }
 
+  // 到这一步说明是【定义】一个新函数
   if (symbol_table_index == -1)
     symbol_table_index = name_slot;
   copy_function_parameter(symbol_table_index);
 
-  current_function_symbol_id = name_slot;
+  current_function_symbol_id = symbol_table_index;
 
   tree = parse_compound_statement();
 
@@ -232,7 +240,7 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
       error("No return for function with non-void type");
   }
 
-  return create_ast_left_node(AST_FUNCTION, primitive_type, tree, name_slot);
+  return create_ast_left_node(AST_FUNCTION, primitive_type, tree, symbol_table_index);
 }
 
 void parse_global_declaration_statement() {
