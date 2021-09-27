@@ -13,15 +13,31 @@
 // param_declaration: <null>
 //           | variable_declaration
 //           | variable_declaration ',' param_declaration
-static int parse_parameter_declaration() {
+static int parse_parameter_declaration(int symbol_table_index) {
   // 解析类似 void xxx(int a, int b) {} 函数中间的参数
-  int primitive_type;
+  int primitive_type = 0,
+      parameter_symbol_table_index = symbol_table_index + 1;
+  int old_parameter_count = 0;
   int parameter_count = 0;
+
+  if (parameter_symbol_table_index)
+    old_parameter_count = symbol_table[symbol_table_index].element_number;
+
   while (token_from_file.token != TOKEN_RIGHT_PAREN) {
     primitive_type = convert_token_2_primitive_type();
     verify_identifier();
-    // 函数参数中的这些定义属于 局部变量，同时也属于 参数定义
-    parse_var_declaration_statement(primitive_type, 1, 1);
+
+    if (parameter_symbol_table_index) {
+      if (primitive_type
+        != symbol_table[symbol_table_index].primitive_type)
+        error_with_digital(
+          "Type doesn't match prototype for parameter",
+          parameter_count + 1);
+      parameter_symbol_table_index++;
+    } else {
+      // 函数参数中的这些定义属于 局部变量，同时也属于 参数定义
+      parse_var_declaration_statement(primitive_type, STORAGE_CLASS_FUNCTION_PARAMETER);
+    }
     parameter_count++;
 
     // 检查 , 或者 )，因为下一个 token 必然是 , 或者 )
@@ -34,6 +50,11 @@ static int parse_parameter_declaration() {
         error_with_digital("Unexpected token in parameter list", token_from_file.token);
     }
   }
+
+  if ((symbol_table_index != -1) &&
+      (parameter_count != old_parameter_count))
+    error_with_message("Parameter count mismatch for function",
+      symbol_table[symbol_table_index].name);
 
   return parameter_count;
 }
@@ -61,7 +82,7 @@ int convert_token_2_primitive_type() {
 //  variable_declaration: type identifier ';'
 //                      | type identifier '[' TOKEN_INTEGER_LITERAL ']' ';'
 //                      ;
-void parse_var_declaration_statement(int primitive_type, int is_local, int is_parameter) {
+void parse_var_declaration_statement(int primitive_type, int storage_class) {
   int index;
   // 解析数组变量
   // 如果是 [
@@ -70,64 +91,85 @@ void parse_var_declaration_statement(int primitive_type, int is_local, int is_pa
     scan(&token_from_file);
 
     if (token_from_file.token == TOKEN_INTEGER_LITERAL) {
-      if (is_local) {
-        // 目前来说不支持解析局部数组变量
+      // 目前来说不支持解析局部数组变量
+      if (storage_class == STORAGE_CLASS_LOCAL)
         error("For now, declaration of local arrays is not implemented");
-      } else {
-        add_global_symbol(
-          text_buffer,
-          pointer_to(primitive_type), // 变成指针类型
-          STRUCTURAL_ARRAY,
-          0,
-          token_from_file.integer_value,
-          STORAGE_CLASS_GLOBAL);
-      }
+
+      add_global_symbol(
+        text_buffer,
+        pointer_to(primitive_type), // 变成指针类型
+        STRUCTURAL_ARRAY,
+        0,
+        token_from_file.integer_value,
+        storage_class);
     }
 
     // 检查 ]
     scan(&token_from_file);
     verify_right_bracket();
-  } else {
-    if (is_local) {
-      index = add_local_symbol(
-        text_buffer,
-        primitive_type,
-        STRUCTURAL_VARIABLE,
-        is_parameter,
-        STORAGE_CLASS_LOCAL);
-      if (index < 0) error_with_message("Duplicate local variable declaration", text_buffer);
-    } else {
-      add_global_symbol(
-        text_buffer,
-        primitive_type,
-        STRUCTURAL_VARIABLE,
-        0,
-        1,
-        STORAGE_CLASS_GLOBAL);
-    }
+    return;
   }
+
+  if (storage_class == STORAGE_CLASS_LOCAL) {
+    index = add_local_symbol(
+      text_buffer,
+      primitive_type,
+      STRUCTURAL_VARIABLE,
+      1,
+      storage_class);
+    if (index < 0)
+      error_with_message("Duplicate local variable declaration", text_buffer);
+    return;
+  }
+
+  add_global_symbol(
+    text_buffer,
+    primitive_type,
+    STRUCTURAL_VARIABLE,
+    0,
+    1,
+    storage_class);
 }
 
 struct ASTNode *parse_function_declaration_statement(int primitive_type) {
   struct ASTNode *tree, *final_statement;
   int name_slot, end_label;
   int parameter_count;
+  int symbol_table_index;
 
-  end_label = generate_label();
-  name_slot = add_global_symbol(
-    text_buffer,
-    primitive_type,
-    STRUCTURAL_FUNCTION,
-    end_label,
-    0,
-    STORAGE_CLASS_GLOBAL);
-  current_function_symbol_id = name_slot;
+  if (symbol_table_index = find_symbol(text_buffer) != -1)
+    if (symbol_table[symbol_table_index].structural_type != STRUCTURAL_FUNCTION)
+      symbol_table_index = -1;
 
-  verify_left_paren();
+  if (symbol_table_index == -1) {
+    end_label = generate_label();
+    name_slot = add_global_symbol(
+      text_buffer,
+      primitive_type,
+      STRUCTURAL_FUNCTION,
+      end_label,
+      0,
+      STORAGE_CLASS_GLOBAL);
+  }
+
   // 开始扫描函数参数
-  parameter_count = parse_parameter_declaration();
-  symbol_table[name_slot].element_number = parameter_count;
+  verify_left_paren();
+  parameter_count = parse_parameter_declaration(symbol_table_index);
   verify_right_paren();
+
+  if (symbol_table_index == -1)
+    symbol_table[name_slot].element_number = parameter_count;
+
+  if (token_from_file.token == TOKEN_SEMICOLON) {
+    scan(&token_from_file);
+    return NULL;
+  }
+
+  if (symbol_table_index == -1)
+    symbol_table_index = name_slot;
+  copy_function_parameter(symbol_table_index);
+
+  current_function_symbol_id = name_slot;
 
   tree = parse_compound_statement();
 
