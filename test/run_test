@@ -1,24 +1,46 @@
 #!/bin/sh
 
 if [ ! -f ../parser ]
-  then echo "Need to build parser first"; exit 1;
+  then (cd ..; make clean && make);
 fi
 
 for i in input*
-  do if [ ! -f "assert/out.$i" ]
-      then echo "Can't run test on $i, no input file"
-      else
+  do if [ ! -f "assert/out.$i" -a ! -f "error/error.$i" ];
+     then
+       echo "Can't run test on $i, no output file!"
+
+      else if [ -f "assert/out.$i" ];
+      then
         echo -n "test $i..."
         ../parser $i
         cc -o out out.s ../lib/print_int.c ../lib/print_char.c
         ./out > assert/trial.$i
         cmp -s "assert/out.$i" "assert/trial.$i"
-        if [ "$?" -eq "1" ]
-        then echo ": Failed"
+        if [ "$?" -eq "1" ];
+        then
+          echo ": Failed"
           diff -c "assert/out.$i" "assert/trial.$i"
           echo
-        else echo ": Ok"
+        else
+          echo ": Ok"
         fi
-        rm -rf out out.s "assert/trial.$i"
+
+        else if [ -f "error/error.$i" ];
+        then
+          echo -n $i
+          ../parser $i 2> "assert/trial.$i"
+          cmp -s "error/error.$i" "assert/trial.$i"
+          if [ "$?" -eq "1" ];
+          then
+            echo ": Failed"
+            diff -c "error/error.$i" "assert/trial.$i"
+            echo
+          else
+            echo ": Ok"
+          fi
+        fi
+
       fi
+     fi
+     rm -rf out out.s "assert/trial.$i"
   done

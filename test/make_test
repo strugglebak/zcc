@@ -2,8 +2,14 @@
 
 TEST="test"
 ASSERT="assert"
+ERROR="error"
 
-cd $TEST
+(cd $TEST)
+
+if [ ! -f ../parser ];
+then
+  (cd ..; make clean && make)
+fi
 
 if [ "$1" = "-s" ];
 then
@@ -22,24 +28,32 @@ then
     exit 1
   fi
 
-  if [ ! -f "${ASSERT}/out.input$2.zc" ];
+  if [ ! -f "${ASSERT}/out.input$2.zc" -a ! -f "${ERROR}/error.input$2.zc" ];
   then
-    cp input$2.zc input$2.c
-    cc -o out input$2.c ../lib/print_int.c ../lib/print_char.c
-    ./out > assert/out.input$2.zc
-    rm -f out out.s input$2.c
+    ../parser input$2.zc 2> "${ERROR}/error.input$2.zc"
+    if [ ! -s "${ERROR}/error.input$2.zc" ];
+    then
+      cp input$2.zc input$2.c
+      cc -o out input$2.c ../lib/print_int.c ../lib/print_char.c
+      ./out > assert/out.input$2.zc
+      rm -f out out.s input$2.c "${ERROR}/error.input$2.zc"
+    fi
   fi
 
-  cd ..
+  (cd ..)
   exit 0
 fi
 
 for i in input*zc
-do if [ ! -f "assert/out.$i" ]
+do if [ ! -f "assert/out.$i" -a ! -f "error/error.$i" ]
    then
-     cp $i ${i%%.*}.c
-     cc -o out ${i%%.*}.c ../lib/print_int.c ../lib/print_char.c
-     ./out > assert/out.$i
-     rm -f out out.s ${i%%.*}.c
+    ../parser $i 2> "error/error.$i"
+    if [ ! -s "error/error.$i" ];
+    then
+      cp $i ${i%%.*}.c
+      cc -o out ${i%%.*}.c ../lib/print_int.c ../lib/print_char.c
+      ./out > assert/out.$i
+      rm -f out out.s ${i%%.*}.c "error/error.$i"
+    fi
    fi
 done
