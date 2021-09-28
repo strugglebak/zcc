@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
 
 #define extern_
   #include "data.h"
@@ -21,8 +22,12 @@ static void init() {
   line = 1;
   putback_buffer = '\n';
   global_symbol_table_index = 0;
-  output_dump_ast = 0;
   local_symbol_table_index = SYMBOL_TABLE_ENTRIES_NUMBER - 1;
+  output_dump_ast = 0;
+  output_assemble_assembly_file = 0;
+  output_keep_assembly_file = 0;
+  output_link_object_file = 1;
+  ouput_verbose = 0;
 }
 
 static void usage_info(char *info) {
@@ -31,6 +36,7 @@ static void usage_info(char *info) {
 }
 
 int main(int argc, char *argv[]) {
+  char *output_file_name = AOUT;
   int i;
 
   init();
@@ -38,9 +44,21 @@ int main(int argc, char *argv[]) {
   // 扫描命令行输入
   for (i = 1; i < argc; i++) {
     if (*argv[i] != '-') break;
-    for (int j = 1; argv[i][j]; j++) {
+    for (int j = 1; (*argv[i] == '-') && argv[i][j]; j++) {
       switch (argv[i][j]) {
         case 'T': output_dump_ast = 1; break;
+        case 'o': output_file_name = argv[++i]; break;
+        case 'c':
+          output_assemble_assembly_file = 1;
+          output_keep_assembly_file = 0;
+          output_link_object_file = 0;
+          break;
+        case 'S':
+          output_assemble_assembly_file = 0;
+          output_keep_assembly_file = 1;
+          output_link_object_file = 0;
+          break;
+        case 'v': ouput_verbose = 1; break;
         default: usage_info(argv[0]);
       }
     }
