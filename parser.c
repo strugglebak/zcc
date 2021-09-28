@@ -121,15 +121,15 @@ static struct ASTNode *create_ast_node_from_expression() {
 //        ;
 // 解析类似 function(expr1, expr2, expr3, expr4); 的语句
 // 然后创建如下形式的 tree
-//                A_FUNCCALL
+//                AST_FUNCCALL
 //                 /
-//             A_GLUE
+//             AST_GLUE
 //              /   \
-//          A_GLUE  expr4(4)
+//          AST_GLUE  expr4(4)
 //           /   \
-//       A_GLUE  expr3(3)
+//       AST_GLUE  expr3(3)
 //        /   \
-//    A_GLUE  expr2(2)
+//    AST_GLUE  expr2(2)
 //    /    \
 //  NULL  expr1(1)
 // 确保处理顺序为 expr4 expr3 expr2 expr1，以便生成汇编代码时压栈顺序正确

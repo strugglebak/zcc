@@ -90,15 +90,15 @@ static int interpret_function_call_with_register(struct ASTNode *node) {
   int function_argument_number = 0;
 
   // 处理如下的 tree
-  //                A_FUNCCALL
+  //                AST_FUNCCALL
   //                 /
-  //             A_GLUE
+  //             AST_GLUE
   //              /   \
-  //          A_GLUE  expr4(4)
+  //          AST_GLUE  expr4(4)
   //           /   \
-  //       A_GLUE  expr3(3)
+  //       AST_GLUE  expr3(3)
   //        /   \
-  //    A_GLUE  expr2(2)
+  //    AST_GLUE  expr2(2)
   //    /    \
   //  NULL  expr1(1)
   while(glue_node) {
@@ -232,7 +232,7 @@ int interpret_ast_with_register(
         case AST_DEREFERENCE_POINTER:
           return register_store_dereference_pointer(left_register, right_register, node->right->primitive_type);
         default:
-          error_with_digital("Can't A_ASSIGN in interpret_ast_with_register, operation", node->operation);
+          error_with_digital("Can't AST_ASSIGN in interpret_ast_with_register, operation", node->operation);
       }
 
     // &

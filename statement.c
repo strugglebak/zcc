@@ -120,11 +120,11 @@ struct ASTNode *parse_for_statement() {
 
   // 递归构建 for ast
   // for 语句的 ast 结构如下
-  //        A_GLUE
+  //        AST_GLUE
   //       /     \
-  // preop           A_WHILE
+  // preop           AST_WHILE
   //               /        \
-  // true_or_false_condition  A_GLUE
+  // true_or_false_condition  AST_GLUE
   //                          /    \
   //                 compound_stmt  postop
   tree = create_ast_node(AST_GLUE, PRIMITIVE_NONE, statement_node, NULL, post_operation_statement_node, 0);
@@ -261,11 +261,11 @@ struct ASTNode *parse_compound_statement() {
 
     // 如果 tree 不为空，则更新对应的 left
     // 变成如下的形式
-    //          A_GLUE
+    //          AST_GLUE
     //         /  \
-    //     A_GLUE stmt4
+    //     AST_GLUE stmt4
     //       /  \
-    //   A_GLUE stmt3
+    //   AST_GLUE stmt3
     //     /  \
     // stmt1  stmt2
     if (tree) {
