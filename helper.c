@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <unistd.h>
 #include "scan.h"
 #include "data.h"
 #include "definations.h"
@@ -64,21 +65,29 @@ void verify_right_bracket() {
 
 void error(char *string) {
   fprintf(stderr, "%s on line %d\n", string, line);
+  fclose(output_file);
+  unlink(global_output_filename);
   exit(1);
 }
 
 void error_with_message(char *string, char *message) {
   fprintf(stderr, "%s:%s on line %d\n", string, message, line);
+  fclose(output_file);
+  unlink(global_output_filename);
   exit(1);
 }
 
 void error_with_digital(char *string, int digital) {
   fprintf(stderr, "%s:%d on line %d\n", string, digital, line);
+  fclose(output_file);
+  unlink(global_output_filename);
   exit(1);
 }
 
 void error_with_character(char *string, char character) {
   fprintf(stderr, "%s:%c on line %d\n", string, character, line);
+  fclose(output_file);
+  unlink(global_output_filename);
   exit(1);
 }
 
