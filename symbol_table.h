@@ -20,6 +20,8 @@ int add_local_symbol(
 );
 int find_symbol(char *string);
 void reset_local_symbol_index();
+void reset_global_symbol_index();
+void reset_symbol_index();
 void copy_function_parameter(int symbol_table_index);
 
 #endif

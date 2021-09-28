@@ -166,4 +166,9 @@ enum {
 
 #define NO_LABEL 0
 
+
+#define A_OUT "a.out"
+#define AS_CMD "as -o"
+#define LD_CMD "cc -o"
+
 #endif

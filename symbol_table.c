@@ -170,6 +170,15 @@ void reset_local_symbol_index() {
   local_symbol_table_index = SYMBOL_TABLE_ENTRIES_NUMBER - 1;
 }
 
+void reset_global_symbol_index() {
+  global_symbol_table_index = 0;
+}
+
+void reset_symbol_index() {
+  reset_global_symbol_index();
+  reset_local_symbol_index();
+}
+
 // 将全局变量区声明的参数复制到局部变量区
 void copy_function_parameter(int function_name_index_in_symbol_table) {
   for (

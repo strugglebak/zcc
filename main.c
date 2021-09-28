@@ -18,68 +18,69 @@
 #include "declaration.h"
 #include "symbol_table.h"
 
+#define MAX_OBJECT_FILE_NUMBER 100
+
 static void init() {
-  line = 1;
-  putback_buffer = '\n';
   global_symbol_table_index = 0;
   local_symbol_table_index = SYMBOL_TABLE_ENTRIES_NUMBER - 1;
   output_dump_ast = 0;
   output_assemble_assembly_file = 0;
   output_keep_assembly_file = 0;
   output_link_object_file = 1;
-  ouput_verbose = 0;
+  output_verbose = 0;
 }
 
 static void usage_info(char *info) {
-  fprintf(stderr, "Usage: %s [-T] input_file", info);
+  fprintf(stderr, "Usage: %s [-vcST] [-o output file] file [file ...]\n", info);
+  fprintf(stderr, "       -c generate object files but don't link them\n");
+  fprintf(stderr, "       -S generate assembly files but don't link them\n");
+  fprintf(stderr, "       -T dump the AST trees for each input file\n");
+  fprintf(stderr, "       -o output file, produce the output file executable file\n");
+  fprintf(stderr, "       -v give verbose output of the compilation stages\n");
   exit(1);
 }
 
-int main(int argc, char *argv[]) {
-  char *output_file_name = AOUT;
-  int i;
+// 改变一个带 '.' 的字符串的后缀，这个被更改的后缀即为给定的参数 suffix
+char *modify_string_suffix(char *string, char suffix) {
+  char *p;
+  char *new_string = strdup(string);
+  if (!new_string) return NULL;
+  // 找出 '.' 的位置
+  p = strrchr(new_string, '.');
+  if (!p) return NULL;
+  // 边界判断
+  if (*(++p) == '\0') return NULL;
+  // 更改 suffix
+  *(p++) = suffix;
+  *p = '\0';
+  return new_string;
+}
 
-  init();
-
-  // 扫描命令行输入
-  for (i = 1; i < argc; i++) {
-    if (*argv[i] != '-') break;
-    for (int j = 1; (*argv[i] == '-') && argv[i][j]; j++) {
-      switch (argv[i][j]) {
-        case 'T': output_dump_ast = 1; break;
-        case 'o': output_file_name = argv[++i]; break;
-        case 'c':
-          output_assemble_assembly_file = 1;
-          output_keep_assembly_file = 0;
-          output_link_object_file = 0;
-          break;
-        case 'S':
-          output_assemble_assembly_file = 0;
-          output_keep_assembly_file = 1;
-          output_link_object_file = 0;
-          break;
-        case 'v': ouput_verbose = 1; break;
-        default: usage_info(argv[0]);
-      }
-    }
+// 编译成汇编代码
+static char *do_compile(char *filename) {
+  global_output_filename = modify_string_suffix(filename, 's');
+  if (!global_output_filename) {
+    fprintf( stderr, "Error: %s has no suffix, try .c on the end\n", filename);
+    exit(1);
   }
 
-  if (i >= argc) usage_info(argv[0]);
-
-  if (!(input_file = fopen(argv[i], "r"))) {
-    fprintf(stderr, "Unable to open %s: %s\n", argv[1], strerror(errno));
+  if (!(input_file = fopen(filename, "r"))) {
+    fprintf(stderr, "Unable to open %s: %s\n", filename, strerror(errno));
     exit(1);
   }
 
   // 用 output_file 来模拟一个被生成的汇编文件
-  if (!(output_file = fopen("out.s", "w"))) {
-    fprintf(stderr, "Unable to open %s: %s\n", "out.s", strerror(errno));
+  if (!(output_file = fopen(global_output_filename, "w"))) {
+    fprintf(stderr, "Unable to open %s: %s\n", global_output_filename, strerror(errno));
     exit(1);
   }
 
-  // 确保 print_int 是已经定义的
-  add_global_symbol("print_int", PRIMITIVE_INT, STRUCTURAL_FUNCTION, 0, 0, STORAGE_CLASS_GLOBAL);
-  add_global_symbol("print_char", PRIMITIVE_VOID, STRUCTURAL_FUNCTION, 0, 0, STORAGE_CLASS_GLOBAL);
+  line = 1;
+  putback_buffer = '\n';
+  reset_symbol_index();
+
+  if (output_verbose)
+    printf("compiling %s\n", filename);
 
   // 扫描文件中的字符串，并将其赋值给 token_from_file 这个全局变量
   scan(&token_from_file);
@@ -91,7 +92,119 @@ int main(int argc, char *argv[]) {
   fclose(input_file);
   fclose(output_file);
 
-  exit(0);
+  return global_output_filename;
+}
+
+char *do_assemble(char *filename) {
+  char cmd[TEXT_LENGTH];
+  int error;
+
+  char *output_filename = modify_string_suffix(filename, 'o');
+  if (!output_filename) {
+    fprintf(stderr, "Error: %s has no suffix, try .s on the end\n", filename);
+    exit(1);
+  }
+
+  snprintf(cmd, TEXT_LENGTH, "%s %s %s", AS_CMD, output_filename, filename);
+  if (output_verbose) printf("%s\n", cmd);
+  error = system(cmd);
+  if (error) {
+    fprintf(stderr, "Assembly of %s failed\n", filename);
+    exit(1);
+  }
+  return output_filename;
+}
+
+// link 文件
+void do_link(char *output_filename, char *object_file_list[]) {
+  int count, size = TEXT_LENGTH;
+  char cmd[TEXT_LENGTH], *p;
+  int error;
+
+  p = cmd;
+  count = snprintf(p, size, "%s %s ", LD_CMD, output_filename);
+  p += count;
+  size -= count;
+
+  while (*object_file_list) {
+    count = snprintf(p, size, "%s ", *object_file_list);
+    p += count;
+    size -= count;
+    object_file_list++;
+  }
+
+  if (output_verbose) printf("%s\n", cmd);
+  error = system(cmd);
+  if (error) {
+    fprintf(stderr, "Linking failed\n");
+    exit(1);
+  }
+}
+
+void do_unlink(char *filename) {
+  unlink(filename);
+}
+
+
+
+int main(int argc, char *argv[]) {
+  char *output_filename = A_OUT;
+  char *assembly_file, *object_file;
+  char *object_file_list[MAX_OBJECT_FILE_NUMBER];
+  int i, object_file_count = 0;
+
+  init();
+
+  // 扫描命令行输入
+  for (i = 1; i < argc; i++) {
+    if (*argv[i] != '-') break;
+    for (int j = 1; (*argv[i] == '-') && argv[i][j]; j++) {
+      switch (argv[i][j]) {
+        case 'T': output_dump_ast = 1; break;
+        case 'o': output_filename = argv[++i]; break;
+        case 'c':
+          output_assemble_assembly_file = 1;
+          output_keep_assembly_file = 0;
+          output_link_object_file = 0;
+          break;
+        case 'S':
+          output_assemble_assembly_file = 0;
+          output_keep_assembly_file = 1;
+          output_link_object_file = 0;
+          break;
+        case 'v': output_verbose = 1; break;
+        default: usage_info(argv[0]);
+      }
+    }
+  }
+
+  if (i >= argc) usage_info(argv[0]);
+
+  // 轮流编译文件
+  while (i < argc) {
+    assembly_file = do_compile(argv[i]);
+
+    if (output_link_object_file || output_assemble_assembly_file) {
+      object_file = do_assemble(assembly_file);
+      if (object_file_count == (MAX_OBJECT_FILE_NUMBER - 2)) {
+        fprintf(stderr, "Too many object files for the compiler to handle\n");
+        exit(1);
+      }
+      object_file_list[object_file_count++] = object_file;
+      object_file_list[object_file_count] = NULL;
+    }
+
+    if (output_keep_assembly_file) do_unlink(assembly_file);
+    i++;
+  }
+
+  if (output_link_object_file) {
+    do_link(output_filename, object_file_list);
+
+    if (!output_assemble_assembly_file)
+      for(i = 0; object_file_list[i]; i++)
+        do_unlink(object_file_list[i]);
+  }
 
   return 0;
 }
