@@ -1,11 +1,11 @@
-char  c;
-char *str;
+int printf(char *fmt);
+
+int a;
+int b[25];
 
 int main() {
-  c= '\n'; print_int(c);
-
-  for (str= "Hello world\n"; *str != 0; str= str + 1) {
-    print_char(*str);
-  }
+  b[3]= 12;
+  a= b[3];
+  printf("%d\n", a);
   return(0);
 }

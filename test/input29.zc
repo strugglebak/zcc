@@ -1,22 +1,22 @@
-int open(char *pathname, int flags);
-int read(int fd, char *buf, int count);
-int write(int fd, void *buf, int count);
-int close(int fd);
+int printf(char *fmt);
 
-char *buf;
+int param8(int a, int b, int c, int d, int e, int f, int g, int h);
+int fred(int a, int b, int c);
+int main();
+
+int param8(int a, int b, int c, int d, int e, int f, int g, int h) {
+  printf("%d\n", a); printf("%d\n", b); printf("%d\n", c); printf("%d\n", d);
+  printf("%d\n", e); printf("%d\n", f); printf("%d\n", g); printf("%d\n", h);
+  return(0);
+}
+
+int fred(int a, int b, int c) {
+  return(a+b+c);
+}
 
 int main() {
-  int zin;
-  int cnt;
-
-  buf= "                                                             ";
-  zin = open("input29.zc", 0);
-  if (zin == -1) {
-    return (1);
-  }
-  while ((cnt = read(zin, buf, 60)) > 0) {
-    write(1, buf, cnt);
-  }
-  close(zin);
-  return (0);
+  int x;
+  param8(1, 2, 3, 5, 8, 13, 21, 34);
+  x= fred(2, 3, 4); printf("%d\n", x);
+  return(0);
 }

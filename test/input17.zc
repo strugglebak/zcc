@@ -1,11 +1,12 @@
-int   a;
-int  *b;
-char  c;
-char *d;
+int printf(char *fmt);
 
-int main()
-{
-  b= &a; *b= 15; print_int(a);
-  d= &c; *d= 16; print_int(c);
+int main() {
+  char  a;
+  char *b;
+  int   d;
+  int  *e;
+
+  b= &a; *b= 19; printf("%d\n", a);
+  e= &d; *e= 12; printf("%d\n", d);
   return(0);
 }

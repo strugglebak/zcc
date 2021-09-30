@@ -1,10 +1,12 @@
+int printf(char *fmt);
+
 void main()
 {
   int i; int j;
   i=6; j=12;
   if (i < j) {
-    print_int(i);
+    printf("%d\n", i);
   } else {
-    print_int(j);
+    printf("%d\n", j);
   }
 }

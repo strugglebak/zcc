@@ -1,12 +1,13 @@
+int printf(char *fmt);
+
 int fred() {
-  return(20);
+  return(56);
 }
 
-int main() {
+void main() {
+  int dummy;
   int result;
-  print_int(10);
-  result= fred(15);
-  print_int(result);
-  print_int(fred(15)+10);
-  return(0);
+  dummy= printf("%d\n", 23);
+  result= fred(10);
+  dummy= printf("%d\n", result);
 }

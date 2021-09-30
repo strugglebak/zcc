@@ -1,9 +1,14 @@
-int a;
-int b[25];
+int printf(char *fmt);
 
-int main() {
-  b[3]= 12;
-  a= b[3];
-  print_int(a);
+int a;
+int b;
+int c;
+int d;
+int e;
+int main()
+{
+  a= 2; b= 4; c= 3; d= 2;
+  e= (a+b) * (c+d);
+  printf("%d\n", e);
   return(0);
 }

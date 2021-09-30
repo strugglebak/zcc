@@ -1,15 +1,14 @@
+int printf(char *fmt);
+
 int a;
 int b;
 int c;
-
-int main()
-{
-  char z;
-  int y;
-  int x;
-  x= 10; y= 20; z= 30;
-  print_int(x); print_int(y); print_int(z);
-  a= 5; b= 15; c= 25;
-  print_int(a); print_int(b); print_int(c);
+int main() {
+  a= 42; b= 19;
+  printf("%d\n", a & b);
+  printf("%d\n", a | b);
+  printf("%d\n", a ^ b);
+  printf("%d\n", 1 << 3);
+  printf("%d\n", 63 >> 3);
   return(0);
 }

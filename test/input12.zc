@@ -1,11 +1,11 @@
+int printf(char *fmt);
+
 int fred() {
-  return(56);
+  return(5);
 }
 
 void main() {
-  int dummy;
-  int result;
-  dummy= print_int(23);
-  result= fred(10);
-  dummy= print_int(result);
+  int x;
+  x= fred(2);
+  printf("%d\n", x);
 }
