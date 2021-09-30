@@ -41,5 +41,5 @@ for i in input*
 
       fi
      fi
-     rm -rf out out.s "assert/trial.$i"
+     rm -rf out out.s "assert/trial.$i" *.s *.o
   done
