@@ -12,8 +12,7 @@ for i in input*
       else if [ -f "assert/out.$i" ];
       then
         echo -n "test $i..."
-        ../parser $i
-        cc -o out out.s ../lib/print_int.c ../lib/print_char.c
+        ../parser -o out $i
         ./out > assert/trial.$i
         cmp -s "assert/out.$i" "assert/trial.$i"
         if [ "$?" -eq "1" ];

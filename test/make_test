@@ -34,11 +34,12 @@ then
     if [ ! -s "${ERROR}/error.input$2.zc" ];
     then
       cp input$2.zc input$2.c
-      cc -o out input$2.c ../lib/print_int.c ../lib/print_char.c
+      cc -o out input$2.c
       ./out > assert/out.input$2.zc
-      rm -f out out.s input$2.c "${ERROR}/error.input$2.zc"
+      rm -f input$2.c "${ERROR}/error.input$2.zc"
     fi
   fi
+  rm -f out out.s
 
   (cd ..)
   exit 0
@@ -47,13 +48,18 @@ fi
 for i in input*zc
 do if [ ! -f "assert/out.$i" -a ! -f "error/error.$i" ]
    then
-    ../parser $i 2> "error/error.$i"
+    echo "gen $i error..."
+    ../parser -o out $i 2> "error/error.$i"
+    echo "gen $i error Ok!"
     if [ ! -s "error/error.$i" ];
     then
+      echo "gen $i assert..."
       cp $i ${i%%.*}.c
-      cc -o out ${i%%.*}.c ../lib/print_int.c ../lib/print_char.c
+      cc -o out ${i%%.*}.c
       ./out > assert/out.$i
-      rm -f out out.s ${i%%.*}.c "error/error.$i"
+      echo "gen $i assert Ok!"
+      rm -f ${i%%.*}.c "error/error.$i"
     fi
    fi
+   rm -f out out.s
 done
