@@ -26,7 +26,7 @@ for i in input*
 
         else if [ -f "error/error.$i" ];
         then
-          echo -n $i
+          echo -n "gen $i error file..."
           ../parser $i 2> "assert/trial.$i"
           cmp -s "error/error.$i" "assert/trial.$i"
           if [ "$?" -eq "1" ];

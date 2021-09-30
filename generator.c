@@ -275,10 +275,14 @@ int interpret_ast_with_register(
       return register_shift_right(left_register, right_register);
     case AST_POST_INCREASE:
     case AST_POST_DECREASE:
-      return register_load_value_from_variable(node->value.symbol_table_index, node->operation);
+      if (symbol_table[node->value.symbol_table_index].storage_class == STORAGE_CLASS_GLOBAL)
+        return register_load_value_from_variable(node->value.symbol_table_index, node->operation);
+      return register_load_local_value_from_variable(node->value.symbol_table_index, node->operation);
     case AST_PRE_INCREASE:
     case AST_PRE_DECREASE:
-      return register_load_value_from_variable(node->left->value.symbol_table_index, node->operation);
+      if (symbol_table[node->left->value.symbol_table_index].storage_class == STORAGE_CLASS_GLOBAL)
+        return register_load_value_from_variable(node->left->value.symbol_table_index, node->operation);
+      return register_load_local_value_from_variable(node->left->value.symbol_table_index, node->operation);
     case AST_NEGATE:
       return register_negate(left_register);
     case AST_INVERT:
