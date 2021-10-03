@@ -5,6 +5,7 @@
 #include "definations.h"
 #include "helper.h"
 #include "generator_core.h"
+#include "types.h"
 
 #define FREE_REGISTER_NUMBER 4
 #define FIRST_PARAMETER_REGISTER_NUMBER 9
@@ -154,6 +155,21 @@ int register_load_value_from_variable(int symbol_table_index, int operation) {
   int register_index = allocate_register();
   struct SymbolTable t = symbol_table[symbol_table_index];
   char *r = register_list[register_index];
+  if (register_get_primitive_type_size(t.primitive_type) == 8) {
+    if (operation == AST_PRE_INCREASE)
+      fprintf(output_file, "\tincq\t%s(\%%rip)\n", t.name);
+    if (operation == AST_PRE_DECREASE)
+      fprintf(output_file, "\tdecq\t%s(\%%rip)\n", t.name);
+
+    fprintf(output_file, "\tmovq\t%s(\%%rip), %s\n", t.name, r);
+
+    if (operation == AST_POST_INCREASE)
+      fprintf(output_file, "\tincq\t%s(\%%rip)\n", t.name);
+    if (operation == AST_POST_DECREASE)
+      fprintf(output_file, "\tdecq\t%s(\%%rip)\n", t.name);
+    return register_index;
+  }
+
   switch (t.primitive_type) {
     case PRIMITIVE_CHAR:
       if (operation == AST_PRE_INCREASE)
@@ -181,22 +197,6 @@ int register_load_value_from_variable(int symbol_table_index, int operation) {
       if (operation == AST_POST_DECREASE)
         fprintf(output_file, "\tdecl\t%s(\%%rip)\n", t.name);
       break;
-    case PRIMITIVE_LONG:
-    case PRIMITIVE_CHAR_POINTER:
-    case PRIMITIVE_INT_POINTER:
-    case PRIMITIVE_LONG_POINTER:
-      if (operation == AST_PRE_INCREASE)
-        fprintf(output_file, "\tincq\t%s(\%%rip)\n", t.name);
-      if (operation == AST_PRE_DECREASE)
-        fprintf(output_file, "\tdecq\t%s(\%%rip)\n", t.name);
-
-      fprintf(output_file, "\tmovq\t%s(\%%rip), %s\n", t.name, r);
-
-      if (operation == AST_POST_INCREASE)
-        fprintf(output_file, "\tincq\t%s(\%%rip)\n", t.name);
-      if (operation == AST_POST_DECREASE)
-        fprintf(output_file, "\tdecq\t%s(\%%rip)\n", t.name);
-      break;
     default:
       error_with_digital("Bad type in register_load_value_from_variable:", t.primitive_type);
   }
@@ -210,6 +210,20 @@ int register_load_local_value_from_variable(int symbol_table_index, int operatio
   int register_index = allocate_register();
   struct SymbolTable t = symbol_table[symbol_table_index];
   char *r = register_list[register_index];
+  if (register_get_primitive_type_size(t.primitive_type) == 8) {
+    if (operation == AST_PRE_INCREASE)
+      fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t.position);
+    if (operation == AST_PRE_DECREASE)
+      fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t.position);
+
+    fprintf(output_file, "\tmovq\t%d(\%%rbp), %s\n", t.position, r);
+
+    if (operation == AST_POST_INCREASE)
+      fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t.position);
+    if (operation == AST_POST_DECREASE)
+      fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t.position);
+    return register_index;
+  }
   switch (t.primitive_type) {
     case PRIMITIVE_CHAR:
       if (operation == AST_PRE_INCREASE)
@@ -237,22 +251,6 @@ int register_load_local_value_from_variable(int symbol_table_index, int operatio
       if (operation == AST_POST_DECREASE)
         fprintf(output_file, "\tdecl\t%d(\%%rbp)\n", t.position);
       break;
-    case PRIMITIVE_LONG:
-    case PRIMITIVE_CHAR_POINTER:
-    case PRIMITIVE_INT_POINTER:
-    case PRIMITIVE_LONG_POINTER:
-      if (operation == AST_PRE_INCREASE)
-        fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t.position);
-      if (operation == AST_PRE_DECREASE)
-        fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t.position);
-
-      fprintf(output_file, "\tmovq\t%d(\%%rbp), %s\n", t.position, r);
-
-      if (operation == AST_POST_INCREASE)
-        fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t.position);
-      if (operation == AST_POST_DECREASE)
-        fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t.position);
-      break;
     default:
       error_with_digital("Bad type in register_load_local_value_from_variable:", t.primitive_type);
   }
@@ -264,6 +262,12 @@ int register_load_local_value_from_variable(int symbol_table_index, int operatio
 */
 int register_store_value_2_variable(int register_index, int symbol_table_index) {
   struct SymbolTable t = symbol_table[symbol_table_index];
+  if (register_get_primitive_type_size(t.primitive_type) == 8) {
+    fprintf(output_file, "\tmovq\t%s, %s(\%%rip)\n",
+    register_list[register_index],
+    t.name);
+    return register_index;
+  }
   switch (t.primitive_type) {
     case PRIMITIVE_CHAR:
       fprintf(output_file, "\tmovb\t%s, %s(\%%rip)\n",
@@ -274,14 +278,6 @@ int register_store_value_2_variable(int register_index, int symbol_table_index) 
       fprintf(output_file, "\tmovl\t%s, %s(\%%rip)\n",
        lower_32_bits_register_list[register_index],
        t.name);
-      break;
-    case PRIMITIVE_LONG:
-    case PRIMITIVE_CHAR_POINTER:
-    case PRIMITIVE_INT_POINTER:
-    case PRIMITIVE_LONG_POINTER:
-      fprintf(output_file, "\tmovq\t%s, %s(\%%rip)\n",
-      register_list[register_index],
-      t.name);
       break;
     default:
       error_with_digital("Bad type in register_store_value_2_variable:", t.primitive_type);
@@ -294,6 +290,12 @@ int register_store_value_2_variable(int register_index, int symbol_table_index) 
 */
 int register_store_local_value_2_variable(int register_index, int symbol_table_index) {
   struct SymbolTable t = symbol_table[symbol_table_index];
+  if (register_get_primitive_type_size(t.primitive_type) == 8) {
+    fprintf(output_file, "\tmovq\t%s, %d(\%%rbp)\n",
+    register_list[register_index],
+    t.position);
+    return register_index;
+  }
   switch (t.primitive_type) {
     case PRIMITIVE_CHAR:
       fprintf(output_file, "\tmovb\t%s, %d(\%%rbp)\n",
@@ -304,14 +306,6 @@ int register_store_local_value_2_variable(int register_index, int symbol_table_i
       fprintf(output_file, "\tmovl\t%s, %d(\%%rbp)\n",
        lower_32_bits_register_list[register_index],
        t.position);
-      break;
-    case PRIMITIVE_LONG:
-    case PRIMITIVE_CHAR_POINTER:
-    case PRIMITIVE_INT_POINTER:
-    case PRIMITIVE_LONG_POINTER:
-      fprintf(output_file, "\tmovq\t%s, %d(\%%rbp)\n",
-      register_list[register_index],
-      t.position);
       break;
     default:
       error_with_digital("Bad type in register_store_local_value_2_variable:", t.primitive_type);
@@ -494,9 +488,15 @@ int register_widen(
  * 给定一个 primitive type，返回其对应的字节数
 */
 int register_get_primitive_type_size(int primitive_type) {
-  if (primitive_type < PRIMITIVE_NONE || primitive_type > PRIMITIVE_LONG_POINTER)
-    error("Bad type in register_get_primitive_type_size()");
-  return primitive_size[primitive_type];
+  if (check_pointer_type(primitive_type)) return 8;
+  switch (primitive_type) {
+    case PRIMITIVE_CHAR: return 1; break;
+    case PRIMITIVE_INT: return 4; break;
+    case PRIMITIVE_LONG: return 8; break;
+    default:
+      error("Bad type in register_get_primitive_type_size()");
+  }
+  return 0;
 }
 
 /**

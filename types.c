@@ -6,20 +6,11 @@
 #include "ast.h"
 
 int check_int_type(int primitive_type) {
-  if (primitive_type == PRIMITIVE_CHAR ||
-      primitive_type == PRIMITIVE_INT ||
-      primitive_type == PRIMITIVE_LONG)
-    return 1;
-  return 0;
+  return ((primitive_type & 0xf) == 0);
 }
 
 int check_pointer_type(int primitive_type) {
-  if (primitive_type == PRIMITIVE_VOID_POINTER ||
-      primitive_type == PRIMITIVE_CHAR_POINTER ||
-      primitive_type == PRIMITIVE_INT_POINTER ||
-      primitive_type == PRIMITIVE_LONG_POINTER)
-    return 1;
-  return 0;
+  return ((primitive_type & 0xf) != 0);
 }
 
 // 修改一个 ast node 的 type 类型，以便与给定的类型兼容
@@ -79,27 +70,13 @@ struct ASTNode *modify_type(
 
 
 int pointer_to(int primitive_type) {
-  int new_type;
-  switch (primitive_type) {
-    case PRIMITIVE_VOID: new_type = PRIMITIVE_VOID_POINTER; break;
-    case PRIMITIVE_CHAR: new_type = PRIMITIVE_CHAR_POINTER; break;
-    case PRIMITIVE_INT: new_type = PRIMITIVE_INT_POINTER; break;
-    case PRIMITIVE_LONG: new_type = PRIMITIVE_LONG_POINTER; break;
-    default:
-      error_with_digital("Unrecognised in pointer_to: primitive type", primitive_type);
-  }
-  return new_type;
+  if ((primitive_type & 0xf) == 0xf)
+    error_with_digital("Unrecognised in pointer_to: primitive type", primitive_type);
+  return primitive_type + 1;
 }
 
 int value_at(int primitive_type) {
-  int new_type;
-  switch (primitive_type) {
-    case PRIMITIVE_VOID_POINTER: new_type = PRIMITIVE_VOID; break;
-    case PRIMITIVE_CHAR_POINTER: new_type = PRIMITIVE_CHAR; break;
-    case PRIMITIVE_INT_POINTER: new_type = PRIMITIVE_INT; break;
-    case PRIMITIVE_LONG_POINTER: new_type = PRIMITIVE_LONG; break;
-    default:
-      error_with_digital("Unrecognised in value_at: primitive type", primitive_type);
-  }
-  return new_type;
+  if ((primitive_type & 0xf) == 0x0)
+    error_with_digital("Unrecognised in value_at: primitive type", primitive_type);
+  return primitive_type - 1;
 }
