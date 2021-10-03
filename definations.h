@@ -18,7 +18,7 @@ struct ASTNode {
     int interger_value;
     int symbol_table_index;
     int scale_size;
-  } value;
+  };
 };
 
 // 符号表，目前作用是支持变量

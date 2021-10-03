@@ -24,7 +24,7 @@ struct ASTNode *create_ast_node(
   node->left = left;
   node->middle = middle;
   node->right = right;
-  node->value.interger_value = interger_value;
+  node->interger_value = interger_value;
 
   return node;
 }
