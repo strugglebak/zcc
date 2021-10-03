@@ -551,14 +551,17 @@ int register_load_identifier_address(int symbol_table_index) {
 
 int register_dereference_pointer(int register_index, int primitive_type) {
   char *r = register_list[register_index];
-  switch (primitive_type) {
-    case PRIMITIVE_CHAR_POINTER:
+  int new_primitive_type = value_at(primitive_size);
+  int primitive_type_size = register_get_primitive_type_size(new_primitive_type);
+  switch (primitive_type_size) {
+    case 1:
       fprintf(output_file, "\tmovzbq\t(%s), %s\n", r, r);
       break;
-    case PRIMITIVE_INT_POINTER:
+    case 2:
       fprintf(output_file, "\tmovslq\t(%s), %s\n", r, r);
       break;
-    case PRIMITIVE_LONG_POINTER:
+    case 4:
+    case 8:
       fprintf(output_file, "\tmovq\t(%s), %s\n", r, r);
       break;
     default:
@@ -568,14 +571,16 @@ int register_dereference_pointer(int register_index, int primitive_type) {
 }
 
 int register_store_dereference_pointer(int left_register, int right_register, int primitive_type) {
-  switch (primitive_type) {
-    case PRIMITIVE_CHAR:
+  int primitive_type_size = register_get_primitive_type_size(primitive_type);
+  switch (primitive_type_size) {
+    case 1:
       fprintf(output_file, "\tmovb\t%s, (%s)\n",
         lower_8_bits_register_list[left_register],
         register_list[right_register]);
       break;
-    case PRIMITIVE_INT:
-    case PRIMITIVE_LONG:
+    case 2:
+    case 4:
+    case 8:
       fprintf(output_file, "\tmovq\t%s, (%s)\n",
         register_list[left_register],
         register_list[right_register]);
