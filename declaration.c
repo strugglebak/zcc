@@ -145,7 +145,6 @@ void parse_var_declaration_statement(int primitive_type, int storage_class) {
         text_buffer,
         pointer_to(primitive_type), // 变成指针类型
         STRUCTURAL_ARRAY,
-        0,
         token_from_file.integer_value,
         storage_class);
     }
@@ -176,7 +175,6 @@ void parse_var_declaration_statement(int primitive_type, int storage_class) {
     text_buffer,
     primitive_type,
     STRUCTURAL_VARIABLE,
-    0,
     1,
     storage_class);
 }
@@ -202,7 +200,6 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
       primitive_type,
       STRUCTURAL_FUNCTION,
       end_label,
-      0,
       STORAGE_CLASS_GLOBAL);
   }
 

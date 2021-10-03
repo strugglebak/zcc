@@ -26,15 +26,17 @@ struct SymbolTable {
   char *name;         // 每个变量的名字
   int primitive_type; // 每个变量的原始类型
   int structural_type;// 每个变量的结构类型
-  int end_label; // 对于 STRUCTURAL_FUNCTION 来说的 end label
-  int size; // 在 symbol 中元素的个数
   int storage_class;
-  int position; // 本地变量相对于栈基指针的负向距离
-
-// 对于函数，为参数的个数
-// 对于结构体，为结构体的 field
-#define element_number position
-
+  union {
+    int size; // 在 symbol 中元素的个数
+    int end_label; // 对于 STRUCTURAL_FUNCTION 来说的 end label
+  };
+  union {
+    int position; // 本地变量相对于栈基指针的负向距离
+    // 对于函数，为参数的个数
+    // 对于结构体，为结构体的 field
+    int element_number;
+  };
 };
 
 
@@ -157,9 +159,10 @@ enum {
 
 // 如果在 generator.c 中的 interpret_ast_with_register
 // 函数没有 register id 返回了，就用这个标志位
-#define NO_REGISTER -1
-
-#define NO_LABEL 0
+enum {
+  NO_REGISTER = -1,
+  NO_LABEL = 0
+};
 
 
 #define A_OUT "a.out"

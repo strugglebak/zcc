@@ -43,7 +43,6 @@ static void update_symbol_table(
   char *name,
   int primitive_type,
   int structural_type,
-  int end_label,
   int size,
   int storage_class,
   int position
@@ -53,7 +52,6 @@ static void update_symbol_table(
   symbol_table[index].name = strdup(name);
   symbol_table[index].primitive_type = primitive_type;
   symbol_table[index].structural_type = structural_type;
-  symbol_table[index].end_label = end_label;
   symbol_table[index].size = size;
   symbol_table[index].storage_class = storage_class;
   symbol_table[index].position = position;
@@ -99,7 +97,6 @@ int add_global_symbol(
   char *symbol_string,
   int primitive_type,
   int structural_type,
-  int end_label,
   int size,
   int storage_class
 ) {
@@ -116,7 +113,6 @@ int add_global_symbol(
     symbol_string,
     primitive_type,
     structural_type,
-    end_label,
     size,
     storage_class,
     0
@@ -148,7 +144,6 @@ int add_local_symbol(
     symbol_string,
     primitive_type,
     structural_type,
-    0,
     size,
     storage_class,
     0
