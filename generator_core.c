@@ -318,8 +318,8 @@ int register_store_local_value_2_variable(int register_index, int symbol_table_i
 */
 void register_generate_global_symbol(int symbol_table_index) {
   struct SymbolTable t = symbol_table[symbol_table_index];
-  int primitive_type_size = register_get_primitive_type_size(t.primitive_type);
   if (t.structural_type == STRUCTURAL_FUNCTION) return;
+  int primitive_type_size = register_get_primitive_type_size(t.primitive_type);
   register_data_section_flag();
   fprintf(output_file, "\t.globl\t%s\n", t.name);
   fprintf(output_file, "%s:", t.name);
