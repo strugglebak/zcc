@@ -494,7 +494,7 @@ int register_get_primitive_type_size(int primitive_type) {
     case PRIMITIVE_INT: return 4; break;
     case PRIMITIVE_LONG: return 8; break;
     default:
-      error("Bad type in register_get_primitive_type_size()");
+      error_with_digital("Bad type in register_get_primitive_type_size()", primitive_type);
   }
   return 0;
 }
