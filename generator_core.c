@@ -551,7 +551,7 @@ int register_load_identifier_address(int symbol_table_index) {
 
 int register_dereference_pointer(int register_index, int primitive_type) {
   char *r = register_list[register_index];
-  int new_primitive_type = value_at(primitive_size);
+  int new_primitive_type = value_at(primitive_type);
   int primitive_type_size = register_get_primitive_type_size(new_primitive_type);
   switch (primitive_type_size) {
     case 1:
