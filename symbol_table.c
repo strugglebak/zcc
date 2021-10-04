@@ -5,41 +5,83 @@
 #include "symbol_table.h"
 #include "definations.h"
 
-// symbol_table
-// ^
-// |
-// 0xxxx......................................xxxxxxxxxxxxSYMBOL_TABLE_ENTRIES_NUMBER-1
-//      ^                                    ^
-//      |                                    |
-// 全局变量位置                             局部变量位置
+static struct SymbolTable *add_symbol_core(
+  char *symbol_string,
+  int primitive_type,
+  int structural_type,
+  int size,
+  int storage_class,
+  struct SymbolTable* head,
+  struct SymbolTable* tail
+) {
+  struct SymbolTable *t = new_symbol_table(
+    symbol_string,
+    primitive_type,
+    structural_type,
+    size,
+    storage_class,
+    0
+  );
+  append_to_symbol_table(&head, &tail, t);
+  return t;
+}
 
-/**
- * 创建新的全局变量
-*/
-static int new_global_symbol_string() {
-  int index = 0;
-  if ((index = global_symbol_table_index++) >= local_symbol_table_index) {
-    error("Too many global symbols");
+static struct SymbolTable *find_symbol_in_list(
+  char *symbol_string,
+  struct SymbolTable *list
+) {
+  for (; list; list = list->next) {
+    if (list->name && (!strcmp(symbol_string, list->name)))
+      return list;
   }
-  return index;
+  return NULL;
+}
+
+struct SymbolTable *find_global_symbol(char *symbol_string) {
+  return find_symbol_in_list(symbol_string, &global_head);
+}
+
+struct SymbolTable *find_local_symbol(char *symbol_string) {
+  struct SymbolTable *node;
+  // 优先判断是否在函数体内，如果是则寻找 parameter
+  if (current_function_symbol_id) {
+    node = find_symbol_in_list(symbol_string, current_function_symbol_id->member);
+    if (node) return node;
+  }
+  return find_symbol_in_list(symbol_string, &local_head);
+}
+
+struct SymbolTable *find_composite_symbol(char *symbol_string) {
+  return find_symbol_in_list(symbol_string, &composite_head);
+}
+
+struct SymbolTable *find_symbol(char *symbol_string) {
+  struct SymbolTable *node = find_local_symbol(symbol_string);
+  if (node) return node;
+  return find_global_symbol(symbol_string);
+}
+
+void append_to_symbol_table(
+  struct SymbolTable **head,
+  struct SymbolTable **tail,
+  struct SymbolTable *node
+) {
+  if (!head || !tail || !node)
+    error("Either head, tail or node is NULL in append_to_symbol_table");
+
+  if (*tail) {
+    (*tail)->next = node;
+    *tail = node;
+  } else
+    *head = *tail = node;
+
+  node->next = NULL;
 }
 
 /**
- * 创建新的局部变量
+ * new 一个新的 symbol table
 */
-static int new_local_symbol_string() {
-  int index = 0;
-  if ((index = local_symbol_table_index--) <= global_symbol_table_index) {
-    error("Too many local symbols");
-  }
-  return index;
-}
-
-/**
- * 更新 symbol_table
-*/
-static void update_symbol_table(
-  int index,
+struct SymbolTable *new_symbol_table(
   char *name,
   int primitive_type,
   int structural_type,
@@ -47,147 +89,97 @@ static void update_symbol_table(
   int storage_class,
   int position
 ) {
-  if (index < 0 || index >= SYMBOL_TABLE_ENTRIES_NUMBER)
-    error("Invalid symbol slot number in update_symbol_table()");
-  symbol_table[index].name = strdup(name);
-  symbol_table[index].primitive_type = primitive_type;
-  symbol_table[index].structural_type = structural_type;
-  symbol_table[index].size = size;
-  symbol_table[index].storage_class = storage_class;
-  symbol_table[index].position = position;
-}
+  struct SymbolTable *node = (struct SymbolTable *) malloc(sizeof(struct SymbolTable));
+  if (!node)
+    error("Unable to malloc a symbol table node in update_symbol_table");
 
-/**
- * 返回这个 全局 symbol_string 在 symbol_table 中的位置，如果没找到则返回 -1
-*/
-int find_global_symbol_table_index(char *symbol_string) {
-  for (int i = 0; i < global_symbol_table_index; i++) {
-    // 忽略掉在 global index 区域的参数变量 string
-    if (symbol_table[i].storage_class == STORAGE_CLASS_FUNCTION_PARAMETER)
-      continue;
-    // 如果首字母相同, 并且后续的字符串都相同
-    if (*symbol_string == *(symbol_table[i].name)
-      && !strcmp(symbol_string, symbol_table[i].name)) {
-        return i;
-    }
-  }
-
-  return -1;
-}
-
-/**
- * 返回这个 局部 symbol_string 在 symbol_table 中的位置，如果没找到则返回 -1
-*/
-int find_local_symbol_table_index(char *symbol_string) {
-  for (int i = local_symbol_table_index+1; i < SYMBOL_TABLE_ENTRIES_NUMBER; i++) {
-    // 如果首字母相同, 并且后续的字符串都相同
-    if (*symbol_string == *(symbol_table[i].name)
-      && !strcmp(symbol_string, symbol_table[i].name)) {
-        return i;
-    }
-  }
-
-  return -1;
-}
-
-/**
- * 将一个 全局 symbol_string 插入到 global_symbol_string 中，返回这个被插入的下标
-*/
-int add_global_symbol(
-  char *symbol_string,
-  int primitive_type,
-  int structural_type,
-  int size,
-  int storage_class
-) {
-  int index = 0;
-  if ((index = find_global_symbol_table_index(symbol_string)) != -1) {
-    return index;
-  }
-
-  index = new_global_symbol_string();
-  // 将字符串复制一份放入到内存中，并返回这个内存的地址
-  // 初始化
-  update_symbol_table(
-    index,
-    symbol_string,
-    primitive_type,
-    structural_type,
-    size,
-    storage_class,
-    0
-  );
+  node->name = strdup(name);
+  node->primitive_type = primitive_type;
+  node->structural_type = structural_type;
+  node->size = size;
+  node->storage_class = storage_class;
+  node->position = position;
+  node->next = NULL;
+  node->member = NULL;
 
   if (storage_class == STORAGE_CLASS_GLOBAL)
-    generate_global_symbol(index);
+    generate_global_symbol(node);
 
-  return index;
+  return node;
 }
 
 /**
- * 将一个 局部 symbol_string 插入到 global_symbol_string 中，返回这个被插入的下标
+ * new 一个新 symbol table 并加入 global symbol table 中
 */
-int add_local_symbol(
+struct SymbolTable *add_global_symbol(
   char *symbol_string,
   int primitive_type,
   int structural_type,
   int size,
   int storage_class
 ) {
-  int index;
-  if ((index = find_local_symbol_table_index(symbol_string)) != -1)
-    return -1;
-
-  index = new_local_symbol_string();
-  update_symbol_table(
-    index,
+  return add_symbol_core(
     symbol_string,
     primitive_type,
     structural_type,
     size,
     storage_class,
-    0
+    &global_head,
+    &global_tail
   );
-
-  return index;
 }
 
-int find_symbol(char *string) {
-  // 优先找 local
-  int index = find_local_symbol_table_index(string);
-  if (index < 0)
-    // local 找不到再去找全局
-    index = find_global_symbol_table_index(string);
-  return index;
+/**
+ * new 一个新 symbol table 并加入 local symbol table 中
+*/
+struct SymbolTable *add_local_symbol(
+  char *symbol_string,
+  int primitive_type,
+  int structural_type,
+  int size,
+  int storage_class
+) {
+  return add_symbol_core(
+    symbol_string,
+    primitive_type,
+    structural_type,
+    size,
+    storage_class,
+    &local_head,
+    &local_tail
+  );
 }
 
-void reset_local_symbol_index() {
-  local_symbol_table_index = SYMBOL_TABLE_ENTRIES_NUMBER - 1;
+/**
+ * new 一个新 symbol table 并加入 parameter symbol table 中
+*/
+struct SymbolTable *add_parameter_symbol(
+  char *symbol_string,
+  int primitive_type,
+  int structural_type,
+  int size,
+  int storage_class
+) {
+  return add_symbol_core(
+    symbol_string,
+    primitive_type,
+    structural_type,
+    size,
+    storage_class,
+    &parameter_head,
+    &parameter_tail
+  );
 }
 
-void reset_global_symbol_index() {
-  global_symbol_table_index = 0;
+void clear_all_symbol_tables() {
+  global_head = global_tail = NULL;
+  local_head = local_tail = NULL;
+  parameter_head = parameter_tail = NULL;
+  composite_head = composite_tail = NULL;
 }
 
-void reset_symbol_index() {
-  reset_global_symbol_index();
-  reset_local_symbol_index();
-}
-
-// 将全局变量区声明的参数复制到局部变量区
-void copy_function_parameter(int function_name_index_in_symbol_table) {
-  for (
-    int i = 0,
-    index = function_name_index_in_symbol_table + 1;
-    i < symbol_table[function_name_index_in_symbol_table].element_number;
-    i++, index++) {
-      // 复制进 symbol table local 区域
-      add_local_symbol(
-        symbol_table[index].name,
-        symbol_table[index].primitive_type,
-        symbol_table[index].structural_type,
-        symbol_table[index].size,
-        symbol_table[index].storage_class
-      );
-    }
+void clear_local_symbol_table() {
+  local_head = local_tail = NULL;
+  parameter_head = parameter_tail = NULL;
+  current_function_symbol_id = NULL;
 }
