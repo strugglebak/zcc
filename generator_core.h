@@ -13,11 +13,11 @@ int register_minus(int left_register, int right_register);
 int register_multiply(int left_register, int right_register);
 int register_divide(int left_register, int right_register);
 
-int register_load_value_from_variable(int symbol_table_index, int operation);
-int register_load_local_value_from_variable(int symbol_table_index, int operation);
-int register_store_value_2_variable(int register_index, int symbol_table_index);
-int register_store_local_value_2_variable(int register_index, int symbol_table_index);
-void register_generate_global_symbol(int symbol_table_index);
+int register_load_value_from_variable(struct SymbolTable *t, int operation);
+int register_load_local_value_from_variable(struct SymbolTable *t, int operation);
+int register_store_value_2_variable(int register_index, struct SymbolTable *t);
+int register_store_local_value_2_variable(int register_index, struct SymbolTable *t);
+void register_generate_global_symbol(struct SymbolTable *t);
 void register_generate_global_string(int label, char *string_value);
 
 int register_compare_and_set(
@@ -36,8 +36,8 @@ void register_label(int label);
 void register_jump(int label);
 
 
-void register_function_preamble(int symbol_table_index);
-void register_function_postamble(int symbol_table_index);
+void register_function_preamble(struct SymbolTable *t);
+void register_function_postamble(struct SymbolTable *t);
 
 int register_widen(
   int register_index,
@@ -45,10 +45,10 @@ int register_widen(
   int new_primitive_type);
 
 int register_get_primitive_type_size(int primitive_type);
-int register_function_call(int symbol_table_index, int argument_number);
-void register_function_return(int register_index, int symbol_table_index);
+int register_function_call(struct SymbolTable *t, int argument_number);
+void register_function_return(int register_index, struct SymbolTable *t);
 
-int register_load_identifier_address(int symbol_table_index);
+int register_load_identifier_address(struct SymbolTable *t);
 int register_dereference_pointer(int register_index, int primitive_type);
 int register_store_dereference_pointer(int left_register, int right_register, int primitive_type);
 int register_shift_left_by_constant(int register_index, int value);
@@ -66,7 +66,7 @@ int register_logic_not(int register_index);
 int register_to_be_boolean(int register_index, int operaion, int label);
 
 void register_reset_local_variables();
-int register_new_local_offset(int primitive_type, int is_parameter);
+int register_new_local_offset(int primitive_type);
 
 void register_text_section_flag();
 void register_data_section_flag();

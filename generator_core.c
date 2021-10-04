@@ -38,7 +38,7 @@ static char *inverted_compare_list[] = { "jne", "je", "jge", "jle", "jg", "jl" }
 // none/void/char/int/long
 static int primitive_size[] = { 0, 0, 1, 4, 8, 8, 8, 8 };
 
-// 相对于栈基指针的本地变量的位置
+// 相对于栈基指针的局部变量的位置
 static int local_offset;
 static int stack_offset;
 
@@ -151,54 +151,53 @@ int register_divide(int left_register, int right_register) {
 /**
  * 将一个变量的值保存到寄存器中
 */
-int register_load_value_from_variable(int symbol_table_index, int operation) {
+int register_load_value_from_variable(struct SymbolTable *t, int operation) {
   int register_index = allocate_register();
-  struct SymbolTable t = symbol_table[symbol_table_index];
   char *r = register_list[register_index];
-  if (register_get_primitive_type_size(t.primitive_type) == 8) {
+  if (register_get_primitive_type_size(t->primitive_type) == 8) {
     if (operation == AST_PRE_INCREASE)
-      fprintf(output_file, "\tincq\t%s(\%%rip)\n", t.name);
+      fprintf(output_file, "\tincq\t%s(\%%rip)\n", t->name);
     if (operation == AST_PRE_DECREASE)
-      fprintf(output_file, "\tdecq\t%s(\%%rip)\n", t.name);
+      fprintf(output_file, "\tdecq\t%s(\%%rip)\n", t->name);
 
-    fprintf(output_file, "\tmovq\t%s(\%%rip), %s\n", t.name, r);
+    fprintf(output_file, "\tmovq\t%s(\%%rip), %s\n", t->name, r);
 
     if (operation == AST_POST_INCREASE)
-      fprintf(output_file, "\tincq\t%s(\%%rip)\n", t.name);
+      fprintf(output_file, "\tincq\t%s(\%%rip)\n", t->name);
     if (operation == AST_POST_DECREASE)
-      fprintf(output_file, "\tdecq\t%s(\%%rip)\n", t.name);
+      fprintf(output_file, "\tdecq\t%s(\%%rip)\n", t->name);
     return register_index;
   }
 
-  switch (t.primitive_type) {
+  switch (t->primitive_type) {
     case PRIMITIVE_CHAR:
       if (operation == AST_PRE_INCREASE)
-        fprintf(output_file, "\tincb\t%s(\%%rip)\n", t.name);
+        fprintf(output_file, "\tincb\t%s(\%%rip)\n", t->name);
       if (operation == AST_PRE_DECREASE)
-        fprintf(output_file, "\tdecb\t%s(\%%rip)\n", t.name);
+        fprintf(output_file, "\tdecb\t%s(\%%rip)\n", t->name);
 
-      fprintf(output_file, "\tmovzbq\t%s(\%%rip), %s\n", t.name, r);
+      fprintf(output_file, "\tmovzbq\t%s(\%%rip), %s\n", t->name, r);
 
       if (operation == AST_POST_INCREASE)
-        fprintf(output_file, "\tincb\t%s(\%%rip)\n", t.name);
+        fprintf(output_file, "\tincb\t%s(\%%rip)\n", t->name);
       if (operation == AST_POST_DECREASE)
-        fprintf(output_file, "\tdecb\t%s(\%%rip)\n", t.name);
+        fprintf(output_file, "\tdecb\t%s(\%%rip)\n", t->name);
       break;
     case PRIMITIVE_INT:
       if (operation == AST_PRE_INCREASE)
-        fprintf(output_file, "\tincl\t%s(\%%rip)\n", t.name);
+        fprintf(output_file, "\tincl\t%s(\%%rip)\n", t->name);
       if (operation == AST_PRE_DECREASE)
-        fprintf(output_file, "\tdecl\t%s(\%%rip)\n", t.name);
+        fprintf(output_file, "\tdecl\t%s(\%%rip)\n", t->name);
 
-      fprintf(output_file, "\tmovslq\t%s(\%%rip), %s\n", t.name, r);
+      fprintf(output_file, "\tmovslq\t%s(\%%rip), %s\n", t->name, r);
 
       if (operation == AST_POST_INCREASE)
-        fprintf(output_file, "\tincl\t%s(\%%rip)\n", t.name);
+        fprintf(output_file, "\tincl\t%s(\%%rip)\n", t->name);
       if (operation == AST_POST_DECREASE)
-        fprintf(output_file, "\tdecl\t%s(\%%rip)\n", t.name);
+        fprintf(output_file, "\tdecl\t%s(\%%rip)\n", t->name);
       break;
     default:
-      error_with_digital("Bad type in register_load_value_from_variable:", t.primitive_type);
+      error_with_digital("Bad type in register_load_value_from_variable:", t->primitive_type);
   }
   return register_index;
 }
@@ -206,53 +205,52 @@ int register_load_value_from_variable(int symbol_table_index, int operation) {
 /**
  * 将一个局部变量的值保存到寄存器中
 */
-int register_load_local_value_from_variable(int symbol_table_index, int operation) {
+int register_load_local_value_from_variable(struct SymbolTable *t, int operation) {
   int register_index = allocate_register();
-  struct SymbolTable t = symbol_table[symbol_table_index];
   char *r = register_list[register_index];
-  if (register_get_primitive_type_size(t.primitive_type) == 8) {
+  if (register_get_primitive_type_size(t->primitive_type) == 8) {
     if (operation == AST_PRE_INCREASE)
-      fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t.position);
+      fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t->position);
     if (operation == AST_PRE_DECREASE)
-      fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t.position);
+      fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t->position);
 
-    fprintf(output_file, "\tmovq\t%d(\%%rbp), %s\n", t.position, r);
+    fprintf(output_file, "\tmovq\t%d(\%%rbp), %s\n", t->position, r);
 
     if (operation == AST_POST_INCREASE)
-      fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t.position);
+      fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t->position);
     if (operation == AST_POST_DECREASE)
-      fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t.position);
+      fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t->position);
     return register_index;
   }
-  switch (t.primitive_type) {
+  switch (t->primitive_type) {
     case PRIMITIVE_CHAR:
       if (operation == AST_PRE_INCREASE)
-        fprintf(output_file, "\tincb\t%d(\%%rbp)\n", t.position);
+        fprintf(output_file, "\tincb\t%d(\%%rbp)\n", t->position);
       if (operation == AST_PRE_DECREASE)
-        fprintf(output_file, "\tdecb\t%d(\%%rbp)\n", t.position);
+        fprintf(output_file, "\tdecb\t%d(\%%rbp)\n", t->position);
 
-      fprintf(output_file, "\tmovzbq\t%d(\%%rbp), %s\n", t.position, r);
+      fprintf(output_file, "\tmovzbq\t%d(\%%rbp), %s\n", t->position, r);
 
       if (operation == AST_POST_INCREASE)
-        fprintf(output_file, "\tincb\t%d(\%%rbp)\n", t.position);
+        fprintf(output_file, "\tincb\t%d(\%%rbp)\n", t->position);
       if (operation == AST_POST_DECREASE)
-        fprintf(output_file, "\tdecb\t%d(\%%rbp)\n", t.position);
+        fprintf(output_file, "\tdecb\t%d(\%%rbp)\n", t->position);
       break;
     case PRIMITIVE_INT:
       if (operation == AST_PRE_INCREASE)
-        fprintf(output_file, "\tincl\t%d(\%%rbp)\n", t.position);
+        fprintf(output_file, "\tincl\t%d(\%%rbp)\n", t->position);
       if (operation == AST_PRE_DECREASE)
-        fprintf(output_file, "\tdecl\t%d(\%%rbp)\n", t.position);
+        fprintf(output_file, "\tdecl\t%d(\%%rbp)\n", t->position);
 
-      fprintf(output_file, "\tmovslq\t%d(\%%rbp), %s\n", t.position, r);
+      fprintf(output_file, "\tmovslq\t%d(\%%rbp), %s\n", t->position, r);
 
       if (operation == AST_POST_INCREASE)
-        fprintf(output_file, "\tincl\t%d(\%%rbp)\n", t.position);
+        fprintf(output_file, "\tincl\t%d(\%%rbp)\n", t->position);
       if (operation == AST_POST_DECREASE)
-        fprintf(output_file, "\tdecl\t%d(\%%rbp)\n", t.position);
+        fprintf(output_file, "\tdecl\t%d(\%%rbp)\n", t->position);
       break;
     default:
-      error_with_digital("Bad type in register_load_local_value_from_variable:", t.primitive_type);
+      error_with_digital("Bad type in register_load_local_value_from_variable:", t->primitive_type);
   }
   return register_index;
 }
@@ -260,27 +258,26 @@ int register_load_local_value_from_variable(int symbol_table_index, int operatio
 /**
  * 将寄存器中的值保存到一个变量中
 */
-int register_store_value_2_variable(int register_index, int symbol_table_index) {
-  struct SymbolTable t = symbol_table[symbol_table_index];
-  if (register_get_primitive_type_size(t.primitive_type) == 8) {
+int register_store_value_2_variable(int register_index, struct SymbolTable *t) {
+  if (register_get_primitive_type_size(t->primitive_type) == 8) {
     fprintf(output_file, "\tmovq\t%s, %s(\%%rip)\n",
     register_list[register_index],
-    t.name);
+    t->name);
     return register_index;
   }
-  switch (t.primitive_type) {
+  switch (t->primitive_type) {
     case PRIMITIVE_CHAR:
       fprintf(output_file, "\tmovb\t%s, %s(\%%rip)\n",
        lower_8_bits_register_list[register_index],
-       t.name);
+       t->name);
       break;
     case PRIMITIVE_INT:
       fprintf(output_file, "\tmovl\t%s, %s(\%%rip)\n",
        lower_32_bits_register_list[register_index],
-       t.name);
+       t->name);
       break;
     default:
-      error_with_digital("Bad type in register_store_value_2_variable:", t.primitive_type);
+      error_with_digital("Bad type in register_store_value_2_variable:", t->primitive_type);
   }
   return register_index;
 }
@@ -288,27 +285,26 @@ int register_store_value_2_variable(int register_index, int symbol_table_index) 
 /**
  * 将寄存器中的值保存到一个局部变量中
 */
-int register_store_local_value_2_variable(int register_index, int symbol_table_index) {
-  struct SymbolTable t = symbol_table[symbol_table_index];
-  if (register_get_primitive_type_size(t.primitive_type) == 8) {
+int register_store_local_value_2_variable(int register_index, struct SymbolTable *t) {
+  if (register_get_primitive_type_size(t->primitive_type) == 8) {
     fprintf(output_file, "\tmovq\t%s, %d(\%%rbp)\n",
     register_list[register_index],
-    t.position);
+    t->position);
     return register_index;
   }
-  switch (t.primitive_type) {
+  switch (t->primitive_type) {
     case PRIMITIVE_CHAR:
       fprintf(output_file, "\tmovb\t%s, %d(\%%rbp)\n",
        lower_8_bits_register_list[register_index],
-       t.position);
+       t->position);
       break;
     case PRIMITIVE_INT:
       fprintf(output_file, "\tmovl\t%s, %d(\%%rbp)\n",
        lower_32_bits_register_list[register_index],
-       t.position);
+       t->position);
       break;
     default:
-      error_with_digital("Bad type in register_store_local_value_2_variable:", t.primitive_type);
+      error_with_digital("Bad type in register_store_local_value_2_variable:", t->primitive_type);
   }
   return register_index;
 }
@@ -316,19 +312,18 @@ int register_store_local_value_2_variable(int register_index, int symbol_table_i
 /**
  * 创建全局变量
 */
-void register_generate_global_symbol(int symbol_table_index) {
-  struct SymbolTable t = symbol_table[symbol_table_index];
-  if (t.structural_type == STRUCTURAL_FUNCTION) return;
-  int primitive_type_size = register_get_primitive_type_size(t.primitive_type);
+void register_generate_global_symbol(struct SymbolTable *t) {
+  if (!t || t->structural_type == STRUCTURAL_FUNCTION) return;
+  int primitive_type_size = register_get_primitive_type_size(t->primitive_type);
   register_data_section_flag();
-  fprintf(output_file, "\t.globl\t%s\n", t.name);
-  fprintf(output_file, "%s:", t.name);
+  fprintf(output_file, "\t->globl\t%s\n", t->name);
+  fprintf(output_file, "%s:", t->name);
   // 支持类似 char a[10]; 这样的写法，size 就是 10
-  for (int i = 0; i < t.size; i++) {
+  for (int i = 0; i < t->size; i++) {
     switch(primitive_type_size) {
-      case 1: fprintf(output_file, "\t.byte\t0\n"); break;
-      case 4: fprintf(output_file, "\t.long\t0\n"); break;
-      case 8: fprintf(output_file, "\t.quad\t0\n"); break;
+      case 1: fprintf(output_file, "\t->byte\t0\n"); break;
+      case 4: fprintf(output_file, "\t->long\t0\n"); break;
+      case 8: fprintf(output_file, "\t->quad\t0\n"); break;
       default: error_with_digital("Unknown typesize in register_generate_global_symbol: ", primitive_type_size);
     }
   }
@@ -414,11 +409,12 @@ void register_jump(int label) {
 /**
  * 解析函数定义的前置汇编代码
 */
-void register_function_preamble(int symbol_table_index) {
-  char *name = symbol_table[symbol_table_index].name;
+void register_function_preamble(struct SymbolTable *t) {
+  char *name = t->name;
   int i;
   int parameter_offset = 16;
   int parameter_register_number = FIRST_PARAMETER_REGISTER_NUMBER;
+  struct SymbolTable *parameter_pointer, *local_var_pointer;
 
   register_text_section_flag();
   register_reset_local_variables();
@@ -434,26 +430,29 @@ void register_function_preamble(int symbol_table_index) {
   // 把在寄存器中的函数参数复制放入栈中
   // 超过 6 个参数寄存器就 break
   // position 将在后面解析的时候用到
-  for (i = SYMBOL_TABLE_ENTRIES_NUMBER - 1;
-    i > local_symbol_table_index &&
-    symbol_table[i].storage_class == STORAGE_CLASS_FUNCTION_PARAMETER &&
-    i >= SYMBOL_TABLE_ENTRIES_NUMBER - 6; i--) {
-      // 注意这里是负数
-      symbol_table[i].position =
-        register_new_local_offset(symbol_table[i].primitive_type, 1);
-      register_store_local_value_2_variable(parameter_register_number--, i);
+  for (
+    parameter_pointer = t->member, i = 1;
+    parameter_pointer;
+    parameter_pointer = parameter_pointer->next, i++
+  ) {
+    if (i > 6) {
+      parameter_pointer->position = parameter_offset;
+      parameter_offset += 8;
+    } else {
+      parameter_pointer->position
+        = register_new_local_offset(parameter_pointer->primitive_type);
+      register_store_local_value_2_variable(parameter_register_number--, parameter_pointer);
     }
+  }
 
   // 剩下的如果是参数变量，继续放入栈中
   // 如果是局部变量，创建新的 position
-  for (; i > local_symbol_table_index; i--) {
-    if (symbol_table[i].storage_class == STORAGE_CLASS_FUNCTION_PARAMETER) {
-      // 注意这里是正数
-      symbol_table[i].position = parameter_offset;
-      parameter_offset += 8;
-    } else
-      symbol_table[i].position =
-        register_new_local_offset(symbol_table[i].primitive_type, 0);
+  for (
+    local_var_pointer = local_head;
+    local_var_pointer;
+    local_var_pointer = local_var_pointer->next
+  ) {
+    local_var_pointer->position = register_new_local_offset(local_var_pointer->primitive_type);
   }
 
   // 将栈指针对齐为 16 的倍数
@@ -464,9 +463,8 @@ void register_function_preamble(int symbol_table_index) {
 /**
  * 解析函数定义的后置汇编代码
 */
-void register_function_postamble(int symbol_table_index) {
-  struct SymbolTable t = symbol_table[symbol_table_index];
-  register_label(t.end_label);
+void register_function_postamble(struct SymbolTable *t) {
+  register_label(t->end_label);
   // 栈指针回到最初的位置
   fprintf(output_file, "\taddq\t$%d,%%rsp\n", stack_offset);
   fputs("\tpopq\t%rbp\n"
@@ -502,10 +500,10 @@ int register_get_primitive_type_size(int primitive_type) {
 /**
  * 处理函数调用 function_call
 */
-int register_function_call(int symbol_table_index, int argument_number) {
+int register_function_call(struct SymbolTable *t, int argument_number) {
   int out_register_index = allocate_register();
   // 调用函数
-  fprintf(output_file, "\tcall\t%s\n", symbol_table[symbol_table_index].name);
+  fprintf(output_file, "\tcall\t%s\n", t->name);
 
   // 如果参数大于 6 个，移除在栈上的参数
   if (argument_number > 6)
@@ -519,10 +517,9 @@ int register_function_call(int symbol_table_index, int argument_number) {
 /**
  * 处理函数返回 function_return
 */
-void register_function_return(int register_index, int symbol_table_index) {
-  struct SymbolTable t = symbol_table[symbol_table_index];
+void register_function_return(int register_index, struct SymbolTable *t) {
   char *r = register_list[register_index];
-  switch (t.primitive_type) {
+  switch (t->primitive_type) {
     case PRIMITIVE_CHAR:
       fprintf(output_file, "\tmovzbl\t%s, %%eax\n", lower_8_bits_register_list[register_index]);
       break;
@@ -533,19 +530,18 @@ void register_function_return(int register_index, int symbol_table_index) {
       fprintf(output_file, "\tmovq\t%s, %%rax\n", register_list[register_index]);
       break;
     default:
-      error_with_digital("Bad function type in register_function_return:", t.primitive_type);
+      error_with_digital("Bad function type in register_function_return:", t->primitive_type);
   }
-  register_jump(t.end_label);
+  register_jump(t->end_label);
 }
 
-int register_load_identifier_address(int symbol_table_index) {
+int register_load_identifier_address(struct SymbolTable *t) {
   int register_index = allocate_register();
-  struct SymbolTable t = symbol_table[symbol_table_index];
   char *r = register_list[register_index];
-  if (t.storage_class == STORAGE_CLASS_LOCAL)
-    fprintf(output_file, "\tleaq\t%d(%%rbp), %s\n", t.position, r);
+  if (t->storage_class == STORAGE_CLASS_LOCAL)
+    fprintf(output_file, "\tleaq\t%d(%%rbp), %s\n", t->position, r);
   else
-    fprintf(output_file, "\tleaq\t%s(%%rip), %s\n", t.name, r);
+    fprintf(output_file, "\tleaq\t%s(%%rip), %s\n", t->name, r);
   return register_index;
 }
 
@@ -678,7 +674,7 @@ void register_reset_local_variables() {
   local_offset = 0;
 }
 
-int register_new_local_offset(int primitive_type, int is_parameter) {
+int register_new_local_offset(int primitive_type) {
   int primitive_type_size = register_get_primitive_type_size(primitive_type);
   // 栈上位置至少间隔为 4 byte
   local_offset += primitive_type_size > 4 ? primitive_type_size : 4;
