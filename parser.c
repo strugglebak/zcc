@@ -75,14 +75,18 @@ static int operation_precedence(int operation_in_token) {
 //         ;
 static struct ASTNode *create_ast_node_from_expression() {
   struct ASTNode *node;
-  int symbol_table_index;
+  int label;
 
   switch (token_from_file.token) {
     case TOKEN_STRING_LITERAL:
       // 先生成全局 string 的汇编代码，然后再解析 ast，因为这个 string 是要放在 .s 文件的最前面
-      symbol_table_index = generate_global_string_code(text_buffer);
+      label = generate_global_string_code(text_buffer);
       // symbole_table_index 留给 generator 解析时用
-      node = create_ast_leaf(AST_STRING_LITERAL, pointer_to(PRIMITIVE_CHAR), symbol_table_index);
+      node = create_ast_leaf(
+        AST_STRING_LITERAL,
+        pointer_to(PRIMITIVE_CHAR),
+        label,
+        NULL);
       break;
     // 解析类似   char j; j= 2; 这样的语句需要考虑的情况
     // 即把 2 这个 int 数值转换成 char 类型的
@@ -92,7 +96,8 @@ static struct ASTNode *create_ast_node_from_expression() {
         token_from_file.integer_value >= 0 && token_from_file.integer_value < 256
           ? PRIMITIVE_CHAR
           : PRIMITIVE_INT,
-        token_from_file.integer_value);
+        token_from_file.integer_value,
+        NULL);
       break;
 
     case TOKEN_IDENTIFIER:
@@ -148,8 +153,8 @@ static struct ASTNode *parse_expression_list_in_function_call() {
       tree,
       NULL,
       right,
-      expression_count
-    );
+      expression_count,
+      NULL);
 
     // 检查 , 或者 )，因为下一个 token 必然是 , 或者 )
     switch (token_from_file.token) {
@@ -247,7 +252,14 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
 
 
     // 开始构建左子树
-    left = create_ast_node(ast_operation_type, left->primitive_type, left, NULL, right, 0);
+    left = create_ast_node(
+      ast_operation_type,
+      left->primitive_type,
+      left,
+      NULL,
+      right,
+      0,
+      NULL);
 
     node_operation_type = token_from_file.token;
     if (TOKEN_SEMICOLON == node_operation_type ||
@@ -265,13 +277,11 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
 
 struct ASTNode *convert_function_call_2_ast() {
   struct ASTNode *tree;
-  int symbol_table_index;
-
+  struct SymbolTable *t = find_symbol(text_buffer);
   // 解析类似于 xxx(1); 这样的函数调用
 
   // 检查是否未声明
-  if ((symbol_table_index = find_symbol(text_buffer)) == -1 ||
-      symbol_table[symbol_table_index].structural_type != STRUCTURAL_FUNCTION)
+  if (!t || t->structural_type != STRUCTURAL_FUNCTION)
     error_with_message("Undeclared function", text_buffer);
 
   // 解析左 (
@@ -284,9 +294,10 @@ struct ASTNode *convert_function_call_2_ast() {
   // 保存函数名在这个 symbol table 中的 index 索引
   tree = create_ast_left_node(
     AST_FUNCTION_CALL,
-    symbol_table[symbol_table_index].primitive_type,
+    t->primitive_type,
     tree,
-    symbol_table_index);
+    0,
+    t);
 
   // 解析右 )
   verify_right_paren();
@@ -296,18 +307,14 @@ struct ASTNode *convert_function_call_2_ast() {
 
 struct ASTNode *convert_array_access_2_ast() {
   struct ASTNode *left, *right;
-  struct SymbolTable t;
-  int symbol_table_index = find_symbol(text_buffer);
+  struct SymbolTable *t = find_symbol(text_buffer);
 
   // 解析类似于 x = a[12];
-  if (symbol_table_index == -1 ||
-      symbol_table[symbol_table_index].structural_type
-        != STRUCTURAL_ARRAY)
+  if (!t || t->structural_type != STRUCTURAL_ARRAY)
     error_with_message("Undeclared array", text_buffer);
 
   // 为数组变量创建一个子节点，这个子节点指向数组的基
-  t = symbol_table[symbol_table_index];
-  left = create_ast_leaf(AST_IDENTIFIER_ADDRESS, t.primitive_type, symbol_table_index);
+  left = create_ast_leaf(AST_IDENTIFIER_ADDRESS, t->primitive_type, 0, t);
 
   // 跳过 [
   scan(&token_from_file);
@@ -327,9 +334,9 @@ struct ASTNode *convert_array_access_2_ast() {
   right = modify_type(right, left->primitive_type, AST_PLUS);
 
   // 返回一个 AST 树，其中数组的基添加了偏移量
-  left = create_ast_node(AST_PLUS, t.primitive_type, left, NULL, right, 0);
+  left = create_ast_node(AST_PLUS, t->primitive_type, left, NULL, right, 0, NULL);
   // 这个时候也必须要解除引用，因为可能后面会有 a[12] = 100; 这样的语句出现，所以把它看作左值 lvalue
-  left = create_ast_left_node(AST_DEREFERENCE_POINTER, value_at(left->primitive_type), left, 0);
+  left = create_ast_left_node(AST_DEREFERENCE_POINTER, value_at(left->primitive_type), left, 0, NULL);
 
   return left;
 }
@@ -361,7 +368,8 @@ struct ASTNode *convert_prefix_expression_2_ast() {
         AST_DEREFERENCE_POINTER,
         value_at(tree->primitive_type),
         tree,
-        0);
+        0,
+        NULL);
       break;
     case TOKEN_MINUS:
       // 解析类似 x = -y; 这样的表达式
@@ -372,7 +380,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
       // 有可能 y 是 char(unsigned)，而 x 是 int 型的，所以需要做一个拓展让其变成有符号(signed)的
       // 并且 unsigned 值不能取负数
       tree = modify_type(tree, PRIMITIVE_INT, 0);
-      tree = create_ast_left_node(AST_NEGATE, tree->primitive_type, tree, 0);
+      tree = create_ast_left_node(AST_NEGATE, tree->primitive_type, tree, 0, NULL);
       break;
     case TOKEN_INVERT:
       // 解析类似 x = ~y; 这样的表达式
@@ -380,7 +388,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
       tree = convert_prefix_expression_2_ast();
 
       tree->rvalue = 1;
-      tree = create_ast_left_node(AST_INVERT, tree->primitive_type, tree, 0);
+      tree = create_ast_left_node(AST_INVERT, tree->primitive_type, tree, 0, NULL);
       break;
     case TOKEN_LOGIC_NOT:
       // 解析类似 x = !y; 这样的表达式
@@ -388,7 +396,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
       tree = convert_prefix_expression_2_ast();
 
       tree->rvalue = 1;
-      tree = create_ast_left_node(AST_LOGIC_NOT, tree->primitive_type, tree, 0);
+      tree = create_ast_left_node(AST_LOGIC_NOT, tree->primitive_type, tree, 0, NULL);
       break;
     case TOKEN_INCREASE:
       // 解析类似 x = ++y; 这样的表达式
@@ -398,7 +406,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
       if (tree->operation != AST_IDENTIFIER)
         error("++ operator must be followed by an identifier");
 
-      tree = create_ast_left_node(AST_PRE_INCREASE, tree->primitive_type, tree, 0);
+      tree = create_ast_left_node(AST_PRE_INCREASE, tree->primitive_type, tree, 0, NULL);
       break;
     case TOKEN_DECREASE:
       // 解析类似 x = --y; 这样的表达式
@@ -408,7 +416,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
       if (tree->operation != AST_IDENTIFIER)
         error("-- operator must be followed by an identifier");
 
-      tree = create_ast_left_node(AST_PRE_DECREASE, tree->primitive_type, tree, 0);
+      tree = create_ast_left_node(AST_PRE_DECREASE, tree->primitive_type, tree, 0, NULL);
       break;
     default:
       tree = create_ast_node_from_expression();
@@ -419,8 +427,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
 
 struct ASTNode *convert_postfix_expression_2_ast() {
   struct ASTNode *tree;
-  struct SymbolTable t;
-  int symbol_table_index;
+  struct SymbolTable *t = NULL;
 
   // 解析类似的语句时需要注意的问题，即区别是变量名还是函数调用还是数组访问
   //  x = fred + jim;
@@ -439,24 +446,23 @@ struct ASTNode *convert_postfix_expression_2_ast() {
     return convert_array_access_2_ast();
 
   // 检查标识符是否存在
-  if ((symbol_table_index = find_symbol(text_buffer)) == -1 ||
-      symbol_table[symbol_table_index].structural_type != STRUCTURAL_VARIABLE)
-        error_with_message("Unknown variable", text_buffer);
+  t = find_symbol(text_buffer);
+  if (!t || t->structural_type != STRUCTURAL_VARIABLE)
+    error_with_message("Unknown variable", text_buffer);
 
-  t = symbol_table[symbol_table_index];
   switch (token_from_file.token) {
     case TOKEN_INCREASE:
       // 解析类似 x = y++; 语句
       scan(&token_from_file);
-      tree = create_ast_leaf(AST_POST_INCREASE, t.primitive_type, symbol_table_index);
+      tree = create_ast_leaf(AST_POST_INCREASE, t->primitive_type, 0, t);
       break;
     case TOKEN_DECREASE:
       // 解析类似 x = y--; 语句
       scan(&token_from_file);
-      tree = create_ast_leaf(AST_POST_DECREASE, t.primitive_type, symbol_table_index);
+      tree = create_ast_leaf(AST_POST_DECREASE, t->primitive_type, 0, t);
       break;
     default:
-      tree = create_ast_leaf(AST_IDENTIFIER, t.primitive_type, symbol_table_index);
+      tree = create_ast_leaf(AST_IDENTIFIER, t->primitive_type, 0, t);
       break;
   }
 
