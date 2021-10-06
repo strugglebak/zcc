@@ -40,22 +40,14 @@
 // param_declaration: <null>
 //           | variable_declaration
 //           | variable_declaration ',' param_declaration
-static int parse_parameter_declaration(int symbol_table_index) {
+static int parse_parameter_declaration(struct SymbolTable *t) {
   // 解析类似 void xxx(int a, int b) {} 函数中间的参数
-  int primitive_type = 0,
-      // symbol_table_index >= -1
-      // 所以 parameter_symbol_table_index >= 0
-      parameter_symbol_table_index = symbol_table_index + 1;
-
-  //【声明】的函数的参数个数
-  int pre_parameter_count = 0;
+  int primitive_type = 0;
   //【定义】的函数的参数个数
   int parameter_count = 0;
+  struct SymbolTable *prototype = NULL;
 
-  // parameter_symbol_table_index 不是 0 说明有【声明】过的函数
-  // 先拿到【声明】过的函数的参数变量个数
-  if (parameter_symbol_table_index)
-    pre_parameter_count = symbol_table[symbol_table_index].element_number;
+  if (t) prototype = t->member;
 
   // 开始解析参数
   while (token_from_file.token != TOKEN_RIGHT_PAREN) {
@@ -64,15 +56,15 @@ static int parse_parameter_declaration(int symbol_table_index) {
 
     // 如果已经有【声明】过的函数
     // 比较【定义】的函数和【声明】的函数的参数的类型
-    if (parameter_symbol_table_index) {
+    if (prototype) {
       if (primitive_type
-        != symbol_table[symbol_table_index].primitive_type)
+        != prototype->primitive_type)
         // 比较出错在第几个参数
         error_with_digital(
           "Type doesn't match prototype for parameter",
           parameter_count + 1);
-      // 要比较的参数可能不止一个，所以这里要 ++
-      parameter_symbol_table_index++;
+      // 要比较的参数可能不止一个
+      prototype = prototype->next;
     } else {
       // 如果没有【声明】过的函数
       // 把这些参数加入 symbol table
@@ -97,10 +89,8 @@ static int parse_parameter_declaration(int symbol_table_index) {
   // 如果
   // 1. 已经【声明】过的函数
   // 2. 解析完的参数个数跟已经【声明】过的函数的参数个数不一致
-  if ((symbol_table_index != -1) &&
-      (parameter_count != pre_parameter_count))
-    error_with_message("Parameter count mismatch for function",
-      symbol_table[symbol_table_index].name);
+  if (t && (parameter_count != t->element_number))
+    error_with_message("Parameter count mismatch for function", t->name);
 
   return parameter_count;
 }
@@ -128,25 +118,40 @@ int convert_token_2_primitive_type() {
 //  variable_declaration: type identifier ';'
 //                      | type identifier '[' TOKEN_INTEGER_LITERAL ']' ';'
 //                      ;
-void parse_var_declaration_statement(int primitive_type, int storage_class) {
-  int index;
+struct SymbolTable *parse_var_declaration_statement(int primitive_type, int storage_class) {
+  struct SymbolTable *t = NULL;
+
+  // 先检查变量是否已经被定义过
+  switch (storage_class) {
+    case STORAGE_CLASS_GLOBAL:
+      if (find_global_symbol(text_buffer))
+        error_with_message("Duplicate global variable declaration", text_buffer);
+    case STORAGE_CLASS_LOCAL:
+    case STORAGE_CLASS_FUNCTION_PARAMETER:
+      if (find_local_symbol(text_buffer))
+        error_with_message("Duplicate local variable declaration", text_buffer);
+  }
+
   // 解析数组变量
   // 如果是 [
   if (token_from_file.token == TOKEN_LEFT_BRACKET) {
-    // 跳过 [
+    // 检查 [
     scan(&token_from_file);
 
     if (token_from_file.token == TOKEN_INTEGER_LITERAL) {
-      // 目前来说不支持解析局部数组变量
-      if (storage_class == STORAGE_CLASS_LOCAL)
-        error("For now, declaration of local arrays is not implemented");
-
-      add_global_symbol(
-        text_buffer,
-        pointer_to(primitive_type), // 变成指针类型
-        STRUCTURAL_ARRAY,
-        token_from_file.integer_value,
-        storage_class);
+      switch (storage_class) {
+        case STORAGE_CLASS_GLOBAL:
+          t = add_global_symbol(
+            text_buffer,
+            pointer_to(primitive_type), // 变成指针类型
+            STRUCTURAL_ARRAY,
+            token_from_file.integer_value,
+            storage_class);
+          break;
+        case STORAGE_CLASS_LOCAL:
+        case STORAGE_CLASS_FUNCTION_PARAMETER:
+          error("For now, declaration of local arrays is not implemented");
+      }
     }
 
     // 检查 ]
@@ -156,46 +161,52 @@ void parse_var_declaration_statement(int primitive_type, int storage_class) {
   }
 
   // 解析普通变量
-
-  // 1. 局部变量
-  if (storage_class == STORAGE_CLASS_LOCAL) {
-    index = add_local_symbol(
-      text_buffer,
-      primitive_type,
-      STRUCTURAL_VARIABLE,
-      1,
-      storage_class);
-    if (index < 0)
-      error_with_message("Duplicate local variable declaration", text_buffer);
-    return;
+  switch (storage_class) {
+    case STORAGE_CLASS_GLOBAL:
+      t = add_global_symbol(
+        text_buffer,
+        primitive_type,
+        STRUCTURAL_VARIABLE,
+        1,
+        storage_class);
+      break;
+    case STORAGE_CLASS_LOCAL:
+      t = add_local_symbol(
+        text_buffer,
+        primitive_type,
+        STRUCTURAL_VARIABLE,
+        1,
+        storage_class);
+      break;
+    case STORAGE_CLASS_FUNCTION_PARAMETER:
+      t = add_parameter_symbol(
+        text_buffer,
+        primitive_type,
+        STRUCTURAL_VARIABLE,
+        1,
+        storage_class);
+      break;
   }
 
-  // 2. 全局变量
-  add_global_symbol(
-    text_buffer,
-    primitive_type,
-    STRUCTURAL_VARIABLE,
-    1,
-    storage_class);
+  return t;
 }
 
 struct ASTNode *parse_function_declaration_statement(int primitive_type) {
   struct ASTNode *tree, *final_statement;
-  int name_slot, end_label;
-  int parameter_count;
-  int symbol_table_index;
+  int end_label, parameter_count;
+  struct SymbolTable *old_function_symbol_table = find_symbol(text_buffer),
+                     *new_function_symbol_table = NULL;
 
   // 如果之前有相同的 identifier，但是这个 identifier 不是函数
-  // 把 symbol_table_index 设置为 -1
-  if ((symbol_table_index = find_symbol(text_buffer)) != -1)
-    if (symbol_table[symbol_table_index].structural_type != STRUCTURAL_FUNCTION)
-      symbol_table_index = -1;
+  if (old_function_symbol_table)
+    if (old_function_symbol_table->structural_type != STRUCTURAL_FUNCTION)
+      old_function_symbol_table = NULL;
 
   // 满足上述情况，那么说明这个 identifier 是要被声明成函数的
   // 把它加入 symbol table
-  if (symbol_table_index == -1) {
+  if (!old_function_symbol_table) {
     end_label = generate_label();
-    name_slot = add_global_symbol(
+    new_function_symbol_table = add_global_symbol(
       text_buffer,
       primitive_type,
       STRUCTURAL_FUNCTION,
@@ -205,12 +216,19 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
 
   // 开始解析函数参数
   verify_left_paren();
-  parameter_count = parse_parameter_declaration(symbol_table_index);
+  parameter_count = parse_parameter_declaration(old_function_symbol_table);
   verify_right_paren();
 
-  // 新【声明】或者【定义】函数对应的位置需要记录函数参数的个数
-  if (symbol_table_index == -1)
-    symbol_table[name_slot].element_number = parameter_count;
+  // 新【声明】函数对应的位置需要记录函数参数的个数
+  // 更新该函数第一个参数所在位置
+  if (new_function_symbol_table) {
+    new_function_symbol_table->element_number = parameter_count;
+    new_function_symbol_table->member = parameter_head;
+    old_function_symbol_table = new_function_symbol_table;
+  }
+
+  // 清除掉 parameter symbol table 头尾指针
+  parameter_head = parameter_tail = NULL;
 
   // 如果此时的 token 是 ';'，说明只是【声明】函数而不是【定义】函数
   // 可以直接退出
@@ -220,11 +238,7 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
   }
 
   // 到这一步说明是【定义】一个新函数
-  if (symbol_table_index == -1)
-    symbol_table_index = name_slot;
-  copy_function_parameter(symbol_table_index);
-
-  current_function_symbol_id = symbol_table_index;
+  current_function_symbol_id = old_function_symbol_table;
 
   tree = parse_compound_statement();
 
@@ -237,7 +251,12 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
       error("No return for function with non-void type");
   }
 
-  return create_ast_left_node(AST_FUNCTION, primitive_type, tree, symbol_table_index);
+  return create_ast_left_node(
+    AST_FUNCTION,
+    primitive_type,
+    tree,
+    end_label,
+    old_function_symbol_table);
 }
 
 void parse_global_declaration_statement() {
