@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "definations.h"
-#include "generator_core.h"
+#include "generator.h"
 #include "helper.h"
 #include "types.h"
 #include "ast.h"
@@ -32,12 +32,12 @@ struct ASTNode *modify_type(
     if (check_int_type(left_primitive_type) && check_int_type(right_primitive_type)) {
       if (left_primitive_type == right_primitive_type) return tree;
 
-      left_primitive_size = register_get_primitive_type_size(left_primitive_type);
-      right_primitive_size = register_get_primitive_type_size(right_primitive_type);
+      left_primitive_size = generate_get_primitive_type_size(left_primitive_type);
+      right_primitive_size = generate_get_primitive_type_size(right_primitive_type);
 
       if (left_primitive_size > right_primitive_size) return NULL;
       else if (left_primitive_size < right_primitive_size)
-        return create_ast_left_node(AST_WIDEN, right_primitive_type, tree, 0);
+        return create_ast_left_node(AST_WIDEN, right_primitive_type, tree, 0, NULL);
     }
 
     // 比较 char/int/long 指针
@@ -50,7 +50,7 @@ struct ASTNode *modify_type(
       if (check_int_type(left_primitive_type) &&
           check_pointer_type(right_primitive_type)) {
         right_primitive_size =
-          register_get_primitive_type_size(value_at(right_primitive_type));
+          generate_get_primitive_type_size(value_at(right_primitive_type));
         // size 比 int 大的
         // 比如 int x = *((long *) y + 2)
         // 强制转换
@@ -59,7 +59,8 @@ struct ASTNode *modify_type(
             AST_SCALE,
             right_primitive_type,
             tree,
-            right_primitive_size);
+            right_primitive_size,
+            NULL);
         // 如果 size 就是 int，那么就返回这颗树
         return tree;
       }
