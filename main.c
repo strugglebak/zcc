@@ -21,8 +21,6 @@
 #define MAX_OBJECT_FILE_NUMBER 100
 
 static void init() {
-  global_symbol_table_index = 0;
-  local_symbol_table_index = SYMBOL_TABLE_ENTRIES_NUMBER - 1;
   output_dump_ast = 0;
   output_assemble_assembly_file = 0;
   output_keep_assembly_file = 0;

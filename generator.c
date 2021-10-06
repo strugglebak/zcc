@@ -299,8 +299,8 @@ int interpret_ast_with_register(
   return NO_REGISTER;
 }
 
-void generate_global_symbol(int symbol_table_index) {
-  register_generate_global_symbol(symbol_table_index);
+void generate_global_symbol(struct SymbolTable *t) {
+  register_generate_global_symbol(t);
 }
 
 void generate_preamble_code() {
@@ -313,10 +313,6 @@ void generate_postamble_code() {
 
 void generate_clearable_registers() {
   clear_all_registers();
-}
-
-void generate_global_symbol_table_code(int symbol_table_index) {
-  register_generate_global_symbol(symbol_table_index);
 }
 
 int generate_global_string_code(char *string_value) {

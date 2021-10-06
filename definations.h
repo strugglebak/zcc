@@ -14,14 +14,21 @@ struct ASTNode {
   struct ASTNode *left;
   struct ASTNode *middle;
   struct ASTNode *right;
+  struct SymbolTable *symbol_table;
   union {
-    int interger_value;
-    int symbol_table_index;
+    int integer_value;
     int scale_size;
   };
 };
 
 // 符号表，目前作用是支持变量
+// 组成单向链表
+// 1. 全局变量以及函数(global variable/function)
+// 2. 对于当前函数来说的局部变量(local variable)
+// 3. 对于当前函数来说的局部参数(local parameter)
+// 4. 定义的结构体(struct)
+// 5. 定义的联合体(union)
+// 6. 定义的枚举以及其对应的值(enum)
 struct SymbolTable {
   char *name;         // 每个变量的名字
   int primitive_type; // 每个变量的原始类型
@@ -30,6 +37,7 @@ struct SymbolTable {
   union {
     int size; // 在 symbol 中元素的个数
     int end_label; // 对于 STRUCTURAL_FUNCTION 来说的 end label
+    int integer_value; // 对于枚举变量来说与其关联的值
   };
   union {
     int position; // 本地变量相对于栈基指针的负向距离
@@ -37,6 +45,9 @@ struct SymbolTable {
     // 对于结构体，为结构体的 field
     int element_number;
   };
+  struct SymbolTable *next; // 下一个 symbol table 的指针
+  struct SymbolTable *member; // 指向第一个函数、结构体、联合体、枚举的成员的 symbol table 的指针
+  struct SymbolTable *composite_type; // 指向复合类型 symbol table 的指针
 };
 
 
@@ -142,6 +153,10 @@ enum {
   PRIMITIVE_CHAR = 32,
   PRIMITIVE_INT = 48,
   PRIMITIVE_LONG = 64,
+  PRIMITIVE_STRUCT,
+  PRIMITIVE_UNION,
+  PRIMITIVE_ENUM_LIST,
+  PRIMITIVE_ENUM_VALUE,
 };
 
 // Structural types 结构类型

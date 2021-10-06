@@ -19,15 +19,17 @@ extern_ FILE *output_file;
 extern_ char *global_output_filename;
 extern_ struct Token token_from_file;
 extern_ char text_buffer[TEXT_LENGTH + 1];
-extern_ struct SymbolTable symbol_table[SYMBOL_TABLE_ENTRIES_NUMBER];
-extern_ int global_symbol_table_index;
-extern_ int local_symbol_table_index;
 
-extern_ int current_function_symbol_id;
 extern_ int output_dump_ast;
 extern_ int output_keep_assembly_file;
 extern_ int output_assemble_assembly_file;
 extern_ int output_link_object_file;
 extern_ int output_verbose;
+
+extern_ struct SymbolTable *current_function_symbol_id; // 当前函数
+extern_ struct SymbolTable *global_head, *global_tail; // 全局变量和函数
+extern_ struct SymbolTable *local_head, *local_tail; // 局部变量
+extern_ struct SymbolTable *parameter_head, *parameter_tail; // 局部参数
+extern_ struct SymbolTable *composite_head, *composite_tail; // 复合变量
 
 #endif

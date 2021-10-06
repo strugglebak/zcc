@@ -10,7 +10,8 @@ struct ASTNode *create_ast_node(
   struct ASTNode *left,
   struct ASTNode *middle,
   struct ASTNode *right,
-  int interger_value
+  int integer_value,
+  struct SymbolTable *symbol_table
 ) {
   struct ASTNode *node;
 
@@ -24,7 +25,8 @@ struct ASTNode *create_ast_node(
   node->left = left;
   node->middle = middle;
   node->right = right;
-  node->interger_value = interger_value;
+  node->integer_value = integer_value;
+  node->symbol_table = symbol_table;
 
   return node;
 }
@@ -33,13 +35,15 @@ struct ASTNode *create_ast_node(
 struct ASTNode *create_ast_leaf(
   int operation,
   int primitive_type,
-  int interger_value
+  int integer_value,
+  struct SymbolTable *symbol_table
 ) {
   return create_ast_node(
     operation,
     primitive_type,
     NULL, NULL, NULL,
-    interger_value
+    integer_value,
+    symbol_table
   );
 }
 
@@ -47,12 +51,14 @@ struct ASTNode *create_ast_left_node(
   int operation,
   int primitive_type,
   struct ASTNode *left,
-  int interger_value
+  int integer_value,
+  struct SymbolTable *symbol_table
 ) {
   return create_ast_node(
     operation,
     primitive_type,
     left, NULL, NULL,
-    interger_value
+    integer_value,
+    symbol_table
   );
 }

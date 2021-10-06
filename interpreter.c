@@ -48,7 +48,7 @@ int interpret_ast(struct ASTNode *node) {
   case AST_DIVIDE:
     return left_value / right_value;
   case AST_INTEGER_LITERAL:
-    return node->interger_value;
+    return node->integer_value;
   default:
     error_with_digital("Unknown AST operator", node->operation);
   }

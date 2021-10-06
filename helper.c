@@ -98,7 +98,7 @@ static int generate_dump_label(void) {
 // 递归打印 ast
 void dump_ast(struct ASTNode *n, int label, int level) {
   int label_false, label_start, label_end;
-  struct SymbolTable t = symbol_table[n->symbol_table_index];
+  struct SymbolTable *t = n->symbol_table;
 
   switch (n->operation) {
     case AST_IF:
@@ -136,7 +136,7 @@ void dump_ast(struct ASTNode *n, int label, int level) {
       fprintf(stdout, "\n\n"); return;
 
     case AST_FUNCTION:
-      fprintf(stdout, "AST_FUNCTION %s\n", t.name); return;
+      fprintf(stdout, "AST_FUNCTION %s\n", t->name); return;
     case AST_PLUS:
       fprintf(stdout, "AST_PLUS\n"); return;
     case AST_MINUS:
@@ -158,20 +158,20 @@ void dump_ast(struct ASTNode *n, int label, int level) {
     case AST_COMPARE_GREATER_EQUALS:
       fprintf(stdout, "AST_GE\n"); return;
     case AST_INTEGER_LITERAL:
-      fprintf(stdout, "AST_INTLIT %d\n", n->interger_value); return;
+      fprintf(stdout, "AST_INTLIT %d\n", n->integer_value); return;
     case AST_IDENTIFIER:
       n->rvalue
-        ? fprintf(stdout, "AST_IDENT rval %s\n", t.name)
-        : fprintf(stdout, "AST_IDENT %s\n", t.name);
+        ? fprintf(stdout, "AST_IDENT rval %s\n", t->name)
+        : fprintf(stdout, "AST_IDENT %s\n", t->name);
       return;
     case AST_ASSIGN:
       fprintf(stdout, "AST_ASSIGN\n"); return;
     case AST_FUNCTION_CALL:
-      fprintf(stdout, "AST_FUNCCALL %s\n", t.name); return;
+      fprintf(stdout, "AST_FUNCCALL %s\n", t->name); return;
     case AST_RETURN:
       fprintf(stdout, "AST_RETURN\n"); return;
     case AST_IDENTIFIER_ADDRESS:
-      fprintf(stdout, "AST_ADDR %s\n", t.name); return;
+      fprintf(stdout, "AST_ADDR %s\n", t->name); return;
     case AST_DEREFERENCE_POINTER:
       n->rvalue
         ? fprintf(stdout, "AST_DEREF rval\n")
