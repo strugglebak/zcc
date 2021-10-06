@@ -261,7 +261,7 @@ int interpret_ast_with_register(
 
     // 处理 string
     case AST_STRING_LITERAL:
-      return register_load_global_string(node->symbol_table);
+      return register_load_global_string(node->integer_value);
 
     case AST_AMPERSAND:
       return register_and(left_register, right_register);

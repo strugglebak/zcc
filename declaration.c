@@ -157,7 +157,7 @@ struct SymbolTable *parse_var_declaration_statement(int primitive_type, int stor
     // 检查 ]
     scan(&token_from_file);
     verify_right_bracket();
-    return;
+    return t;
   }
 
   // 解析普通变量
@@ -279,7 +279,7 @@ void parse_global_declaration_statement() {
         fprintf(stdout, "\n\n");
       }
       interpret_ast_with_register(tree, NO_LABEL, 0);
-      reset_local_symbol_index();
+      clear_local_symbol_table();
     } else {
       // 否则就是变量
       parse_var_declaration_statement(primitive_type, STORAGE_CLASS_GLOBAL);

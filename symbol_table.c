@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include "helper.h"
 #include "data.h"
 #include "generator.h"
@@ -38,7 +39,7 @@ static struct SymbolTable *find_symbol_in_list(
 }
 
 struct SymbolTable *find_global_symbol(char *symbol_string) {
-  return find_symbol_in_list(symbol_string, &global_head);
+  return find_symbol_in_list(symbol_string, global_head);
 }
 
 struct SymbolTable *find_local_symbol(char *symbol_string) {
@@ -48,11 +49,11 @@ struct SymbolTable *find_local_symbol(char *symbol_string) {
     node = find_symbol_in_list(symbol_string, current_function_symbol_id->member);
     if (node) return node;
   }
-  return find_symbol_in_list(symbol_string, &local_head);
+  return find_symbol_in_list(symbol_string, local_head);
 }
 
 struct SymbolTable *find_composite_symbol(char *symbol_string) {
-  return find_symbol_in_list(symbol_string, &composite_head);
+  return find_symbol_in_list(symbol_string, composite_head);
 }
 
 struct SymbolTable *find_symbol(char *symbol_string) {
@@ -124,8 +125,8 @@ struct SymbolTable *add_global_symbol(
     structural_type,
     size,
     storage_class,
-    &global_head,
-    &global_tail
+    global_head,
+    global_tail
   );
 }
 
@@ -145,8 +146,8 @@ struct SymbolTable *add_local_symbol(
     structural_type,
     size,
     storage_class,
-    &local_head,
-    &local_tail
+    local_head,
+    local_tail
   );
 }
 
@@ -166,8 +167,8 @@ struct SymbolTable *add_parameter_symbol(
     structural_type,
     size,
     storage_class,
-    &parameter_head,
-    &parameter_tail
+    parameter_head,
+    parameter_tail
   );
 }
 

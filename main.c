@@ -75,7 +75,7 @@ static char *do_compile(char *filename) {
 
   line = 1;
   putback_buffer = '\n';
-  reset_symbol_index();
+  clear_all_symbol_tables();
 
   if (output_verbose)
     printf("compiling %s\n", filename);
