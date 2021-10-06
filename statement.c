@@ -49,7 +49,12 @@ struct ASTNode *parse_if_statement() {
   if (condition_node->operation < AST_COMPARE_EQUALS ||
     condition_node->operation > AST_COMPARE_GREATER_EQUALS)
     // 说明是一个条件语句或者是一个 int 数字之类的，将其 bool 化
-    condition_node = create_ast_left_node(AST_TO_BE_BOOLEAN, condition_node->primitive_type, condition_node, 0);
+    condition_node = create_ast_left_node(
+        AST_TO_BE_BOOLEAN,
+        condition_node->primitive_type,
+        condition_node,
+        0,
+        NULL);
   verify_right_paren();
 
   // 为复合语句创建 ast
@@ -61,7 +66,14 @@ struct ASTNode *parse_if_statement() {
     false_node = parse_compound_statement();
   }
 
-  return create_ast_node(AST_IF, PRIMITIVE_NONE, condition_node, true_node, false_node, 0);
+  return create_ast_node(
+    AST_IF,
+    PRIMITIVE_NONE,
+    condition_node,
+    true_node,
+    false_node,
+    0,
+    NULL);
 }
 
 struct ASTNode *parse_while_statement() {
@@ -76,14 +88,26 @@ struct ASTNode *parse_while_statement() {
   if (condition_node->operation < AST_COMPARE_EQUALS ||
     condition_node->operation > AST_COMPARE_GREATER_EQUALS)
     // 说明是一个条件语句或者是一个 int 数字之类的，将其 bool 化
-    condition_node = create_ast_left_node(AST_TO_BE_BOOLEAN, condition_node->primitive_type, condition_node, 0);
+    condition_node = create_ast_left_node(
+        AST_TO_BE_BOOLEAN,
+        condition_node->primitive_type,
+        condition_node,
+        0,
+        NULL);
 
   verify_right_paren();
 
   // while 里面都是复合语句，所以直接解析即可
 
   statement_node = parse_compound_statement();
-  return create_ast_node(AST_WHILE, PRIMITIVE_NONE, condition_node, NULL, statement_node, 0);
+  return create_ast_node(
+    AST_WHILE,
+    PRIMITIVE_NONE,
+    condition_node,
+    NULL,
+    statement_node,
+    0,
+    NULL);
 }
 
 struct ASTNode *parse_for_statement() {
@@ -108,7 +132,12 @@ struct ASTNode *parse_for_statement() {
   if (condition_node->operation < AST_COMPARE_EQUALS ||
     condition_node->operation > AST_COMPARE_GREATER_EQUALS)
     // 说明是一个条件语句或者是一个 int 数字之类的，将其 bool 化
-    condition_node = create_ast_left_node(AST_TO_BE_BOOLEAN, condition_node->primitive_type, condition_node, 0);
+    condition_node = create_ast_left_node(
+        AST_TO_BE_BOOLEAN,
+        condition_node->primitive_type,
+        condition_node,
+        0,
+        NULL);
   verify_semicolon();
 
   // 解析 i = i+1)
@@ -127,17 +156,17 @@ struct ASTNode *parse_for_statement() {
   // true_or_false_condition  AST_GLUE
   //                          /    \
   //                 compound_stmt  postop
-  tree = create_ast_node(AST_GLUE, PRIMITIVE_NONE, statement_node, NULL, post_operation_statement_node, 0);
-  tree = create_ast_node(AST_WHILE, PRIMITIVE_NONE, condition_node, NULL, tree, 0);
-  return create_ast_node(AST_GLUE, PRIMITIVE_NONE, pre_operation_statement_node, NULL, tree, 0);
+  tree = create_ast_node(AST_GLUE, PRIMITIVE_NONE, statement_node, NULL, post_operation_statement_node, 0, NULL);
+  tree = create_ast_node(AST_WHILE, PRIMITIVE_NONE, condition_node, NULL, tree, 0, NULL);
+  return create_ast_node(AST_GLUE, PRIMITIVE_NONE, pre_operation_statement_node, NULL, tree, 0, NULL);
 }
 
 static struct ASTNode *parse_return_statement() {
   struct ASTNode *tree;
-  struct SymbolTable t = symbol_table[current_function_symbol_id];
+  struct SymbolTable *t = current_function_symbol_id;
 
   // 如果函数返回的是 void 则不能进行返回
-  if (t.primitive_type == PRIMITIVE_VOID)
+  if (t->primitive_type == PRIMITIVE_VOID)
     error("Can't return from a void function");
 
   // 检查 return (
@@ -148,12 +177,12 @@ static struct ASTNode *parse_return_statement() {
   tree = converse_token_2_ast(0);
 
   // 检查 return type 和 function type 是否兼容
-  tree = modify_type(tree, t.primitive_type, 0);
+  tree = modify_type(tree, t->primitive_type, 0);
   if (!tree) // 不允许强制转换
     error("Incompatible types to return");
 
   // 生成 return_statement 的 node
-  tree = create_ast_left_node(AST_RETURN, PRIMITIVE_NONE, tree, 0);
+  tree = create_ast_left_node(AST_RETURN, PRIMITIVE_NONE, tree, 0, NULL);
 
   // 检查 )
   verify_right_paren();
@@ -270,7 +299,7 @@ struct ASTNode *parse_compound_statement() {
     // stmt1  stmt2
     if (tree) {
       left = left
-        ? create_ast_node(AST_GLUE, PRIMITIVE_NONE, left, NULL, tree, 0)
+        ? create_ast_node(AST_GLUE, PRIMITIVE_NONE, left, NULL, tree, 0, NULL)
         : tree;
     }
 
