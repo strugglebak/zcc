@@ -193,7 +193,7 @@ struct SymbolTable *parse_var_declaration_statement(int primitive_type, int stor
 
 struct ASTNode *parse_function_declaration_statement(int primitive_type) {
   struct ASTNode *tree, *final_statement;
-  int end_label, parameter_count;
+  int end_label = 0, parameter_count = 0;
   struct SymbolTable *old_function_symbol_table = find_symbol(text_buffer),
                      *new_function_symbol_table = NULL;
 

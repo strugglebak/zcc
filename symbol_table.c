@@ -12,8 +12,8 @@ static struct SymbolTable *add_symbol_core(
   int structural_type,
   int size,
   int storage_class,
-  struct SymbolTable* head,
-  struct SymbolTable* tail
+  struct SymbolTable** head,
+  struct SymbolTable** tail
 ) {
   struct SymbolTable *t = new_symbol_table(
     symbol_string,
@@ -23,7 +23,7 @@ static struct SymbolTable *add_symbol_core(
     storage_class,
     0
   );
-  append_to_symbol_table(&head, &tail, t);
+  append_to_symbol_table(head, tail, t);
   return t;
 }
 
@@ -125,8 +125,8 @@ struct SymbolTable *add_global_symbol(
     structural_type,
     size,
     storage_class,
-    global_head,
-    global_tail
+    &global_head,
+    &global_tail
   );
 }
 
@@ -146,8 +146,8 @@ struct SymbolTable *add_local_symbol(
     structural_type,
     size,
     storage_class,
-    local_head,
-    local_tail
+    &local_head,
+    &local_tail
   );
 }
 
@@ -167,8 +167,8 @@ struct SymbolTable *add_parameter_symbol(
     structural_type,
     size,
     storage_class,
-    parameter_head,
-    parameter_tail
+    &parameter_head,
+    &parameter_tail
   );
 }
 

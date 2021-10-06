@@ -58,7 +58,7 @@ char *modify_string_suffix(char *string, char suffix) {
 static char *do_compile(char *filename) {
   global_output_filename = modify_string_suffix(filename, 's');
   if (!global_output_filename) {
-    fprintf( stderr, "Error: %s has no suffix, try .c on the end\n", filename);
+    fprintf(stderr, "Error: %s has no suffix, try .zc on the end\n", filename);
     exit(1);
   }
 
