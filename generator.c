@@ -112,7 +112,7 @@ static int interpret_function_call_with_register(struct ASTNode *node) {
     glue_node = glue_node->left;
   }
 
-  return register_function_call(node->symbol_table_index, function_argument_number);
+  return register_function_call(node->symbol_table, function_argument_number);
 }
 
 /**
@@ -164,9 +164,9 @@ int interpret_ast_with_register(
     case AST_FUNCTION_CALL:
       return interpret_function_call_with_register(node);
     case AST_FUNCTION:
-      register_function_preamble(node->symbol_table_index);
+      register_function_preamble(node->symbol_table);
       interpret_ast_with_register(node->left, NO_LABEL, node->operation);
-      register_function_postamble(node->symbol_table_index);
+      register_function_postamble(node->symbol_table);
       return NO_REGISTER;
   }
 
@@ -204,7 +204,7 @@ int interpret_ast_with_register(
       return NO_REGISTER;
 
     case AST_INTEGER_LITERAL:
-      return register_load_interger_literal(node->interger_value, node->primitive_type);
+      return register_load_interger_literal(node->integer_value, node->primitive_type);
     case AST_IDENTIFIER:
       //               类似于 * y 这种情况
       //                     | |
@@ -212,13 +212,13 @@ int interpret_ast_with_register(
       // parent_ast_operation  node
       if (node->rvalue ||
         parent_ast_operation == AST_DEREFERENCE_POINTER) {
-          if (symbol_table[node->symbol_table_index].storage_class == STORAGE_CLASS_GLOBAL)
-            return register_load_value_from_variable(node->symbol_table_index, node->operation);
-          return register_load_local_value_from_variable(node->symbol_table_index, node->operation);
+          if (node->symbol_table->storage_class == STORAGE_CLASS_GLOBAL)
+            return register_load_value_from_variable(node->symbol_table, node->operation);
+          return register_load_local_value_from_variable(node->symbol_table, node->operation);
         }
       return NO_REGISTER;
     case AST_LVALUE_IDENTIFIER:
-      return register_store_value_2_variable(register_index, node->symbol_table_index);
+      return register_store_value_2_variable(register_index, node->symbol_table);
     case AST_ASSIGN:
       // 是赋值给一个变量还是给一个指针赋值?
       // x = y
@@ -226,9 +226,9 @@ int interpret_ast_with_register(
       // 在 parser 中 left 和 right 做了交换，所以这里要对 right 的 operation 做判断
       switch (node->right->operation) {
         case AST_IDENTIFIER:
-          if (symbol_table[node->right->symbol_table_index].storage_class == STORAGE_CLASS_GLOBAL)
-            return register_store_value_2_variable(left_register, node->right->symbol_table_index);
-          return register_store_local_value_2_variable(left_register, node->right->symbol_table_index);
+          if (node->right->symbol_table->storage_class == STORAGE_CLASS_GLOBAL)
+            return register_store_value_2_variable(left_register, node->right->symbol_table);
+          return register_store_local_value_2_variable(left_register, node->right->symbol_table);
         case AST_DEREFERENCE_POINTER:
           return register_store_dereference_pointer(left_register, right_register, node->right->primitive_type);
         default:
@@ -237,7 +237,7 @@ int interpret_ast_with_register(
 
     // &
     case AST_IDENTIFIER_ADDRESS:
-      return register_load_identifier_address(node->symbol_table_index);
+      return register_load_identifier_address(node->symbol_table);
     // *
     case AST_DEREFERENCE_POINTER:
       if (node->rvalue)
@@ -261,7 +261,7 @@ int interpret_ast_with_register(
 
     // 处理 string
     case AST_STRING_LITERAL:
-      return register_load_global_string(node->symbol_table_index);
+      return register_load_global_string(node->symbol_table);
 
     case AST_AMPERSAND:
       return register_and(left_register, right_register);
@@ -275,14 +275,14 @@ int interpret_ast_with_register(
       return register_shift_right(left_register, right_register);
     case AST_POST_INCREASE:
     case AST_POST_DECREASE:
-      if (symbol_table[node->symbol_table_index].storage_class == STORAGE_CLASS_GLOBAL)
-        return register_load_value_from_variable(node->symbol_table_index, node->operation);
-      return register_load_local_value_from_variable(node->symbol_table_index, node->operation);
+      if (node->symbol_table->storage_class == STORAGE_CLASS_GLOBAL)
+        return register_load_value_from_variable(node->symbol_table, node->operation);
+      return register_load_local_value_from_variable(node->symbol_table, node->operation);
     case AST_PRE_INCREASE:
     case AST_PRE_DECREASE:
-      if (symbol_table[node->left->symbol_table_index].storage_class == STORAGE_CLASS_GLOBAL)
-        return register_load_value_from_variable(node->left->symbol_table_index, node->operation);
-      return register_load_local_value_from_variable(node->left->symbol_table_index, node->operation);
+      if (node->left->symbol_table->storage_class == STORAGE_CLASS_GLOBAL)
+        return register_load_value_from_variable(node->left->symbol_table, node->operation);
+      return register_load_local_value_from_variable(node->left->symbol_table, node->operation);
     case AST_NEGATE:
       return register_negate(left_register);
     case AST_INVERT:
@@ -328,6 +328,10 @@ int generate_global_string_code(char *string_value) {
 void generate_reset_local_variables() {
   register_reset_local_variables();
 }
-int generate_get_local_offset(int primitive_type, int is_parameter) {
-  return register_new_local_offset(primitive_type, is_parameter);
+int generate_get_local_offset(int primitive_type) {
+  return register_new_local_offset(primitive_type);
+}
+
+int generate_get_primitive_type_size(int primitive_type) {
+  return register_get_primitive_type_size(primitive_type);
 }
