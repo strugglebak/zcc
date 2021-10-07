@@ -180,10 +180,9 @@ int convert_token_2_primitive_type(struct SymbolTable **composite_type) {
   }
 
   // 检查后面是否带 *
-  while (1) {
-    scan(&token_from_file);
-    if (token_from_file.token != TOKEN_MULTIPLY) break;
+  while (token_from_file.token == TOKEN_MULTIPLY) {
     new_type = pointer_to(new_type);
+    scan(&token_from_file);
   }
   return new_type;
 }
@@ -368,9 +367,7 @@ void parse_global_declaration_statement() {
       continue;
     }
 
-    printf("11111111\n");
     verify_identifier();
-    printf("222222222\n");
     // 解析到 ( 说明是个函数
     if (token_from_file.token == TOKEN_LEFT_PAREN) {
       tree = parse_function_declaration_statement(primitive_type);
