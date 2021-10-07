@@ -6,10 +6,10 @@
 
 # (cd $TEST)
 
-# if [ ! -f ../parser ];
-# then
-#   (cd ..; make clean && make)
-# fi
+if [ ! -f ../parser ];
+then
+  (cd ..; make clean && make)
+fi
 
 # if [ "$1" = "-s" ];
 # then
