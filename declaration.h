@@ -2,7 +2,7 @@
 #define __DECLARATION_H__
 
 
-int convert_token_2_primitive_type();
+int convert_token_2_primitive_type(struct SymbolTable **composite_type);
 struct SymbolTable *parse_var_declaration_statement(
   int primitive_type,
   int storage_class,

@@ -368,7 +368,9 @@ void parse_global_declaration_statement() {
       continue;
     }
 
+    printf("11111111\n");
     verify_identifier();
+    printf("222222222\n");
     // 解析到 ( 说明是个函数
     if (token_from_file.token == TOKEN_LEFT_PAREN) {
       tree = parse_function_declaration_statement(primitive_type);
