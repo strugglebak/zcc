@@ -14,5 +14,6 @@ void generate_global_symbol(struct SymbolTable *t);
 void generate_reset_local_variables();
 int generate_get_local_offset(int primitive_type);
 int generate_get_primitive_type_size(int primitive_type);
+int generate_align(int primitive_type, int offset, int direction);
 
 #endif

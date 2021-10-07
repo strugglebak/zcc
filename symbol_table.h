@@ -4,6 +4,8 @@
 struct SymbolTable *find_global_symbol(char *symbol_string);
 struct SymbolTable *find_local_symbol(char *symbol_string);
 struct SymbolTable *find_composite_symbol(char *symbol_string);
+struct SymbolTable *find_temp_member_symbol(char *symbol_string);
+struct SymbolTable *find_struct_symbol(char *symbol_string);
 struct SymbolTable *find_symbol(char *symbol_string);
 void append_to_symbol_table(
   struct SymbolTable **head,
@@ -25,7 +27,6 @@ struct SymbolTable *add_global_symbol(
   int primitive_type,
   int structural_type,
   int size,
-  int storage_class,
   struct SymbolTable *composite_type
 );
 struct SymbolTable *add_local_symbol(
@@ -33,7 +34,6 @@ struct SymbolTable *add_local_symbol(
   int primitive_type,
   int structural_type,
   int size,
-  int storage_class,
   struct SymbolTable *composite_type
 );
 struct SymbolTable *add_parameter_symbol(
@@ -41,7 +41,6 @@ struct SymbolTable *add_parameter_symbol(
   int primitive_type,
   int structural_type,
   int size,
-  int storage_class,
   struct SymbolTable *composite_type
 );
 struct SymbolTable *add_temp_member_symbol(
@@ -49,7 +48,6 @@ struct SymbolTable *add_temp_member_symbol(
   int primitive_type,
   int structural_type,
   int size,
-  int storage_class,
   struct SymbolTable *composite_type
 );
 struct SymbolTable *add_struct_symbol(
@@ -57,7 +55,6 @@ struct SymbolTable *add_struct_symbol(
   int primitive_type,
   int structural_type,
   int size,
-  int storage_class,
   struct SymbolTable *composite_type
 );
 void clear_all_symbol_tables();

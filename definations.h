@@ -171,6 +171,8 @@ enum {
   STORAGE_CLASS_GLOBAL = 1,
   STORAGE_CLASS_LOCAL,
   STORAGE_CLASS_FUNCTION_PARAMETER,
+  STORAGE_CLASS_STRUCT,
+  STORAGE_CLASS_MEMBER,
 };
 
 // 如果在 generator.c 中的 interpret_ast_with_register

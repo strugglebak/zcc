@@ -704,3 +704,19 @@ void register_copy_argument(int register_index, int argument_position) {
     r,
     register_list[FIRST_PARAMETER_REGISTER_NUMBER - argument_position + 1]);
 }
+
+int register_align(int primitive_type, int offset, int direction) {
+  int alignment;
+
+  switch (primitive_type) {
+    case PRIMITIVE_CHAR: return offset;
+    case PRIMITIVE_INT: case PRIMITIVE_LONG: break;
+    default: error_with_digital("Bad type in register_align", primitive_type);
+  }
+
+  // int/long 间隔 4 字节
+  alignment = 4;
+  // direction -1 或者 1
+  offset = (offset + direction * (alignment-1)) & ~(alignment-1);
+  return offset;
+}

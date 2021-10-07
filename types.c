@@ -13,6 +13,15 @@ int check_pointer_type(int primitive_type) {
   return ((primitive_type & 0xf) != 0);
 }
 
+int get_primitive_type_size(
+  int primitive_type,
+  struct SymbolTable *composite_type
+) {
+  return primitive_type == PRIMITIVE_STRUCT
+    ? composite_type->size
+    : generate_get_primitive_type_size(primitive_type);
+}
+
 // 修改一个 ast node 的 type 类型，以便与给定的类型兼容
 // 对于指针来说，如果是一个二元运算(+ 或者 -)，那么 ast 的 operation 就是非 0
 struct ASTNode *modify_type(

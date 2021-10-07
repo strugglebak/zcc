@@ -58,6 +58,14 @@ struct SymbolTable *find_composite_symbol(char *symbol_string) {
   return find_symbol_in_list(symbol_string, composite_head);
 }
 
+struct SymbolTable *find_temp_member_symbol(char *symbol_string) {
+  return find_symbol_in_list(symbol_string, temp_member_head);
+}
+
+struct SymbolTable *find_struct_symbol(char *symbol_string) {
+  return find_symbol_in_list(symbol_string, struct_head);
+}
+
 struct SymbolTable *find_symbol(char *symbol_string) {
   struct SymbolTable *node = find_local_symbol(symbol_string);
   if (node) return node;
@@ -125,7 +133,6 @@ struct SymbolTable *add_global_symbol(
   int primitive_type,
   int structural_type,
   int size,
-  int storage_class,
   struct SymbolTable *composite_type
 ) {
   return add_symbol_core(
@@ -133,7 +140,7 @@ struct SymbolTable *add_global_symbol(
     primitive_type,
     structural_type,
     size,
-    storage_class,
+    STORAGE_CLASS_GLOBAL,
     &global_head,
     &global_tail,
     composite_type
@@ -148,7 +155,6 @@ struct SymbolTable *add_local_symbol(
   int primitive_type,
   int structural_type,
   int size,
-  int storage_class,
   struct SymbolTable *composite_type
 ) {
   return add_symbol_core(
@@ -156,7 +162,7 @@ struct SymbolTable *add_local_symbol(
     primitive_type,
     structural_type,
     size,
-    storage_class,
+    STORAGE_CLASS_LOCAL,
     &local_head,
     &local_tail,
     composite_type
@@ -171,7 +177,6 @@ struct SymbolTable *add_parameter_symbol(
   int primitive_type,
   int structural_type,
   int size,
-  int storage_class,
   struct SymbolTable *composite_type
 ) {
   return add_symbol_core(
@@ -179,7 +184,7 @@ struct SymbolTable *add_parameter_symbol(
     primitive_type,
     structural_type,
     size,
-    storage_class,
+    STORAGE_CLASS_FUNCTION_PARAMETER,
     &parameter_head,
     &parameter_tail,
     composite_type
@@ -194,7 +199,6 @@ struct SymbolTable *add_temp_member_symbol(
   int primitive_type,
   int structural_type,
   int size,
-  int storage_class,
   struct SymbolTable *composite_type
 ) {
   return add_symbol_core(
@@ -202,7 +206,7 @@ struct SymbolTable *add_temp_member_symbol(
     primitive_type,
     structural_type,
     size,
-    storage_class,
+    STORAGE_CLASS_MEMBER,
     &temp_member_head,
     &temp_member_tail,
     composite_type
@@ -217,7 +221,6 @@ struct SymbolTable *add_struct_symbol(
   int primitive_type,
   int structural_type,
   int size,
-  int storage_class,
   struct SymbolTable *composite_type
 ) {
   return add_symbol_core(
@@ -225,7 +228,7 @@ struct SymbolTable *add_struct_symbol(
     primitive_type,
     structural_type,
     size,
-    storage_class,
+    STORAGE_CLASS_STRUCT,
     &struct_head,
     &struct_tail,
     composite_type
@@ -237,6 +240,8 @@ void clear_all_symbol_tables() {
   local_head = local_tail = NULL;
   parameter_head = parameter_tail = NULL;
   composite_head = composite_tail = NULL;
+  temp_member_head = temp_member_tail = NULL;
+  struct_head = struct_tail = NULL;
 }
 
 void clear_local_symbol_table() {
