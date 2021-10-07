@@ -76,7 +76,7 @@ static int parse_var_declaration_list(
       // 函数参数中的这些定义属于 局部变量，同时也属于 参数/member 定义
       parse_var_declaration_statement(
         primitive_type,
-        STORAGE_CLASS_FUNCTION_PARAMETER,
+        storage_class,
         composite_type);
     }
 
@@ -172,7 +172,7 @@ int convert_token_2_primitive_type(struct SymbolTable **composite_type) {
     case TOKEN_VOID: new_type = PRIMITIVE_VOID; scan(&token_from_file); break;
     case TOKEN_LONG: new_type = PRIMITIVE_LONG; scan(&token_from_file); break;
     case TOKEN_STRUCT:
-      new_type = PRIMITIVE_LONG;
+      new_type = PRIMITIVE_STRUCT;
       *composite_type = parse_struct_declaration();
       break;
     default:
