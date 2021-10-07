@@ -88,6 +88,7 @@ enum {
   TOKEN_WHILE, // while
   TOKEN_FOR, // for
   TOKEN_RETURN, // return
+  TOKEN_STRUCT, // struct
 
   // 结构化 token
   TOKEN_INTEGER_LITERAL,

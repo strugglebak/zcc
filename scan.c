@@ -175,6 +175,9 @@ static int get_keyword(char *s) {
     case 'v':
       if (!strcmp(s, "void")) return TOKEN_VOID;
       break;
+    case 's':
+      if (!strcmp(s, "struct")) return TOKEN_STRUCT;
+      break;
   }
   return 0;
 }
