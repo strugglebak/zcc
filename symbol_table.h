@@ -17,28 +17,48 @@ struct SymbolTable *new_symbol_table(
   int structural_type,
   int size,
   int storage_class,
-  int position
+  int position,
+  struct SymbolTable *composite_type
 );
 struct SymbolTable *add_global_symbol(
   char *symbol_string,
   int primitive_type,
   int structural_type,
   int size,
-  int storage_class
+  int storage_class,
+  struct SymbolTable *composite_type
 );
 struct SymbolTable *add_local_symbol(
   char *symbol_string,
   int primitive_type,
   int structural_type,
   int size,
-  int storage_class
+  int storage_class,
+  struct SymbolTable *composite_type
 );
 struct SymbolTable *add_parameter_symbol(
   char *symbol_string,
   int primitive_type,
   int structural_type,
   int size,
-  int storage_class
+  int storage_class,
+  struct SymbolTable *composite_type
+);
+struct SymbolTable *add_temp_member_symbol(
+  char *symbol_string,
+  int primitive_type,
+  int structural_type,
+  int size,
+  int storage_class,
+  struct SymbolTable *composite_type
+);
+struct SymbolTable *add_struct_symbol(
+  char *symbol_string,
+  int primitive_type,
+  int structural_type,
+  int size,
+  int storage_class,
+  struct SymbolTable *composite_type
 );
 void clear_all_symbol_tables();
 void clear_local_symbol_table();

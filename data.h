@@ -26,10 +26,13 @@ extern_ int output_assemble_assembly_file;
 extern_ int output_link_object_file;
 extern_ int output_verbose;
 
-extern_ struct SymbolTable *current_function_symbol_id; // 当前函数
-extern_ struct SymbolTable *global_head, *global_tail; // 全局变量和函数
-extern_ struct SymbolTable *local_head, *local_tail; // 局部变量
-extern_ struct SymbolTable *parameter_head, *parameter_tail; // 局部参数
-extern_ struct SymbolTable *composite_head, *composite_tail; // 复合变量
+extern_ struct SymbolTable *current_function_symbol_id;          // 当前函数
+extern_ struct SymbolTable *global_head, *global_tail;           // 全局变量和函数
+extern_ struct SymbolTable *local_head, *local_tail;             // 局部变量
+extern_ struct SymbolTable *parameter_head, *parameter_tail;     // 局部参数
+extern_ struct SymbolTable *composite_head, *composite_tail;     // 复合变量
+extern_ struct SymbolTable *temp_member_head, *temp_member_tail; // struct/union 成员的临时 symbol table 指针
+extern_ struct SymbolTable *struct_head, *struct_tail;           // struct symbol table 指针
+
 
 #endif

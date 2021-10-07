@@ -13,7 +13,8 @@ static struct SymbolTable *add_symbol_core(
   int size,
   int storage_class,
   struct SymbolTable** head,
-  struct SymbolTable** tail
+  struct SymbolTable** tail,
+  struct SymbolTable *composite_type
 ) {
   struct SymbolTable *t = new_symbol_table(
     symbol_string,
@@ -21,7 +22,8 @@ static struct SymbolTable *add_symbol_core(
     structural_type,
     size,
     storage_class,
-    0
+    0,
+    composite_type
   );
   append_to_symbol_table(head, tail, t);
   return t;
@@ -88,7 +90,8 @@ struct SymbolTable *new_symbol_table(
   int structural_type,
   int size,
   int storage_class,
-  int position
+  int position,
+  struct SymbolTable *composite_type
 ) {
   struct SymbolTable *node = (struct SymbolTable *) malloc(sizeof(struct SymbolTable));
   if (!node)
@@ -100,6 +103,11 @@ struct SymbolTable *new_symbol_table(
   node->size = size;
   node->storage_class = storage_class;
   node->position = position;
+  node->composite_type = composite_type;
+  // TODO: 这里可能有指针指向的 bug
+  // printf("能打印出这里说明没问题 1\n");
+  // printf("composite_type.name = %s\n", node->composite_type->name);
+  // printf("能打印出这里说明没问题 2\n");
   node->next = NULL;
   node->member = NULL;
 
@@ -117,7 +125,8 @@ struct SymbolTable *add_global_symbol(
   int primitive_type,
   int structural_type,
   int size,
-  int storage_class
+  int storage_class,
+  struct SymbolTable *composite_type
 ) {
   return add_symbol_core(
     symbol_string,
@@ -126,7 +135,8 @@ struct SymbolTable *add_global_symbol(
     size,
     storage_class,
     &global_head,
-    &global_tail
+    &global_tail,
+    composite_type
   );
 }
 
@@ -138,7 +148,8 @@ struct SymbolTable *add_local_symbol(
   int primitive_type,
   int structural_type,
   int size,
-  int storage_class
+  int storage_class,
+  struct SymbolTable *composite_type
 ) {
   return add_symbol_core(
     symbol_string,
@@ -147,7 +158,8 @@ struct SymbolTable *add_local_symbol(
     size,
     storage_class,
     &local_head,
-    &local_tail
+    &local_tail,
+    composite_type
   );
 }
 
@@ -159,7 +171,8 @@ struct SymbolTable *add_parameter_symbol(
   int primitive_type,
   int structural_type,
   int size,
-  int storage_class
+  int storage_class,
+  struct SymbolTable *composite_type
 ) {
   return add_symbol_core(
     symbol_string,
@@ -168,7 +181,54 @@ struct SymbolTable *add_parameter_symbol(
     size,
     storage_class,
     &parameter_head,
-    &parameter_tail
+    &parameter_tail,
+    composite_type
+  );
+}
+
+/**
+ * new 一个新 symbol table 并加入 temp_member symbol table 中
+*/
+struct SymbolTable *add_temp_member_symbol(
+  char *symbol_string,
+  int primitive_type,
+  int structural_type,
+  int size,
+  int storage_class,
+  struct SymbolTable *composite_type
+) {
+  return add_symbol_core(
+    symbol_string,
+    primitive_type,
+    structural_type,
+    size,
+    storage_class,
+    &temp_member_head,
+    &temp_member_tail,
+    composite_type
+  );
+}
+
+/**
+ * new 一个新 symbol table 并加入 struct symbol table 中
+*/
+struct SymbolTable *add_struct_symbol(
+  char *symbol_string,
+  int primitive_type,
+  int structural_type,
+  int size,
+  int storage_class,
+  struct SymbolTable *composite_type
+) {
+  return add_symbol_core(
+    symbol_string,
+    primitive_type,
+    structural_type,
+    size,
+    storage_class,
+    &struct_head,
+    &struct_tail,
+    composite_type
   );
 }
 
