@@ -305,7 +305,11 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
 
   // 开始解析函数参数
   verify_left_paren();
-  parameter_count = parse_parameter_declaration(old_function_symbol_table);
+  parameter_count = parse_var_declaration_list(
+    old_function_symbol_table,
+    STORAGE_CLASS_FUNCTION_PARAMETER,
+    TOKEN_COMMA,
+    TOKEN_RIGHT_PAREN);
   verify_right_paren();
 
   // 新【声明】函数对应的位置需要记录函数参数的个数

@@ -13,6 +13,7 @@
 static struct ASTNode *parse_return_statement();
 static struct ASTNode *parse_single_statement() {
   int primitive_type;
+  struct SymbolTable *composite_type;
   switch(token_from_file.token) {
     case TOKEN_CHAR:
     case TOKEN_INT:
@@ -20,7 +21,7 @@ static struct ASTNode *parse_single_statement() {
       primitive_type = convert_token_2_primitive_type();
       verify_identifier();
       // 单个语句在大括号内，所以是局部变量
-      parse_var_declaration_statement(primitive_type, STORAGE_CLASS_LOCAL);
+      parse_var_declaration_statement(primitive_type, STORAGE_CLASS_LOCAL, composite_type);
       verify_semicolon();
       return NULL;
     case TOKEN_IF:

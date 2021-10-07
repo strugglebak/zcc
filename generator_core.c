@@ -314,7 +314,7 @@ int register_store_local_value_2_variable(int register_index, struct SymbolTable
 */
 void register_generate_global_symbol(struct SymbolTable *t) {
   if (!t || t->structural_type == STRUCTURAL_FUNCTION) return;
-  int primitive_type_size = register_get_primitive_type_size(t->primitive_type);
+  int primitive_type_size = get_primitive_type_size(t->primitive_type, t->composite_type);
   register_data_section_flag();
   fprintf(output_file, "\t.globl\t%s\n", t->name);
   fprintf(output_file, "%s:", t->name);
