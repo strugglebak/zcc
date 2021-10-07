@@ -341,6 +341,52 @@ struct ASTNode *convert_array_access_2_ast() {
   return left;
 }
 
+struct ASTNode *convert_member_access_2_ast(int with_pointer) {
+  // 解析类似于 y = xxx.a; 或者 y = xxx->a; 这样的语句
+  struct ASTNode *left, *right;
+  struct SymbolTable *var_pointer, *type_pointer, *member;
+
+  // 检查 identifier 是否用 struct 定义过
+  if (!(var_pointer = find_symbol(text_buffer)))
+    error_with_message("Undeclared variable", text_buffer);
+  // 定义过用的是 'xxx->a' 的用法，检查 xxx 是不是指针类型
+  if (with_pointer && var_pointer->primitive_type != pointer_to(PRIMITIVE_STRUCT))
+    error_with_message("Variable is not a pointer type", text_buffer);
+  // 定义过用的是 'xxx.a' 的用法，检查 xxx 是不是结构体类型
+  if (!with_pointer && var_pointer->primitive_type != PRIMITIVE_STRUCT)
+    error_with_message("Variable is not a struct type", text_buffer);
+
+  // 创建 left 节点
+  left = with_pointer
+    // 指针
+    ? create_ast_leaf(AST_IDENTIFIER, pointer_to(PRIMITIVE_STRUCT), 0, var_pointer)
+    // 结构体
+    : create_ast_leaf(AST_IDENTIFIER_ADDRESS, var_pointer->primitive_type, 0, var_pointer);
+  // 它是一个右值
+  left->rvalue = 1;
+
+  type_pointer = var_pointer->composite_type;
+
+  // 跳过 '.' 或者 '->'
+  scan(&token_from_file);
+  verify_identifier();
+
+  // 在 type_pointer 指向的 symbol table 中寻找 'xxx.a' 或者 'xxx->a' 中的 'a'
+  for (member = type_pointer->member; member; member = member->next)
+    if (!strcmp(member->name, text_buffer)) break;
+
+  // 没找到 'a' 直接退出
+  if (!member) error_with_message("No member found in struct/union", text_buffer);
+
+  // 找到了 'a'，先创建一个右节点，值是 'a' 所在的成员的 offset
+  right = create_ast_leaf(AST_INTEGER_LITERAL, PRIMITIVE_INT, member->position, NULL);
+
+  // 返回一个 AST 树，其中 struct 的基添加了 member 的偏移量
+  left = create_ast_node(AST_PLUS, pointer_to(member->primitive_type), left, NULL, right, 0, NULL);
+  // 这个时候也必须要解除引用，因为可能后面会有 xxx.a = 100; 这样的语句出现，所以把它看作左值 lvalue
+  left = create_ast_left_node(AST_DEREFERENCE_POINTER, member->primitive_type, left, 0, NULL);
+  return left;
+}
 
 struct ASTNode *convert_prefix_expression_2_ast() {
   struct ASTNode *tree;
@@ -444,6 +490,12 @@ struct ASTNode *convert_postfix_expression_2_ast() {
   // 如果是左 [，则直接看作是访问数组
   if (token_from_file.token == TOKEN_LEFT_BRACKET)
     return convert_array_access_2_ast();
+
+  // 如果是 '.' 或者 '->' 看作是访问 struct/union
+  if (token_from_file.token == TOKEN_DOT)
+    return convert_member_access_2_ast(0);
+  if (token_from_file.token == TOKEN_ARROW)
+    return convert_member_access_2_ast(1);
 
   // 检查标识符是否存在
   t = find_symbol(text_buffer);

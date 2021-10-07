@@ -212,6 +212,8 @@ int scan(struct Token *t) {
     case '-':
       if ((c = next()) == '-') {
         t->token = TOKEN_DECREASE;
+      } else if (c == '>') {
+        t->token = TOKEN_ARROW;
       } else {
         put_back(c);
         t->token = TOKEN_MINUS;
@@ -252,6 +254,9 @@ int scan(struct Token *t) {
       break;
     case '^':
       t->token = TOKEN_XOR;
+      break;
+    case '.':
+      t->token = TOKEN_DOT;
       break;
 
     case '\'':

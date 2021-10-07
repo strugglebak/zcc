@@ -8,5 +8,6 @@ struct ASTNode *convert_function_call_2_ast();
 struct ASTNode *convert_prefix_expression_2_ast();
 struct ASTNode *convert_postfix_expression_2_ast();
 struct ASTNode *convert_array_access_2_ast();
+struct ASTNode *convert_member_access_2_ast(int with_pointer);
 
 #endif

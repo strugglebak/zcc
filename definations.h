@@ -103,6 +103,8 @@ enum {
   TOKEN_RIGHT_BRACKET, // ]
 
   TOKEN_COMMA, // ,
+  TOKEN_DOT, // .
+  TOKEN_ARROW, // ->
 };
 
 // AST 节点类型
