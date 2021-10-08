@@ -478,12 +478,19 @@ struct ASTNode *convert_prefix_expression_2_ast() {
 
 struct ASTNode *convert_postfix_expression_2_ast() {
   struct ASTNode *tree;
-  struct SymbolTable *t = NULL;
+  struct SymbolTable *t = NULL, *enum_pointer;
 
   // 解析类似的语句时需要注意的问题，即区别是变量名还是函数调用还是数组访问
   //  x = fred + jim;
   //  x = fred(5) + jim;
   //  x = a[12];
+
+  // 先判断 fred 或者 jim 是不是 enum 变量
+  // 如果是得先返回一个 ast node
+  if ((enum_pointer = find_enum_value_symbol(text_buffer))) {
+    scan(&token_from_file);
+    return create_ast_leaf(AST_INTEGER_LITERAL, PRIMITIVE_INT, enum_pointer->position, NULL);
+  }
 
   // 扫描下一个，继续判断
   scan(&token_from_file);
