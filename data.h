@@ -34,6 +34,8 @@ extern_ struct SymbolTable *composite_head, *composite_tail;     // 复合变量
 extern_ struct SymbolTable *temp_member_head, *temp_member_tail; // struct/union 成员的临时 symbol table 指针
 extern_ struct SymbolTable *struct_head, *struct_tail;           // struct symbol table 指针
 extern_ struct SymbolTable *union_head, *union_tail;             // union symbol table 指针
+extern_ struct SymbolTable *enum_head, *enum_tail;               // enum symbol table 指针
+extern_ struct SymbolTable *typedef_head, *typedef_tail;         // typedef symbol table 指针
 
 
 #endif

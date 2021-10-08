@@ -90,6 +90,8 @@ enum {
   TOKEN_RETURN, // return
   TOKEN_STRUCT, // struct
   TOKEN_UNION,  // union
+  TOKEN_ENUM,   // enum
+  TOKEN_TYPEDEF,// typedef
 
   // 结构化 token
   TOKEN_INTEGER_LITERAL,
@@ -159,8 +161,6 @@ enum {
   PRIMITIVE_LONG = 64,
   PRIMITIVE_STRUCT = 80,
   PRIMITIVE_UNION = 96,
-  PRIMITIVE_ENUM_LIST,
-  PRIMITIVE_ENUM_VALUE,
 };
 
 // Structural types 结构类型
@@ -177,6 +177,9 @@ enum {
   STORAGE_CLASS_STRUCT,
   STORAGE_CLASS_UNION,
   STORAGE_CLASS_MEMBER,
+  STORAGE_CLASS_ENUM_TYPE,
+  STORAGE_CLASS_ENUM_VALUE,
+  STORAGE_CLASS_TYPEDEF,
 };
 
 // 如果在 generator.c 中的 interpret_ast_with_register

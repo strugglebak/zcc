@@ -163,6 +163,7 @@ static int get_keyword(char *s) {
       break;
     case 'e':
       if (!strcmp(s, "else")) return TOKEN_ELSE;
+      else if (!strcmp(s, "enum")) return TOKEN_ENUM;
       break;
     case 'w':
       if (!strcmp(s, "while")) return TOKEN_WHILE;
@@ -180,6 +181,9 @@ static int get_keyword(char *s) {
       break;
     case 'u':
       if (!strcmp(s, "union")) return TOKEN_UNION;
+      break;
+    case 't':
+      if (!strcmp(s, "typedef")) return TOKEN_TYPEDEF;
       break;
   }
   return 0;
