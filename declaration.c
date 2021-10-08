@@ -266,6 +266,21 @@ int parse_typedef_declaration(struct SymbolTable **composite_type) {
   return primitive_type;
 }
 
+int parse_type_of_typedef_declaration(char *name, struct SymbolTable **composite_type) {
+  // 解析类似的语句
+  // typedef int FOO;
+  // typedef FOO BAR;
+  // BAR x;
+  // x 就是 BAR 类型 ->FOO 类型 -> int 类型
+  // 主要是解析 BAR x; 找出后面的 int
+  struct SymbolTable *t = find_typedef_symbol(name);
+  if (!t) error_with_message("Unknown type", name);
+
+  scan(&token_from_file);
+  *composite_type = t->composite_type;
+  return t->primitive_type;
+}
+
 int convert_token_2_primitive_type(struct SymbolTable **composite_type) {
   int new_type;
   switch (token_from_file.token) {
@@ -291,6 +306,10 @@ int convert_token_2_primitive_type(struct SymbolTable **composite_type) {
       new_type = parse_typedef_declaration(composite_type);
       if (token_from_file.token == TOKEN_SEMICOLON)
         new_type = -1;
+      break;
+    case TOKEN_IDENTIFIER:
+      // 在解析一个类型或者碰到关键字的时候，需要去查一下这个是不是被 typedef 定义过
+      new_type = parse_type_of_typedef_declaration(text_buffer, composite_type);
       break;
     default:
       error_with_digital("Illegal type, token", token_from_file.token);
