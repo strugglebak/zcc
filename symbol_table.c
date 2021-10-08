@@ -12,6 +12,7 @@ static struct SymbolTable *add_symbol_core(
   int structural_type,
   int size,
   int storage_class,
+  int position,
   struct SymbolTable** head,
   struct SymbolTable** tail,
   struct SymbolTable *composite_type
@@ -22,7 +23,7 @@ static struct SymbolTable *add_symbol_core(
     structural_type,
     size,
     storage_class,
-    0,
+    position,
     composite_type
   );
   append_to_symbol_table(head, tail, t);
@@ -31,43 +32,57 @@ static struct SymbolTable *add_symbol_core(
 
 static struct SymbolTable *find_symbol_in_list(
   char *symbol_string,
-  struct SymbolTable *list
+  struct SymbolTable *list,
+  int storage_class
 ) {
   for (; list; list = list->next) {
     if (list->name && (!strcmp(symbol_string, list->name)))
-      return list;
+      if (!storage_class || storage_class == list->storage_class)
+        return list;
   }
   return NULL;
 }
 
 struct SymbolTable *find_global_symbol(char *symbol_string) {
-  return find_symbol_in_list(symbol_string, global_head);
+  return find_symbol_in_list(symbol_string, global_head, 0);
 }
 
 struct SymbolTable *find_local_symbol(char *symbol_string) {
   struct SymbolTable *node;
   // 优先判断是否在函数体内，如果是则寻找 parameter
   if (current_function_symbol_id) {
-    node = find_symbol_in_list(symbol_string, current_function_symbol_id->member);
+    node = find_symbol_in_list(symbol_string, current_function_symbol_id->member, 0);
     if (node) return node;
   }
-  return find_symbol_in_list(symbol_string, local_head);
+  return find_symbol_in_list(symbol_string, local_head, 0);
 }
 
 struct SymbolTable *find_composite_symbol(char *symbol_string) {
-  return find_symbol_in_list(symbol_string, composite_head);
+  return find_symbol_in_list(symbol_string, composite_head, 0);
 }
 
 struct SymbolTable *find_temp_member_symbol(char *symbol_string) {
-  return find_symbol_in_list(symbol_string, temp_member_head);
+  return find_symbol_in_list(symbol_string, temp_member_head, 0);
 }
 
 struct SymbolTable *find_struct_symbol(char *symbol_string) {
-  return find_symbol_in_list(symbol_string, struct_head);
+  return find_symbol_in_list(symbol_string, struct_head, 0);
 }
 
 struct SymbolTable *find_union_symbol(char *symbol_string) {
-  return find_symbol_in_list(symbol_string, union_head);
+  return find_symbol_in_list(symbol_string, union_head, 0);
+}
+
+struct SymbolTable *find_enum_type_symbol(char *symbol_string) {
+  return find_symbol_in_list(symbol_string, enum_head, STORAGE_CLASS_ENUM_TYPE);
+}
+
+struct SymbolTable *find_enum_value_symbol(char *symbol_string) {
+  return find_symbol_in_list(symbol_string, enum_head, STORAGE_CLASS_ENUM_VALUE);
+}
+
+struct SymbolTable *find_typedef_symbol(char *symbol_string) {
+  return find_symbol_in_list(symbol_string, typedef_head, 0);
 }
 
 struct SymbolTable *find_symbol(char *symbol_string) {
@@ -116,10 +131,6 @@ struct SymbolTable *new_symbol_table(
   node->storage_class = storage_class;
   node->position = position;
   node->composite_type = composite_type;
-  // TODO: 这里可能有指针指向的 bug
-  // printf("能打印出这里说明没问题 1\n");
-  // printf("composite_type.name = %s\n", node->composite_type->name);
-  // printf("能打印出这里说明没问题 2\n");
   node->next = NULL;
   node->member = NULL;
 
@@ -128,10 +139,6 @@ struct SymbolTable *new_symbol_table(
 
   return node;
 }
-
-/**
- * new 一个新 symbol table 并加入 global symbol table 中
-*/
 struct SymbolTable *add_global_symbol(
   char *symbol_string,
   int primitive_type,
@@ -145,15 +152,12 @@ struct SymbolTable *add_global_symbol(
     structural_type,
     size,
     STORAGE_CLASS_GLOBAL,
+    0,
     &global_head,
     &global_tail,
     composite_type
   );
 }
-
-/**
- * new 一个新 symbol table 并加入 local symbol table 中
-*/
 struct SymbolTable *add_local_symbol(
   char *symbol_string,
   int primitive_type,
@@ -167,15 +171,13 @@ struct SymbolTable *add_local_symbol(
     structural_type,
     size,
     STORAGE_CLASS_LOCAL,
+    0,
     &local_head,
     &local_tail,
     composite_type
   );
 }
 
-/**
- * new 一个新 symbol table 并加入 parameter symbol table 中
-*/
 struct SymbolTable *add_parameter_symbol(
   char *symbol_string,
   int primitive_type,
@@ -189,15 +191,13 @@ struct SymbolTable *add_parameter_symbol(
     structural_type,
     size,
     STORAGE_CLASS_FUNCTION_PARAMETER,
+    0,
     &parameter_head,
     &parameter_tail,
     composite_type
   );
 }
 
-/**
- * new 一个新 symbol table 并加入 temp_member symbol table 中
-*/
 struct SymbolTable *add_temp_member_symbol(
   char *symbol_string,
   int primitive_type,
@@ -211,15 +211,12 @@ struct SymbolTable *add_temp_member_symbol(
     structural_type,
     size,
     STORAGE_CLASS_MEMBER,
+    0,
     &temp_member_head,
     &temp_member_tail,
     composite_type
   );
 }
-
-/**
- * new 一个新 symbol table 并加入 struct symbol table 中
-*/
 struct SymbolTable *add_struct_symbol(
   char *symbol_string,
   int primitive_type,
@@ -233,15 +230,12 @@ struct SymbolTable *add_struct_symbol(
     structural_type,
     size,
     STORAGE_CLASS_STRUCT,
+    0,
     &struct_head,
     &struct_tail,
     composite_type
   );
 }
-
-/**
- * new 一个新 symbol table 并加入 union symbol table 中
-*/
 struct SymbolTable *add_union_symbol(
   char *symbol_string,
   int primitive_type,
@@ -255,8 +249,47 @@ struct SymbolTable *add_union_symbol(
     structural_type,
     size,
     STORAGE_CLASS_UNION,
+    0,
     &union_head,
     &union_tail,
+    composite_type
+  );
+}
+
+struct SymbolTable *add_enum_symbol(
+  char *symbol_string,
+  int storage_class,
+  int value
+) {
+  return add_symbol_core(
+    symbol_string,
+    PRIMITIVE_INT,
+    0,
+    0,
+    storage_class,
+    value,
+    &enum_head,
+    &enum_tail,
+    NULL
+  );
+}
+
+struct SymbolTable *add_typedef_symbol(
+  char *symbol_string,
+  int primitive_type,
+  int structural_type,
+  int size,
+  struct SymbolTable *composite_type
+) {
+  return add_symbol_core(
+    symbol_string,
+    primitive_type,
+    structural_type,
+    size,
+    STORAGE_CLASS_TYPEDEF,
+    0,
+    &typedef_head,
+    &typedef_tail,
     composite_type
   );
 }
@@ -268,6 +301,9 @@ void clear_all_symbol_tables() {
   composite_head = composite_tail = NULL;
   temp_member_head = temp_member_tail = NULL;
   struct_head = struct_tail = NULL;
+  union_head = union_tail = NULL;
+  enum_head = enum_tail = NULL;
+  typedef_head = typedef_tail = NULL;
 }
 
 void clear_local_symbol_table() {

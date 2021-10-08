@@ -1,3 +1,4 @@
+#include <string.h>
 #include "definations.h"
 #include "data.h"
 #include "helper.h"
@@ -179,6 +180,66 @@ static struct SymbolTable *parse_composite_declaration(int primitive_type) {
   return composite_type;
 }
 
+static void parse_enum_declaration() {
+  // 解析类似于 enum xxx { a = 1, b } var1; 这样的语句
+  struct SymbolTable *t = NULL;
+  char *name;
+  int value = 0;
+
+  // 跳过 enum 关键字
+  scan(&token_from_file);
+
+  // 如果有已经声明的 xxx，就找出它
+  if (token_from_file.token == TOKEN_IDENTIFIER) {
+    t = find_enum_type_symbol(text_buffer);
+    name = strdup(text_buffer);
+    scan(&token_from_file);
+  }
+
+  // 如果下一个 token 不是 '{'，是类似这样的语句
+  // enum xxx;
+  if (token_from_file.token != TOKEN_LEFT_BRACE) {
+    // 看 xxx 有没有被定义过
+    if (!t) error_with_message("Undeclared enum type", name);
+    return;
+  }
+
+  // 跳过 '{'
+  scan(&token_from_file);
+
+  // 如果已经存在 xxx，确保之前没有被定义过
+  if (t) error_with_message("Enum type redeclared", t->name);
+
+  // xxx 枚举类型加入 symbol table 链表
+  t = add_enum_symbol(name, STORAGE_CLASS_ENUM_TYPE, 0);
+
+  // 解析所有的 enum 枚举变量
+  while (token_from_file.token != TOKEN_RIGHT_BRACE) {
+    // 拿到枚举变量名
+    verify_identifier();
+    name = strdup(text_buffer);
+
+    // 确保枚举变量名不重复
+    t = find_enum_value_symbol(name);
+    if (t) error_with_message("Enum value redeclared", text_buffer);
+
+    // 如果下一个 token 是 '='，比如 a = 1，把 '1' 取出来
+    if (token_from_file.token == TOKEN_ASSIGN) {
+      scan(&token_from_file);
+      if (token_from_file.token != TOKEN_INTEGER_LITERAL)
+        error("Expected int literal after '='");
+      value = token_from_file.integer_value;
+      scan(&token_from_file);
+    }
+    // 把 'a' 和 '1' 枚举变量加入 symbol table 链表
+    t = add_enum_symbol(name, STORAGE_CLASS_ENUM_VALUE, value++);
+    verify_comma();
+  }
+
+  // 跳过 '}'
+  scan(&token_from_file);
+}
+
 int convert_token_2_primitive_type(struct SymbolTable **composite_type) {
   int new_type;
   switch (token_from_file.token) {
@@ -193,6 +254,12 @@ int convert_token_2_primitive_type(struct SymbolTable **composite_type) {
     case TOKEN_UNION:
       new_type = PRIMITIVE_UNION;
       *composite_type = parse_composite_declaration(new_type);
+      break;
+    case TOKEN_ENUM:
+      new_type = PRIMITIVE_INT;
+      parse_enum_declaration();
+      if (token_from_file.token == TOKEN_SEMICOLON)
+        new_type = -1;
       break;
     default:
       error_with_digital("Illegal type, token", token_from_file.token);

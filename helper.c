@@ -62,6 +62,11 @@ void verify_right_bracket() {
   verify_token_and_fetch_next_token(TOKEN_RIGHT_BRACKET, "]");
 }
 
+void verify_comma() {
+  verify_token_and_fetch_next_token(TOKEN_COMMA, ",");
+}
+
+
 
 void error(char *string) {
   fprintf(stderr, "%s on line %d\n", string, line);
