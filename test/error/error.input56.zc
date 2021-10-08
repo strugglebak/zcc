@@ -1,1 +1,1 @@
-Unknown struct type:var1 on line 2
+Unknown struct/union type:var1 on line 2

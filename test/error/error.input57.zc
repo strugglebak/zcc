@@ -1,1 +1,1 @@
-Previously defined struct:fred on line 2
+Previously defined struct/union:fred on line 2

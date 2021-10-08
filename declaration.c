@@ -380,7 +380,7 @@ void parse_global_declaration_statement() {
     primitive_type = convert_token_2_primitive_type(&composite_type);
 
     // 如果碰到 struct xxx; 类似的语句，这里应该不支持
-    if (primitive_type == PRIMITIVE_STRUCT &&
+    if ((primitive_type == PRIMITIVE_STRUCT || primitive_type == PRIMITIVE_UNION) &&
         token_from_file.token == TOKEN_SEMICOLON) {
       scan(&token_from_file);
       continue;
