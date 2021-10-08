@@ -214,7 +214,7 @@ static void parse_enum_declaration() {
   t = add_enum_symbol(name, STORAGE_CLASS_ENUM_TYPE, 0);
 
   // 解析所有的 enum 枚举变量
-  while (token_from_file.token != TOKEN_RIGHT_BRACE) {
+  while (1) {
     // 拿到枚举变量名
     verify_identifier();
     name = strdup(text_buffer);
@@ -233,6 +233,8 @@ static void parse_enum_declaration() {
     }
     // 把 'a' 和 '1' 枚举变量加入 symbol table 链表
     t = add_enum_symbol(name, STORAGE_CLASS_ENUM_VALUE, value++);
+
+    if (token_from_file.token == TOKEN_RIGHT_BRACE) break;
     verify_comma();
   }
 
@@ -291,10 +293,14 @@ int convert_token_2_primitive_type(struct SymbolTable **composite_type) {
     case TOKEN_STRUCT:
       new_type = PRIMITIVE_STRUCT;
       *composite_type = parse_composite_declaration(new_type);
+      if (token_from_file.token == TOKEN_SEMICOLON)
+        new_type = -1;
       break;
     case TOKEN_UNION:
       new_type = PRIMITIVE_UNION;
       *composite_type = parse_composite_declaration(new_type);
+      if (token_from_file.token == TOKEN_SEMICOLON)
+        new_type = -1;
       break;
     case TOKEN_ENUM:
       new_type = PRIMITIVE_INT;
@@ -497,9 +503,8 @@ void parse_global_declaration_statement() {
     primitive_type = convert_token_2_primitive_type(&composite_type);
 
     // 如果碰到 struct xxx; 类似的语句，这里应该不支持
-    if ((primitive_type == PRIMITIVE_STRUCT || primitive_type == PRIMITIVE_UNION) &&
-        token_from_file.token == TOKEN_SEMICOLON) {
-      scan(&token_from_file);
+    if (primitive_type == -1) {
+      verify_semicolon();
       continue;
     }
 
