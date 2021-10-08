@@ -66,6 +66,10 @@ struct SymbolTable *find_struct_symbol(char *symbol_string) {
   return find_symbol_in_list(symbol_string, struct_head);
 }
 
+struct SymbolTable *find_union_symbol(char *symbol_string) {
+  return find_symbol_in_list(symbol_string, union_head);
+}
+
 struct SymbolTable *find_symbol(char *symbol_string) {
   struct SymbolTable *node = find_local_symbol(symbol_string);
   if (node) return node;
@@ -231,6 +235,28 @@ struct SymbolTable *add_struct_symbol(
     STORAGE_CLASS_STRUCT,
     &struct_head,
     &struct_tail,
+    composite_type
+  );
+}
+
+/**
+ * new 一个新 symbol table 并加入 union symbol table 中
+*/
+struct SymbolTable *add_union_symbol(
+  char *symbol_string,
+  int primitive_type,
+  int structural_type,
+  int size,
+  struct SymbolTable *composite_type
+) {
+  return add_symbol_core(
+    symbol_string,
+    primitive_type,
+    structural_type,
+    size,
+    STORAGE_CLASS_UNION,
+    &union_head,
+    &union_tail,
     composite_type
   );
 }

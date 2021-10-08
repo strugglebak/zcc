@@ -178,6 +178,9 @@ static int get_keyword(char *s) {
     case 's':
       if (!strcmp(s, "struct")) return TOKEN_STRUCT;
       break;
+    case 'u':
+      if (!strcmp(s, "union")) return TOKEN_UNION;
+      break;
   }
   return 0;
 }

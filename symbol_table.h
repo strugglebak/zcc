@@ -6,6 +6,7 @@ struct SymbolTable *find_local_symbol(char *symbol_string);
 struct SymbolTable *find_composite_symbol(char *symbol_string);
 struct SymbolTable *find_temp_member_symbol(char *symbol_string);
 struct SymbolTable *find_struct_symbol(char *symbol_string);
+struct SymbolTable *find_union_symbol(char *symbol_string);
 struct SymbolTable *find_symbol(char *symbol_string);
 void append_to_symbol_table(
   struct SymbolTable **head,
@@ -51,6 +52,13 @@ struct SymbolTable *add_temp_member_symbol(
   struct SymbolTable *composite_type
 );
 struct SymbolTable *add_struct_symbol(
+  char *symbol_string,
+  int primitive_type,
+  int structural_type,
+  int size,
+  struct SymbolTable *composite_type
+);
+struct SymbolTable *add_union_symbol(
   char *symbol_string,
   int primitive_type,
   int structural_type,

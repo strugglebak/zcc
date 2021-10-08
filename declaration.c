@@ -100,7 +100,7 @@ static int parse_var_declaration_list(
   return parameter_count;
 }
 
-static struct SymbolTable *parse_struct_declaration() {
+static struct SymbolTable *parse_composite_declaration(int primitive_type) {
   // 解析 struct 定义的语句
   struct SymbolTable *composite_type = NULL, *member;
   int offset;
@@ -110,7 +110,10 @@ static struct SymbolTable *parse_struct_declaration() {
 
   // 判断 struct 后面的类型名字是否被定义过
   if (token_from_file.token == TOKEN_IDENTIFIER) {
-    composite_type = find_struct_symbol(text_buffer);
+    composite_type =
+      primitive_type == PRIMITIVE_STRUCT
+        ? find_struct_symbol(text_buffer)
+        : find_union_symbol(text_buffer);
     // 略过类型名字
     scan(&token_from_file);
   }
@@ -120,21 +123,29 @@ static struct SymbolTable *parse_struct_declaration() {
   if (token_from_file.token != TOKEN_LEFT_BRACE) {
     // 既然要声明变量，说明之前的 struct 声明的类型应该存在
     // 如果此时 composite_type 为空应该要报错
-    if (!composite_type) error_with_message("Unknown struct type", text_buffer);
+    if (!composite_type) error_with_message("Unknown struct/union type", text_buffer);
     return composite_type;
   }
 
   // 如果下一个 token 是 '{'，说明用户要用这个 struct 类型去做定义
   // 如果要做定义，那么此时 composite_type 应该要为空
-  if (composite_type) error_with_message("Previously defined struct", text_buffer);
+  if (composite_type) error_with_message("Previously defined struct/union", text_buffer);
 
   // 开始构建 struct node
-  composite_type = add_struct_symbol(
-    text_buffer,
-    PRIMITIVE_STRUCT,
-    0,
-    0,
-    NULL);
+  composite_type =
+    primitive_type == PRIMITIVE_STRUCT
+      ? add_struct_symbol(
+        text_buffer,
+        PRIMITIVE_STRUCT,
+        0,
+        0,
+        NULL)
+      : add_union_symbol(
+        text_buffer,
+        PRIMITIVE_UNION,
+        0,
+        0,
+        NULL);
   // 略过 '{'
   scan(&token_from_file);
 
@@ -155,7 +166,11 @@ static struct SymbolTable *parse_struct_declaration() {
   // 再设置剩下的成员变量
   member = member->next;
   for (; member; member = member->next) {
-    member->position = generate_align(member->primitive_type, offset, 1);
+    member->position =
+      primitive_type == PRIMITIVE_STRUCT
+        ? generate_align(member->primitive_type, offset, 1)
+        // union 是共享变量地址，所以这里是 0
+        : 0;
     offset += get_primitive_type_size(member->primitive_type, member->composite_type);
   }
 
@@ -173,7 +188,11 @@ int convert_token_2_primitive_type(struct SymbolTable **composite_type) {
     case TOKEN_LONG: new_type = PRIMITIVE_LONG; scan(&token_from_file); break;
     case TOKEN_STRUCT:
       new_type = PRIMITIVE_STRUCT;
-      *composite_type = parse_struct_declaration();
+      *composite_type = parse_composite_declaration(new_type);
+      break;
+    case TOKEN_UNION:
+      new_type = PRIMITIVE_UNION;
+      *composite_type = parse_composite_declaration(new_type);
       break;
     default:
       error_with_digital("Illegal type, token", token_from_file.token);

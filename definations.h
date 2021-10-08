@@ -83,12 +83,13 @@ enum {
   TOKEN_LONG, // long
 
   // 其他关键字
-  TOKEN_IF, // if
-  TOKEN_ELSE, // else
-  TOKEN_WHILE, // while
-  TOKEN_FOR, // for
+  TOKEN_IF,     // if
+  TOKEN_ELSE,   // else
+  TOKEN_WHILE,  // while
+  TOKEN_FOR,    // for
   TOKEN_RETURN, // return
   TOKEN_STRUCT, // struct
+  TOKEN_UNION,  // union
 
   // 结构化 token
   TOKEN_INTEGER_LITERAL,
@@ -157,7 +158,7 @@ enum {
   PRIMITIVE_INT = 48,
   PRIMITIVE_LONG = 64,
   PRIMITIVE_STRUCT = 80,
-  PRIMITIVE_UNION,
+  PRIMITIVE_UNION = 96,
   PRIMITIVE_ENUM_LIST,
   PRIMITIVE_ENUM_VALUE,
 };
@@ -174,6 +175,7 @@ enum {
   STORAGE_CLASS_LOCAL,
   STORAGE_CLASS_FUNCTION_PARAMETER,
   STORAGE_CLASS_STRUCT,
+  STORAGE_CLASS_UNION,
   STORAGE_CLASS_MEMBER,
 };
 
