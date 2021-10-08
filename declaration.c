@@ -106,7 +106,7 @@ static struct SymbolTable *parse_composite_declaration(int primitive_type) {
   struct SymbolTable *composite_type = NULL, *member;
   int offset;
 
-  // 略过 struct 关键字
+  // 跳过 struct 关键字
   scan(&token_from_file);
 
   // 判断 struct 后面的类型名字是否被定义过
@@ -115,7 +115,7 @@ static struct SymbolTable *parse_composite_declaration(int primitive_type) {
       primitive_type == PRIMITIVE_STRUCT
         ? find_struct_symbol(text_buffer)
         : find_union_symbol(text_buffer);
-    // 略过类型名字
+    // 跳过类型名字
     scan(&token_from_file);
   }
 
@@ -147,7 +147,7 @@ static struct SymbolTable *parse_composite_declaration(int primitive_type) {
         0,
         0,
         NULL);
-  // 略过 '{'
+  // 跳过 '{'
   scan(&token_from_file);
 
   // 开始解析 struct 里面的成员
@@ -240,6 +240,32 @@ static void parse_enum_declaration() {
   scan(&token_from_file);
 }
 
+// typedef_declaration: 'typedef' identifier existing_type
+//                    | 'typedef' identifier existing_type variable_name
+//                    ;
+int parse_typedef_declaration(struct SymbolTable **composite_type) {
+  // 解析类似于 typedef int xxx; 类似的语句
+  int primitive_type;
+
+  // 跳过 typedef 关键字
+  scan(&token_from_file);
+
+  // 解析 int
+  primitive_type = convert_token_2_primitive_type(composite_type);
+
+  // 解析 xxx
+  // 如果重复定义就报错
+  if (find_typedef_symbol(text_buffer))
+    error_with_message("Redefinition of typedef", text_buffer);
+
+  // 如果没有重复定义就加入 typedef symbol table 链表
+  add_typedef_symbol(text_buffer, primitive_type, 0, 0, *composite_type);
+
+  // 跳过 ';'
+  scan(&token_from_file);
+  return primitive_type;
+}
+
 int convert_token_2_primitive_type(struct SymbolTable **composite_type) {
   int new_type;
   switch (token_from_file.token) {
@@ -258,6 +284,11 @@ int convert_token_2_primitive_type(struct SymbolTable **composite_type) {
     case TOKEN_ENUM:
       new_type = PRIMITIVE_INT;
       parse_enum_declaration();
+      if (token_from_file.token == TOKEN_SEMICOLON)
+        new_type = -1;
+      break;
+    case TOKEN_TYPEDEF:
+      new_type = parse_typedef_declaration(composite_type);
       if (token_from_file.token == TOKEN_SEMICOLON)
         new_type = -1;
       break;

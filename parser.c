@@ -106,7 +106,7 @@ static struct ASTNode *create_ast_node_from_expression() {
 
     case TOKEN_LEFT_PAREN:
       // 解析 e= (a+b) * (c+d); 类似的语句
-      // 如果表达式以 ( 开头，略过它
+      // 如果表达式以 ( 开头，跳过它
       scan(&token_from_file);
       node = converse_token_2_ast(0);
       verify_right_paren();
