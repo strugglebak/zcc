@@ -17,7 +17,7 @@ int get_primitive_type_size(
   int primitive_type,
   struct SymbolTable *composite_type
 ) {
-  return primitive_type == PRIMITIVE_STRUCT
+  return primitive_type == PRIMITIVE_STRUCT || primitive_type == PRIMITIVE_UNION
     ? composite_type->size
     : generate_get_primitive_type_size(primitive_type);
 }

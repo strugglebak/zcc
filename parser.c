@@ -351,10 +351,14 @@ struct ASTNode *convert_member_access_2_ast(int with_pointer) {
   if (!(var_pointer = find_symbol(text_buffer)))
     error_with_message("Undeclared variable", text_buffer);
   // 定义过用的是 'xxx->a' 的用法，检查 xxx 是不是指针类型
-  if (with_pointer && var_pointer->primitive_type != pointer_to(PRIMITIVE_STRUCT))
+  if (with_pointer &&
+      var_pointer->primitive_type != pointer_to(PRIMITIVE_STRUCT) &&
+      var_pointer->primitive_type != pointer_to(PRIMITIVE_UNION))
     error_with_message("Variable is not a pointer type", text_buffer);
   // 定义过用的是 'xxx.a' 的用法，检查 xxx 是不是结构体类型
-  if (!with_pointer && var_pointer->primitive_type != PRIMITIVE_STRUCT)
+  if (!with_pointer &&
+      var_pointer->primitive_type != PRIMITIVE_STRUCT &&
+      var_pointer->primitive_type != PRIMITIVE_UNION)
     error_with_message("Variable is not a struct type", text_buffer);
 
   // 创建 left 节点
