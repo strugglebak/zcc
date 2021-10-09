@@ -13,6 +13,12 @@ BINARAY_DIRECTORY= /tmp
 clean:
 	rm -f parser parser_arm *.o *.s out test/out
 
+install: parser
+	sudo mkdir -p $(INCLUDE_DIRECTORY)
+	sudo rsync -a include/. $(INCLUDE_DIRECTORY)
+	sudo cp parser $(BINARAY_DIRECTORY)
+	sudo chmod +x $(BINARAY_DIRECTORY)/parser
+
 parser: $(SRCS)
 	$(CC) -o parser -g -Wall -DINCDIR=\"$(INCDIR)\" $(SRCS)
 
