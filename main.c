@@ -66,7 +66,7 @@ static char *do_compile(char *filename) {
 
   // 先生成一个预处理器的命令行
   // INCLUDE_DIRECTORY 在 Makefile 里面找到
-  snprintf(cmd, TEXT_LENGTH, "%s %s %s", CPP_CMD, INCLUDE_DIRECTORY, filename);
+  snprintf(cmd, TEXT_LENGTH, "%s %s %s", CPP_CMD, INCDIR, filename);
   if (!(input_file = popen(cmd, "r"))) {
     fprintf(stderr, "Unable to open %s: %s\n", filename, strerror(errno));
     exit(1);

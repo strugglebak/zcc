@@ -5,7 +5,7 @@ DEBUG= -T
 COMMON= parser.c interpreter.c main.c scan.c ast.c generator.c  statement.c helper.c symbol_table.c types.c declaration.c
 SRCS= $(COMMON) generator_core.c
 ARM_SRCS= $(COMMON) generator_core_arm.c
-TEST_CASE_NAME= 67
+TEST_CASE_NAME= 70
 TEST_CASE= test/input$(TEST_CASE_NAME).zc
 INCLUDE_DIRECTORY= /tmp/include
 BINARAY_DIRECTORY= /tmp
@@ -20,10 +20,10 @@ install: parser
 	sudo chmod +x $(BINARAY_DIRECTORY)/parser
 
 parser: $(SRCS)
-	$(CC) -o parser -g -Wall -DINCDIR=\"$(INCDIR)\" $(SRCS)
+	$(CC) -o parser -g -DINCDIR=\"$(INCLUDE_DIRECTORY)\" $(SRCS)
 
 parser_arm: $(ARM_SRCS)
-	$(CC) -o parser -g -Wall -DINCDIR=\"$(INCDIR)\" $(ARM_SRCS)
+	$(CC) -o parser -g -DINCDIR=\"$(INCLUDE_DIRECTORY)\" $(ARM_SRCS)
 	cp parser_arm parser
 
 gen: test/make_test
