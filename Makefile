@@ -7,15 +7,17 @@ SRCS= $(COMMON) generator_core.c
 ARM_SRCS= $(COMMON) generator_core_arm.c
 TEST_CASE_NAME= 67
 TEST_CASE= test/input$(TEST_CASE_NAME).zc
+INCLUDE_DIRECTORY= /tmp/include
+BINARAY_DIRECTORY= /tmp
 
 clean:
 	rm -f parser parser_arm *.o *.s out test/out
 
 parser: $(SRCS)
-	$(CC) -o parser -g $(SRCS)
+	$(CC) -o parser -g -Wall -DINCDIR=\"$(INCDIR)\" $(SRCS)
 
 parser_arm: $(ARM_SRCS)
-	$(CC) -o parser_arm -g -Wall $(ARMSRCS)
+	$(CC) -o parser -g -Wall -DINCDIR=\"$(INCDIR)\" $(ARM_SRCS)
 	cp parser_arm parser
 
 gen: test/make_test

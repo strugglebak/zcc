@@ -56,16 +56,22 @@ char *modify_string_suffix(char *string, char suffix) {
 
 // 编译成汇编代码
 static char *do_compile(char *filename) {
+  char cmd[TEXT_LENGTH];
+
   global_output_filename = modify_string_suffix(filename, 's');
   if (!global_output_filename) {
     fprintf(stderr, "Error: %s has no suffix, try .zc on the end\n", filename);
     exit(1);
   }
 
-  if (!(input_file = fopen(filename, "r"))) {
+  // 先生成一个预处理器的命令行
+  // INCLUDE_DIRECTORY 在 Makefile 里面找到
+  snprintf(cmd, TEXT_LENGTH, "%s %s %s", CPP_CMD, INCLUDE_DIRECTORY, filename);
+  if (!(input_file = popen(cmd, "r"))) {
     fprintf(stderr, "Unable to open %s: %s\n", filename, strerror(errno));
     exit(1);
   }
+  global_input_filename = filename;
 
   // 用 output_file 来模拟一个被生成的汇编文件
   if (!(output_file = fopen(global_output_filename, "w"))) {

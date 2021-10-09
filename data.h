@@ -17,6 +17,7 @@ extern_ int putback_buffer;
 extern_ FILE *input_file;
 extern_ FILE *output_file;
 extern_ char *global_output_filename;
+extern_ char *global_input_filename;
 extern_ struct Token token_from_file;
 extern_ char text_buffer[TEXT_LENGTH + 1];
 
