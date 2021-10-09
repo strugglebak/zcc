@@ -17,7 +17,7 @@ void reject_token(struct Token *t) {
 
 // 从文件中读取下一个字符
 static int next(void) {
-  char c;
+  char c, l;
 
   // 由于上一次读取到了不是数字的字符，所以这里相当于一个 buffer，直接返回上一次读取后的值即可
   if (putback_buffer) {
@@ -28,6 +28,49 @@ static int next(void) {
 
   // 返回了上一次读取后的值之后，再次从文件刚刚的位置的下一位读取
   c = fgetc(input_file);
+  // 处理预编译处理过后的头文件，这些头文件会加载到 main.c 中
+  // 这些头文件一般长这样
+  // # 1 "z.c"
+  // # 1 "<built-in>"
+  // # 1 "<command-line>"
+  // # 1 "z.c"
+  // # 1 "include/stdio.h" 1
+  // # 1 "include/stddef.h" 1
+  // typedef long size_t;
+  // # 5 "include/stdio.h" 2
+  // typedef char * FILE;
+  // FILE *fopen(char *pathname, char *mode);
+  // ...
+  // # 2 "z.c" 2
+  // int main() {...}
+
+  // 先从 '#' 开始
+  while (c == '#') {
+    // 跳过 '#'
+    scan(&token_from_file);
+    // 如果不是 '1' 报错
+    if (token_from_file.token != TOKEN_INTEGER_LITERAL)
+      error_with_message("Expecting pre-processor line number, got", text_buffer);
+    // 把 '1' 赋值给 l
+    l = token_from_file.integer_value;
+
+    // 跳过 '1'，此时来到的是文件路径/文件名 "z.c"
+    scan(&token_from_file);
+    if (token_from_file.token != TOKEN_STRING_LITERAL)
+      error_with_message("Expecting pre-processor file name, got", text_buffer);
+
+    // 以 '<>' 包起来的不用检查
+    if (text_buffer[0] != '<') {
+      if (strcmp(text_buffer, global_input_filename))
+        global_input_filename = strdup(text_buffer);
+      line = l;
+    }
+
+    // 跳过行尾继续下一个
+    while ((c = fgetc(input_file) != '\n'));
+    c = fgetc(input_file);
+  }
+
   if ('\n' == c) {
     line ++;
   }
