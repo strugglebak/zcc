@@ -207,6 +207,7 @@ static int get_keyword(char *s) {
     case 'e':
       if (!strcmp(s, "else")) return TOKEN_ELSE;
       else if (!strcmp(s, "enum")) return TOKEN_ENUM;
+      else if (!strcmp(s, "extern")) return TOKEN_EXTERN;
       break;
     case 'w':
       if (!strcmp(s, "while")) return TOKEN_WHILE;

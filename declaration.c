@@ -57,7 +57,7 @@ static int parse_var_declaration_list(
 
   // 开始解析参数
   while (token_from_file.token != end_token) {
-    primitive_type = convert_token_2_primitive_type(&composite_type);
+    primitive_type = convert_token_2_primitive_type(&composite_type, &storage_class);
     verify_identifier();
 
     // 如果已经有【声明】过的 函数/struct
@@ -247,13 +247,13 @@ static void parse_enum_declaration() {
 //                    ;
 int parse_typedef_declaration(struct SymbolTable **composite_type) {
   // 解析类似于 typedef int xxx; 类似的语句
-  int primitive_type;
+  int primitive_type, storage_class = 0;
 
   // 跳过 typedef 关键字
   scan(&token_from_file);
 
   // 解析 int
-  primitive_type = convert_token_2_primitive_type(composite_type);
+  primitive_type = convert_token_2_primitive_type(composite_type, &storage_class);
 
   // 解析 xxx
   // 如果重复定义就报错
@@ -283,8 +283,23 @@ int parse_type_of_typedef_declaration(char *name, struct SymbolTable **composite
   return t->primitive_type;
 }
 
-int convert_token_2_primitive_type(struct SymbolTable **composite_type) {
-  int new_type;
+int convert_token_2_primitive_type(
+  struct SymbolTable **composite_type,
+  int *storage_class
+) {
+  int new_type, storage_class_change_to_extern = 1;
+
+  // 先检查 storage class 是变成了 extern
+  while (storage_class_change_to_extern) {
+    switch (token_from_file.token) {
+      case TOKEN_EXTERN:
+        *storage_class = STORAGE_CLASS_EXTERN;
+        scan(&token_from_file);
+        break;
+      default: storage_class_change_to_extern = 0;
+    }
+  }
+
   switch (token_from_file.token) {
     case TOKEN_CHAR: new_type = PRIMITIVE_CHAR; scan(&token_from_file); break;
     case TOKEN_INT: new_type = PRIMITIVE_INT; scan(&token_from_file); break;
@@ -342,6 +357,7 @@ struct SymbolTable *parse_var_declaration_statement(
   // 先检查变量是否已经被定义过
   switch (storage_class) {
     case STORAGE_CLASS_GLOBAL:
+    case STORAGE_CLASS_EXTERN:
       if (find_global_symbol(text_buffer))
         error_with_message("Duplicate global variable declaration", text_buffer);
     case STORAGE_CLASS_LOCAL:
@@ -362,11 +378,13 @@ struct SymbolTable *parse_var_declaration_statement(
     if (token_from_file.token == TOKEN_INTEGER_LITERAL) {
       switch (storage_class) {
         case STORAGE_CLASS_GLOBAL:
+        case STORAGE_CLASS_EXTERN:
           t = add_global_symbol(
             text_buffer,
             pointer_to(primitive_type), // 变成指针类型
             STRUCTURAL_ARRAY,
             token_from_file.integer_value,
+            storage_class,
             composite_type);
           break;
         case STORAGE_CLASS_LOCAL:
@@ -385,11 +403,13 @@ struct SymbolTable *parse_var_declaration_statement(
   // 解析普通变量
   switch (storage_class) {
     case STORAGE_CLASS_GLOBAL:
+    case STORAGE_CLASS_EXTERN:
       t = add_global_symbol(
         text_buffer,
         primitive_type,
         STRUCTURAL_VARIABLE,
         1,
+        storage_class,
         composite_type);
       break;
     case STORAGE_CLASS_LOCAL:
@@ -441,6 +461,7 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
       primitive_type,
       STRUCTURAL_FUNCTION,
       end_label,
+      STORAGE_CLASS_GLOBAL,
       NULL);
   }
 
@@ -495,12 +516,12 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
 
 void parse_global_declaration_statement() {
   struct ASTNode *tree;
-  int primitive_type;
+  int primitive_type, storage_class = STORAGE_CLASS_GLOBAL;
   struct SymbolTable *composite_type;
 
   // 解析声明的全局变量/函数
   while (token_from_file.token != TOKEN_EOF) {
-    primitive_type = convert_token_2_primitive_type(&composite_type);
+    primitive_type = convert_token_2_primitive_type(&composite_type, &storage_class);
 
     // 如果碰到 struct xxx; 类似的语句，这里应该不支持
     if (primitive_type == -1) {

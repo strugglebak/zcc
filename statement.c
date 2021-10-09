@@ -12,16 +12,24 @@
 
 static struct ASTNode *parse_return_statement();
 static struct ASTNode *parse_single_statement() {
-  int primitive_type;
+  int primitive_type, storage_class = STORAGE_CLASS_LOCAL;
   struct SymbolTable *composite_type;
+
   switch(token_from_file.token) {
+    case TOKEN_IDENTIFIER:
+      // 检查是否被 typedef 定义过
+      if (!find_typedef_symbol(text_buffer))
+        return converse_token_2_ast(0);
     case TOKEN_CHAR:
     case TOKEN_INT:
     case TOKEN_LONG:
-      primitive_type = convert_token_2_primitive_type(&composite_type);
+    case TOKEN_STRUCT:
+    case TOKEN_UNION:
+    case TOKEN_ENUM:
+    case TOKEN_TYPEDEF:
+      primitive_type = convert_token_2_primitive_type(&composite_type, &storage_class);
       verify_identifier();
-      // 单个语句在大括号内，所以是局部变量
-      parse_var_declaration_statement(primitive_type, STORAGE_CLASS_LOCAL, composite_type);
+      parse_var_declaration_statement(primitive_type, storage_class, composite_type);
       verify_semicolon();
       return NULL;
     case TOKEN_IF:

@@ -144,6 +144,7 @@ struct SymbolTable *add_global_symbol(
   int primitive_type,
   int structural_type,
   int size,
+  int storage_class,
   struct SymbolTable *composite_type
 ) {
   return add_symbol_core(
@@ -151,7 +152,7 @@ struct SymbolTable *add_global_symbol(
     primitive_type,
     structural_type,
     size,
-    STORAGE_CLASS_GLOBAL,
+    storage_class,
     0,
     &global_head,
     &global_tail,
