@@ -15,7 +15,11 @@ int generate_label() {
   return id++;
 }
 
-static int interpret_if_ast_with_register(struct ASTNode *node) {
+static int interpret_if_ast_with_register(
+  struct ASTNode *node,
+  int loop_start_label,
+  int loop_end_label
+) {
   int label_start, label_end;
 
   label_start = generate_label();
@@ -24,11 +28,11 @@ static int interpret_if_ast_with_register(struct ASTNode *node) {
   // 解析 if 中的 condition 条件语句，并生成对应的汇编代码
   // 这个条件语句最终的执行的结果是 0，并跳转到 label_false 存在的地方
   // 这里可以把 label_false 这个整型数值当作一个 register_index 给到对应的寄存器做处理
-  interpret_ast_with_register(node->left, label_start, node->operation);
+  interpret_ast_with_register(node->left, label_start, NO_LABEL, NO_LABEL, node->operation);
   clear_all_registers();
 
   // 解析 true 部分的 statements，并生成对应汇编代码
-  interpret_ast_with_register(node->middle, NO_LABEL, node->operation);
+  interpret_ast_with_register(node->middle, NO_LABEL, loop_start_label, loop_end_label, node->operation);
   clear_all_registers();
 
   // 如果有 ELSE 分支，则跳转到 label_end
@@ -37,7 +41,7 @@ static int interpret_if_ast_with_register(struct ASTNode *node) {
   // 开始写 label_start 定义的代码
   register_label(label_start);
   if (node->right) {
-    interpret_ast_with_register(node->right, NO_LABEL, node->operation);
+    interpret_ast_with_register(node->right, NO_LABEL, NO_LABEL, NO_LABEL, node->operation);
     clear_all_registers();
     register_label(label_end);
   }
@@ -67,12 +71,12 @@ static int interpret_while_ast_with_register(struct ASTNode *node) {
   // 解析 while 中的 condition 条件语句，并生成对应的汇编代码
   // evaluate condition
   // jump to Lend if condition false
-  interpret_ast_with_register(node->left, label_end, node->operation);
+  interpret_ast_with_register(node->left, label_end, label_start, label_end, node->operation);
   clear_all_registers();
 
   // 解析 while 下面的复合语句
   // statements
-  interpret_ast_with_register(node->right, NO_LABEL, node->operation);
+  interpret_ast_with_register(node->right, NO_LABEL, label_start, label_end, node->operation);
   clear_all_registers();
 
   // jump to Lstart
@@ -103,7 +107,7 @@ static int interpret_function_call_with_register(struct ASTNode *node) {
   //  NULL  expr1(1)
   while(glue_node) {
     // 先生成相关表达式的汇编代码
-    register_index = interpret_ast_with_register(glue_node->right, NO_LABEL, glue_node->operation);
+    register_index = interpret_ast_with_register(glue_node->right, NO_LABEL, NO_LABEL, NO_LABEL, glue_node->operation);
     // 将其复制到第 n 个函数参数中
     register_copy_argument(register_index, glue_node->scale_size);
     // 保留第一个参数
@@ -122,7 +126,9 @@ static int interpret_function_call_with_register(struct ASTNode *node) {
 */
 int interpret_ast_with_register(
   struct ASTNode *node,
-  int register_index,
+  int if_label,
+  int loop_start_label,
+  int loop_end_label,
   int parent_ast_operation
 ) {
   int left_register, right_register;
@@ -152,11 +158,11 @@ int interpret_ast_with_register(
   */
   switch (node->operation) {
     case AST_IF:
-      return interpret_if_ast_with_register(node);
+      return interpret_if_ast_with_register(node, loop_start_label, loop_end_label);
     case AST_GLUE:
-      interpret_ast_with_register(node->left, NO_LABEL, node->operation);
+      interpret_ast_with_register(node->left, if_label, loop_start_label, loop_end_label, node->operation);
       clear_all_registers();
-      interpret_ast_with_register(node->right, NO_LABEL, node->operation);
+      interpret_ast_with_register(node->right, if_label, loop_start_label, loop_end_label, node->operation);
       clear_all_registers();
       return NO_REGISTER;
     case AST_WHILE:
@@ -165,16 +171,16 @@ int interpret_ast_with_register(
       return interpret_function_call_with_register(node);
     case AST_FUNCTION:
       register_function_preamble(node->symbol_table);
-      interpret_ast_with_register(node->left, NO_LABEL, node->operation);
+      interpret_ast_with_register(node->left, NO_LABEL, NO_LABEL, NO_LABEL, node->operation);
       register_function_postamble(node->symbol_table);
       return NO_REGISTER;
   }
 
   if (node->left) {
-    left_register = interpret_ast_with_register(node->left, NO_LABEL, node->operation);
+    left_register = interpret_ast_with_register(node->left, NO_LABEL, NO_LABEL, NO_LABEL, node->operation);
   }
   if (node->right) {
-    right_register = interpret_ast_with_register(node->right, NO_LABEL, node->operation);
+    right_register = interpret_ast_with_register(node->right, NO_LABEL, NO_LABEL, NO_LABEL, node->operation);
   }
 
   switch (node->operation) {
@@ -195,9 +201,7 @@ int interpret_ast_with_register(
     case AST_COMPARE_GREATER_EQUALS:
       if (parent_ast_operation == AST_IF ||
         parent_ast_operation == AST_WHILE)
-        return register_compare_and_jump(
-          node->operation, left_register,
-          right_register, register_index);
+        return register_compare_and_jump( node->operation, left_register, right_register, if_label);
       return register_compare_and_set(node->operation, left_register, right_register);
     case AST_RETURN:
       register_function_return(left_register, current_function_symbol_id);
@@ -217,8 +221,6 @@ int interpret_ast_with_register(
           return register_load_local_value_from_variable(node->symbol_table, node->operation);
         }
       return NO_REGISTER;
-    case AST_LVALUE_IDENTIFIER:
-      return register_store_value_2_variable(register_index, node->symbol_table);
     case AST_ASSIGN:
       // 是赋值给一个变量还是给一个指针赋值?
       // x = y
@@ -290,7 +292,13 @@ int interpret_ast_with_register(
     case AST_LOGIC_NOT:
       return register_logic_not(left_register);
     case AST_TO_BE_BOOLEAN:
-      return register_to_be_boolean(left_register, parent_ast_operation, register_index);
+      return register_to_be_boolean(left_register, parent_ast_operation, if_label);
+    case AST_BREAK:
+      register_jump(loop_end_label);
+      return NO_REGISTER;
+    case AST_CONTINUE:
+      register_jump(loop_start_label);
+      return NO_REGISTER;
 
     default:
       error_with_digital("Unknown AST operator", node->operation);

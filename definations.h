@@ -153,8 +153,6 @@ enum {
   AST_INVERT,
   AST_LOGIC_NOT,
   AST_TO_BE_BOOLEAN,
-
-  AST_LVALUE_IDENTIFIER, // 左值
 };
 
 // Primitive types 原始类型
