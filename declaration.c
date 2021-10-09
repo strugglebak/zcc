@@ -495,6 +495,8 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
   // 到这一步说明是【定义】一个新函数
   current_function_symbol_id = old_function_symbol_table;
 
+  // 如果是新函数那么应该初始化 loop level
+  loop_level = 0;
   tree = parse_compound_statement();
 
   // 确保非 void 返回的函数始终有返回一个值
@@ -541,7 +543,7 @@ void parse_global_declaration_statement() {
         dump_ast(tree, NO_LABEL, 0);
         fprintf(stdout, "\n\n");
       }
-      interpret_ast_with_register(tree, NO_LABEL, 0);
+      interpret_ast_with_register(tree, NO_LABEL, NO_LABEL, NO_LABEL, 0);
       clear_local_symbol_table();
     } else {
       // 否则就是变量

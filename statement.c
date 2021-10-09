@@ -11,6 +11,21 @@
 #include "types.h"
 
 static struct ASTNode *parse_return_statement();
+static struct ASTNode *parse_break_statement() {
+  // 解析类似 break; 这样的语句
+  if (loop_level == 0)
+    error("no loop to break out from");
+  scan(&token_from_file);
+  return create_ast_leaf(AST_BREAK, 0, 0, NULL);
+}
+static struct ASTNode *parse_continue_statement() {
+  // 解析类似 continue; 这样的语句
+  if (loop_level == 0)
+    error("no loop to continue out from");
+  scan(&token_from_file);
+  return create_ast_leaf(AST_CONTINUE, 0, 0, NULL);
+}
+
 static struct ASTNode *parse_single_statement() {
   int primitive_type, storage_class = STORAGE_CLASS_LOCAL;
   struct SymbolTable *composite_type;
@@ -40,6 +55,10 @@ static struct ASTNode *parse_single_statement() {
       return parse_for_statement();
     case TOKEN_RETURN:
       return parse_return_statement();
+    case TOKEN_BREAK:
+      return parse_break_statement();
+    case TOKEN_CONTINUE:
+      return parse_continue_statement();
     default:
       return converse_token_2_ast(0);
   }
@@ -108,7 +127,9 @@ struct ASTNode *parse_while_statement() {
 
   // while 里面都是复合语句，所以直接解析即可
 
+  loop_level++;
   statement_node = parse_compound_statement();
+  loop_level--;
   return create_ast_node(
     AST_WHILE,
     PRIMITIVE_NONE,
@@ -154,7 +175,9 @@ struct ASTNode *parse_for_statement() {
   verify_right_paren();
 
   // 解析 for 语句块里面的 stmt
+  loop_level++;
   statement_node = parse_compound_statement();
+  loop_level--;
 
   // 递归构建 for ast
   // for 语句的 ast 结构如下
@@ -294,7 +317,9 @@ struct ASTNode *parse_compound_statement() {
     if (tree &&
         (tree->operation == AST_ASSIGN ||
          tree->operation == AST_RETURN ||
-         tree->operation == AST_FUNCTION_CALL))
+         tree->operation == AST_FUNCTION_CALL ||
+         tree->operation == AST_BREAK ||
+         tree->operation == AST_CONTINUE))
       verify_semicolon();
 
     // 如果 tree 不为空，则更新对应的 left

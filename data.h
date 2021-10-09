@@ -20,6 +20,7 @@ extern_ char *global_output_filename;
 extern_ char *global_input_filename;
 extern_ struct Token token_from_file;
 extern_ char text_buffer[TEXT_LENGTH + 1];
+extern_ int loop_level; // 嵌套的循环的层级
 
 extern_ int output_dump_ast;
 extern_ int output_keep_assembly_file;
