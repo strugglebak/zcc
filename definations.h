@@ -83,16 +83,18 @@ enum {
   TOKEN_LONG, // long
 
   // 其他关键字
-  TOKEN_IF,     // if
-  TOKEN_ELSE,   // else
-  TOKEN_WHILE,  // while
-  TOKEN_FOR,    // for
-  TOKEN_RETURN, // return
-  TOKEN_STRUCT, // struct
-  TOKEN_UNION,  // union
-  TOKEN_ENUM,   // enum
-  TOKEN_TYPEDEF,// typedef
-  TOKEN_EXTERN, // extern
+  TOKEN_IF,       // if
+  TOKEN_ELSE,     // else
+  TOKEN_WHILE,    // while
+  TOKEN_FOR,      // for
+  TOKEN_RETURN,   // return
+  TOKEN_STRUCT,   // struct
+  TOKEN_UNION,    // union
+  TOKEN_ENUM,     // enum
+  TOKEN_TYPEDEF,  // typedef
+  TOKEN_EXTERN,   // extern
+  TOKEN_BREAK,    // break
+  TOKEN_CONTINUE, // continue
 
   // 结构化 token
   TOKEN_INTEGER_LITERAL,
@@ -135,6 +137,8 @@ enum {
   AST_FUNCTION,
   AST_WIDEN,
   AST_RETURN,
+  AST_BREAK,
+  AST_CONTINUE,
 
   AST_FUNCTION_CALL,
   AST_DEREFERENCE_POINTER, // 间接引用指针

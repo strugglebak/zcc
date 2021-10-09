@@ -197,6 +197,7 @@ static int get_keyword(char *s) {
   switch (*s) {
     case 'c':
       if (!strcmp(s, "char")) return TOKEN_CHAR;
+      else if (!strcmp(s, "continue")) return TOKEN_CONTINUE;
       break;
     case 'l':
       if (!strcmp(s, "long")) return TOKEN_LONG;
@@ -228,6 +229,9 @@ static int get_keyword(char *s) {
       break;
     case 't':
       if (!strcmp(s, "typedef")) return TOKEN_TYPEDEF;
+      break;
+    case 'b':
+      if (!strcmp(s, "break")) return TOKEN_BREAK;
       break;
   }
   return 0;
