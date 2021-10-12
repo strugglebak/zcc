@@ -114,6 +114,7 @@ enum {
   TOKEN_COMMA, // ,
   TOKEN_DOT, // .
   TOKEN_ARROW, // ->
+  TOKEN_COLON, // :
 };
 
 // AST 节点类型

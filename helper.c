@@ -22,7 +22,7 @@ void verify_semicolon() {
   verify_token_and_fetch_next_token(TOKEN_SEMICOLON, ";");
 }
 void verify_colon() {
-  verify_token_and_fetch_next_token(TOKEN_SEMICOLON, ":");
+  verify_token_and_fetch_next_token(TOKEN_COLON, ":");
 }
 
 void verify_identifier() {

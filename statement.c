@@ -37,7 +37,7 @@ static struct ASTNode *parse_switch_statement() {
   // 拿到 switch 里面的语句，并跳过 ')' 以及 '{'
   left = converse_token_2_ast(0);
   verify_right_paren();
-  verify_right_brace();
+  verify_left_brace();
 
   // 检查 switch 里面语句的结果是一个 int 类型
   if (!check_int_type(left->primitive_type))

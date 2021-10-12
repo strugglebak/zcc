@@ -91,6 +91,29 @@ static int compare_register(int left_register, int right_register, char *set_ins
 */
 void register_preamble() {
   clear_all_registers();
+  register_text_section_flag();
+  fprintf(output_file,
+  "# %%rsi = switch table, %%rax = expr\n"
+  "\n"
+  "switch:\n"
+  "        pushq   %%rsi\n"
+  "        movq    %%rdx, %%rsi\n"
+  "        movq    %%rax, %%rbx\n"
+  "        cld\n"
+  "        lodsq\n"
+  "        movq    %%rax, %%rcx\n"
+  "next:\n"
+  "        lodsq\n"
+  "        movq    %%rax, %%rdx\n"
+  "        lodsq\n"
+  "        cmpq    %%rdx, %%rbx\n"
+  "        jnz     no\n"
+  "        popq    %%rsi\n"
+  "        jmp     *%%rax\n"
+  "no:\n"
+  "        loop    next\n"
+  "        lodsq\n"
+  "        popq    %%rsi\n" "        jmp     *%%rax\n" "\n");
 }
 
 /**
