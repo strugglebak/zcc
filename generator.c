@@ -206,9 +206,11 @@ int interpret_ast_with_register(
     case AST_IF:
       return interpret_if_ast_with_register(node, loop_start_label, loop_end_label);
     case AST_GLUE:
-      interpret_ast_with_register(node->left, if_label, loop_start_label, loop_end_label, node->operation);
+      if (node->left)
+        interpret_ast_with_register(node->left, if_label, loop_start_label, loop_end_label, node->operation);
       clear_all_registers();
-      interpret_ast_with_register(node->right, if_label, loop_start_label, loop_end_label, node->operation);
+      if (node->right)
+        interpret_ast_with_register(node->right, if_label, loop_start_label, loop_end_label, node->operation);
       clear_all_registers();
       return NO_REGISTER;
     case AST_WHILE:
