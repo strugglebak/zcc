@@ -21,6 +21,9 @@ void verify_token_and_fetch_next_token(int token, char *wanted_identifier) {
 void verify_semicolon() {
   verify_token_and_fetch_next_token(TOKEN_SEMICOLON, ";");
 }
+void verify_colon() {
+  verify_token_and_fetch_next_token(TOKEN_SEMICOLON, ":");
+}
 
 void verify_identifier() {
   verify_token_and_fetch_next_token(TOKEN_IDENTIFIER, "identifier");

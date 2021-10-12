@@ -13,8 +13,8 @@
 static struct ASTNode *parse_return_statement();
 static struct ASTNode *parse_break_statement() {
   // 解析类似 break; 这样的语句
-  if (loop_level == 0)
-    error("no loop to break out from");
+  if (loop_level == 0 && switch_level == 0)
+    error("no loop or switch to break out from");
   scan(&token_from_file);
   return create_ast_leaf(AST_BREAK, 0, 0, NULL);
 }
@@ -24,6 +24,96 @@ static struct ASTNode *parse_continue_statement() {
     error("no loop to continue out from");
   scan(&token_from_file);
   return create_ast_leaf(AST_CONTINUE, 0, 0, NULL);
+}
+
+static struct ASTNode *parse_switch_statement() {
+  struct ASTNode *left, *node, *c, *case_tree = NULL, *case_tail;
+  int continue_loop = 1, case_count = 0, case_value, exist_default = 0, ast_operation;
+
+  // 跳过 switch 以及 '('
+  scan(&token_from_file);
+  verify_left_paren();
+
+  // 拿到 switch 里面的语句，并跳过 ')' 以及 '{'
+  left = converse_token_2_ast(0);
+  verify_right_paren();
+  verify_right_brace();
+
+  // 检查 switch 里面语句的结果是一个 int 类型
+  if (!check_int_type(left->primitive_type))
+    error("Switch expression is not of integer type");
+
+  // 创建一个 AST_SWITCH 的 node
+  node = create_ast_left_node(AST_SWITCH, 0, left, 0, NULL);
+
+  // 开始解析 'case' 语句
+  switch_level++;
+  while (continue_loop) {
+    switch(token_from_file.token) {
+      // 如果是 switch(xxx) {} 这种情况，立刻退出
+      case TOKEN_RIGHT_BRACE:
+        if (case_count == 0)
+          error("No cases in switch");
+        continue_loop = 0;
+        break;
+      case TOKEN_CASE:
+      case TOKEN_DEFAULT:
+        // 先检查 'default' 之后是否还有 'case' 或者 'default'
+        if (exist_default)
+          error("case or default after existing default");
+
+        if (token_from_file.token == TOKEN_DEFAULT) {
+          ast_operation = AST_DEFAULT;
+          exist_default = 1;
+          scan(&token_from_file);
+        } else {
+          ast_operation = AST_CASE;
+          scan(&token_from_file);
+
+          // case a:
+          left = converse_token_2_ast(0);
+
+          // 检查 case a: 这个 a 是一个 int 类型的字面量
+          if (left->operation != AST_INTEGER_LITERAL)
+            error("Expecting integer literal for case value");
+          case_value = left->integer_value;
+
+          // 遍历所有的 case value 列表，检查是否有重复的 case value
+          // 比如 case a: 后面又有一个 case a:
+          for (c = case_tree; c; c = c->right)
+            if (case_value == c->integer_value)
+              error("Duplicate case value");
+        }
+
+        // 跳过 ':'
+        verify_colon();
+        // 解析 case a: 里面的复合语句
+        left = parse_compound_statement();
+        // 同时计算有多少个 case
+        case_count++;
+
+        // 创建 case tree
+        if (!case_tree) {
+          case_tree = case_tail = create_ast_left_node(ast_operation, 0, left, case_value, NULL);
+        } else {
+          case_tail->right = create_ast_left_node(ast_operation, 0, left, case_value, NULL);
+          case_tail = case_tail->right;
+        }
+        break;
+      default:
+        error_with_digital("Unexpected token in switch", token_from_file.token);
+    }
+  }
+  switch_level--;
+
+  // 解析 case 完之后给初始 node 赋值
+  node->integer_value = case_count;
+  node->right = case_tree;
+
+  // 跳过 '}'
+  verify_right_brace();
+
+  return node;
 }
 
 static struct ASTNode *parse_single_statement() {
@@ -55,6 +145,8 @@ static struct ASTNode *parse_single_statement() {
       return parse_for_statement();
     case TOKEN_RETURN:
       return parse_return_statement();
+    case TOKEN_SWITCH:
+      return parse_while_statement();
     case TOKEN_BREAK:
       return parse_break_statement();
     case TOKEN_CONTINUE:

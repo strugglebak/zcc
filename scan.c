@@ -198,6 +198,7 @@ static int get_keyword(char *s) {
     case 'c':
       if (!strcmp(s, "char")) return TOKEN_CHAR;
       else if (!strcmp(s, "continue")) return TOKEN_CONTINUE;
+      else if (!strcmp(s, "case")) return TOKEN_CASE;
       break;
     case 'l':
       if (!strcmp(s, "long")) return TOKEN_LONG;
@@ -223,6 +224,7 @@ static int get_keyword(char *s) {
       break;
     case 's':
       if (!strcmp(s, "struct")) return TOKEN_STRUCT;
+      else if (!strcmp(s, "switch")) return TOKEN_SWITCH;
       break;
     case 'u':
       if (!strcmp(s, "union")) return TOKEN_UNION;
@@ -232,6 +234,9 @@ static int get_keyword(char *s) {
       break;
     case 'b':
       if (!strcmp(s, "break")) return TOKEN_BREAK;
+      break;
+    case 'd':
+      if (!strcmp(s, "default")) return TOKEN_DEFAULT;
       break;
   }
   return 0;

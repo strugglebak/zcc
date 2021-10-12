@@ -95,6 +95,9 @@ enum {
   TOKEN_EXTERN,   // extern
   TOKEN_BREAK,    // break
   TOKEN_CONTINUE, // continue
+  TOKEN_SWITCH,   // switch
+  TOKEN_CASE,     // case
+  TOKEN_DEFAULT,  // default
 
   // 结构化 token
   TOKEN_INTEGER_LITERAL,
@@ -139,6 +142,9 @@ enum {
   AST_RETURN,
   AST_BREAK,
   AST_CONTINUE,
+  AST_SWITCH,
+  AST_CASE,
+  AST_DEFAULT,
 
   AST_FUNCTION_CALL,
   AST_DEREFERENCE_POINTER, // 间接引用指针
