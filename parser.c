@@ -291,7 +291,7 @@ struct ASTNode *convert_function_call_2_ast() {
   verify_left_paren();
 
   // 解析括号中的语句
-  tree = parse_expression_list();
+  tree = parse_expression_list(TOKEN_LEFT_PAREN);
 
   // 保存函数返回的类型作为这个 node 的类型
   // 保存函数名在这个 symbol table 中的 index 索引
