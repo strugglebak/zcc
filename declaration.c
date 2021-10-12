@@ -87,7 +87,7 @@ static int parse_var_declaration_list(
     // 检查必须要有分割符',' 或者 ';' 或者结尾符号 ')' 或者 '}'
     if (token_from_file.token != separate_token &&
         token_from_file.token != end_token)
-      error_with_digital("Unexpected token in parameter list", token_from_file.token);
+      error_with_message("Unexpected token in parameter list", token_from_file.token_string);
     if (token_from_file.token == separate_token)
       scan(&token_from_file);
   }
@@ -333,7 +333,7 @@ int convert_token_2_primitive_type(
       new_type = parse_type_of_typedef_declaration(text_buffer, composite_type);
       break;
     default:
-      error_with_digital("Illegal type, token", token_from_file.token);
+      error_with_message("Illegal type, token", token_from_file.token_string);
   }
 
   // 检查后面是否带 *

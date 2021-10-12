@@ -30,9 +30,13 @@ static int check_right_associative(int token) {
 static int operation_precedence(int operation_in_token) {
   int precedence = operation_precedence_array[operation_in_token];
   if (operation_in_token > TOKEN_DIVIDE)
-    error_with_digital("Token with no precedence in op_precedence", operation_in_token);
+    error_with_message(
+      "Token with no precedence in op_precedence",
+       token_string[operation_in_token]);
   if (!precedence)
-    error_with_digital("Syntax error, token", operation_in_token);
+    error_with_message(
+      "Syntax error, token",
+       token_string[operation_in_token]);
   return precedence;
 }
 
@@ -112,7 +116,7 @@ static struct ASTNode *create_ast_node_from_expression() {
       verify_right_paren();
       return node;
     default:
-      error_with_digital("Expecting a primary expression, got token", token_from_file.token);
+      error_with_message("Expecting a primary expression, got token", token_from_file.token_string);
   }
 
   // 扫描下一个，继续判断
@@ -171,7 +175,7 @@ struct ASTNode *parse_expression_list(int end_token_type) {
 int convert_token_operation_2_ast_operation(int operation_in_token) {
   if (operation_in_token > TOKEN_EOF && operation_in_token < TOKEN_INTEGER_LITERAL)
     return operation_in_token;
-  error_with_digital("Syntax error, token", operation_in_token);
+  error_with_message("Syntax error, token", token_string[operation_in_token]);
 }
 
 /**

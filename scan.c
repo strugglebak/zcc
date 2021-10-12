@@ -408,5 +408,6 @@ int scan(struct Token *t) {
       error_with_character("Unrecognised character", c);
   }
 
+  t->token_string = token_string[t->token];
   return 1;
 }

@@ -4,6 +4,7 @@
 struct Token {
   int token;
   int integer_value;
+  char *token_string;
 };
 
 struct ASTNode {

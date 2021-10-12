@@ -100,7 +100,7 @@ static struct ASTNode *parse_switch_statement() {
         }
         break;
       default:
-        error_with_digital("Unexpected token in switch", token_from_file.token);
+        error_with_message("Unexpected token in switch", token_from_file.token_string);
     }
   }
   switch_level--;

@@ -12,6 +12,20 @@
 #define TEXT_LENGTH 512
 #define SYMBOL_TABLE_ENTRIES_NUMBER 1024
 
+extern_ char *token_string[] = {
+  "EOF", "=", "&&", "||", "|", "^", "&",
+  "==", "!=", ",", ">", "<=", ">=", "<<", ">>",
+  "+", "-", "*", "/", "++", "--", "~", "!",
+  "void", "char", "int", "long",
+  "if", "else", "while", "for", "return",
+  "struct", "union", "enum", "typedef",
+  "extern", "break", "continue", "switch",
+  "case", "default",
+  "integer_literal", "string_literal", ";", "identifier",
+  "{", "}", "(", ")", "[", "]", ",", ".",
+  "->", ":"
+};
+
 extern_ int line;
 extern_ int putback_buffer;
 extern_ FILE *input_file;
