@@ -4,6 +4,7 @@
 #include "data.h"
 #include "definations.h"
 #include "helper.h"
+#include "generator.h"
 #include "generator_core.h"
 #include "types.h"
 
@@ -719,4 +720,39 @@ int register_align(int primitive_type, int offset, int direction) {
   // direction -1 或者 1
   offset = (offset + direction * (alignment-1)) & ~(alignment-1);
   return offset;
+}
+
+
+void register_switch(
+  int register_index,
+  int case_count,
+  int label_jump_start,
+  int *case_label,
+  int *case_value,
+  int label_default
+) {
+  int i, label;
+
+  // 为 switch 表创建 label
+  label = generate_label();
+  register_label(label);
+
+  // 如果没有 case，创建一个指向 default case 的 case
+  if (case_count == 0) {
+    case_value[0] = 0;
+    case_label[0] = label_default;
+    case_count = 1;
+  }
+
+  // 创建 switch jump 表
+  fprintf(output_file, "\t.quad\t%d\n", case_count);
+  for (i = 0; i < case_count; i++)
+    fprintf(output_file, "\t.quad\t%d, L%d\n", case_value[i], case_label[i]);
+  fprintf(output_file, "\t.quad\tL%d\n", label_default);
+
+  // Load the specific registers
+  register_label(label_jump_start);
+  fprintf(output_file, "\tmovq\t%s, %%rax\n", register_list[register_index]);
+  fprintf(output_file, "\tleaq\tL%d(%%rip), %%rdx\n", label);
+  fprintf(output_file, "\tjmp\tswitch\n");
 }

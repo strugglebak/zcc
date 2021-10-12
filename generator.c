@@ -119,6 +119,52 @@ static int interpret_function_call_with_register(struct ASTNode *node) {
   return register_function_call(node->symbol_table, function_argument_number);
 }
 
+static int interpret_switch_ast_with_register(struct ASTNode *node) {
+  int *case_value, *case_label, case_count = 0;
+  int label_jump_start, label_end, label_default = 0;
+  int i, register_index;
+  struct ASTNode *c;
+
+  // 为 case value 和与之对应的 case label 创建数组
+  // 注意这里的 node 的 integer_value 存的是构建 case tree 时的 case_count
+  // 也就是 case 的个数
+  case_value = (int *) malloc((node->integer_value + 1) * sizeof(int));
+  case_label = (int *) malloc((node->integer_value + 1) * sizeof(int));
+
+  label_jump_start = generate_label();
+  label_end = generate_label();
+  label_default = label_end;
+
+  // 先生成 switch 条件语句的汇编代码
+  register_index = interpret_ast_with_register(node->left, NO_LABEL, NO_LABEL, NO_LABEL, 0);
+  register_jump(label_jump_start);
+  clear_all_registers();
+
+  // 遍历 tree 的右节点，为每个 case 生成汇编代码
+  for(i = 0, c = node->right; c; i++, c = c->right) {
+    // 为每个 case 创建 label
+    case_label[i] = generate_label();
+    case_value[i] = c->integer_value;
+    register_label(case_label[i]);
+    if (c->operation == TOKEN_DEFAULT)
+      label_default = case_label[i];
+    else
+      case_count++;
+
+    // 为每个 case 生成汇编代码
+    interpret_ast_with_register(c->left, NO_LABEL, NO_LABEL, label_end, 0);
+    clear_all_registers();
+  }
+
+  // 确保最后一个 case 跳过 switch 表
+  register_jump(label_end);
+
+  // 生成 switch 表和 end label
+  register_switch(register_index, case_count, label_jump_start, case_label, case_value, label_default);
+  register_label(label_end);
+  return NO_REGISTER;
+}
+
 /**
  * 这里主要将 ast 中的代码取出来，然后用汇编的方式进行值的加减乘除
  * 这里加减乘除后返回的是寄存器的标识
@@ -174,6 +220,8 @@ int interpret_ast_with_register(
       interpret_ast_with_register(node->left, NO_LABEL, NO_LABEL, NO_LABEL, node->operation);
       register_function_postamble(node->symbol_table);
       return NO_REGISTER;
+    case AST_SWITCH:
+      return interpret_switch_ast_with_register(node);
   }
 
   if (node->left) {

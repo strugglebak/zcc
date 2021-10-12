@@ -146,7 +146,7 @@ static struct ASTNode *parse_single_statement() {
     case TOKEN_RETURN:
       return parse_return_statement();
     case TOKEN_SWITCH:
-      return parse_while_statement();
+      return parse_switch_statement();
     case TOKEN_BREAK:
       return parse_break_statement();
     case TOKEN_CONTINUE:

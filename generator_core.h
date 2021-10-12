@@ -73,6 +73,14 @@ void register_data_section_flag();
 
 void register_copy_argument(int register_index, int argument_position);
 int register_align(int primitive_type, int offset, int direction);
+void register_switch(
+  int register_index,
+  int case_count,
+  int label_jump_start,
+  int *case_label,
+  int *case_value,
+  int label_default
+);
 
 
 #endif
