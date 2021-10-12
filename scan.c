@@ -409,5 +409,6 @@ int scan(struct Token *t) {
   }
 
   t->token_string = token_string[t->token];
+  // printf("scan str = %s\n", t->token_string);
   return 1;
 }

@@ -2,7 +2,7 @@ CC= cc
 LIB=
 DEBUG= -T
 
-COMMON= parser.c interpreter.c main.c scan.c ast.c generator.c  statement.c helper.c symbol_table.c types.c declaration.c
+COMMON= data.c parser.c interpreter.c main.c scan.c ast.c generator.c  statement.c helper.c symbol_table.c types.c declaration.c
 SRCS= $(COMMON) generator_core.c
 ARM_SRCS= $(COMMON) generator_core_arm.c
 TEST_CASE_NAME= 74

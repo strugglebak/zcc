@@ -16,6 +16,7 @@ static struct ASTNode *parse_break_statement() {
   if (loop_level == 0 && switch_level == 0)
     error("no loop or switch to break out from");
   scan(&token_from_file);
+  verify_semicolon();
   return create_ast_leaf(AST_BREAK, 0, 0, NULL);
 }
 static struct ASTNode *parse_continue_statement() {
@@ -23,6 +24,7 @@ static struct ASTNode *parse_continue_statement() {
   if (loop_level == 0)
     error("no loop to continue out from");
   scan(&token_from_file);
+  verify_semicolon();
   return create_ast_leaf(AST_CONTINUE, 0, 0, NULL);
 }
 
@@ -76,6 +78,7 @@ static struct ASTNode *parse_switch_statement() {
           // 检查 case a: 这个 a 是一个 int 类型的字面量
           if (left->operation != AST_INTEGER_LITERAL)
             error("Expecting integer literal for case value");
+          case_value = left->integer_value;
 
           // 遍历所有的 case value 列表，检查是否有重复的 case value
           // 比如 case a: 后面又有一个 case a:
@@ -160,8 +163,12 @@ static struct ASTNode *parse_single_statement() {
     case TOKEN_CONTINUE:
       return parse_continue_statement();
     default:
-      return converse_token_2_ast(0);
+      statement = converse_token_2_ast(0);
+      verify_semicolon();
+      return statement;
   }
+
+  return NULL;
 }
 struct ASTNode *parse_if_statement() {
   struct ASTNode *condition_node, *true_node, *false_node = NULL;
@@ -315,8 +322,9 @@ static struct ASTNode *parse_return_statement() {
   // 生成 return_statement 的 node
   tree = create_ast_left_node(AST_RETURN, PRIMITIVE_NONE, tree, 0, NULL);
 
-  // 检查 )
+  // 检查 );
   verify_right_paren();
+  verify_semicolon();
 
   return tree;
 }
@@ -404,9 +412,6 @@ static struct ASTNode *parse_return_statement() {
 struct ASTNode *parse_compound_statement(int in_switch_statement) {
   struct ASTNode *left = NULL;
   struct ASTNode *tree;
-
-  // 先解析左括号 {
-  verify_left_brace();
 
   while (1) {
     // 这里主要兼容对 for 语句的处理
