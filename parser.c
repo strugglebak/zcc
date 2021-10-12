@@ -139,11 +139,11 @@ static struct ASTNode *create_ast_node_from_expression() {
 //    /    \
 //  NULL  expr1(1)
 // 确保处理顺序为 expr4 expr3 expr2 expr1，以便生成汇编代码时压栈顺序正确
-static struct ASTNode *parse_expression_list_in_function_call() {
+struct ASTNode *parse_expression_list(int end_token_type) {
   struct ASTNode *tree = NULL, *right = NULL;
   int expression_count = 0;
 
-  while (token_from_file.token != TOKEN_RIGHT_PAREN) {
+  while (token_from_file.token != end_token_type) {
     right = converse_token_2_ast(0);
     expression_count++;
 
@@ -157,15 +157,11 @@ static struct ASTNode *parse_expression_list_in_function_call() {
       expression_count,
       NULL);
 
-    // 检查 , 或者 )，因为下一个 token 必然是 , 或者 )
-    switch (token_from_file.token) {
-      case TOKEN_COMMA:
-        scan(&token_from_file);
-        break;
-      case TOKEN_RIGHT_PAREN: break;
-      default:
-        error_with_digital("Unexpected token in expression list", token_from_file.token);
-    }
+    // 循环到 end_token_type 为止
+    if (token_from_file.token == end_token_type) break;
+
+    // 这里必须检查 ','
+    verify_comma();
   }
 
   return tree;
@@ -291,7 +287,7 @@ struct ASTNode *convert_function_call_2_ast() {
   verify_left_paren();
 
   // 解析括号中的语句
-  tree = parse_expression_list_in_function_call();
+  tree = parse_expression_list();
 
   // 保存函数返回的类型作为这个 node 的类型
   // 保存函数名在这个 symbol table 中的 index 索引

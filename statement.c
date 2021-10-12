@@ -76,7 +76,6 @@ static struct ASTNode *parse_switch_statement() {
           // 检查 case a: 这个 a 是一个 int 类型的字面量
           if (left->operation != AST_INTEGER_LITERAL)
             error("Expecting integer literal for case value");
-          case_value = left->integer_value;
 
           // 遍历所有的 case value 列表，检查是否有重复的 case value
           // 比如 case a: 后面又有一个 case a:
@@ -155,7 +154,6 @@ static struct ASTNode *parse_single_statement() {
       return converse_token_2_ast(0);
   }
 }
-
 struct ASTNode *parse_if_statement() {
   struct ASTNode *condition_node, *true_node, *false_node = NULL;
 
@@ -245,7 +243,7 @@ struct ASTNode *parse_for_statement() {
   verify_left_paren();
 
   // 解析 i=1;
-  pre_operation_statement_node = parse_single_statement();
+  pre_operation_statement_node = parse_expression_list(TOKEN_SEMICOLON);
   verify_semicolon();
 
   // 解析 i < 10;
@@ -263,7 +261,7 @@ struct ASTNode *parse_for_statement() {
   verify_semicolon();
 
   // 解析 i = i+1)
-  post_operation_statement_node = parse_single_statement();
+  post_operation_statement_node = parse_expression_list(TOKEN_RIGHT_PAREN);
   verify_right_paren();
 
   // 解析 for 语句块里面的 stmt
@@ -344,9 +342,9 @@ static struct ASTNode *parse_return_statement() {
  * while_statement: 'while' '(' true_or_false_expression ')' compound_statement
  *
  * for_statement: 'for' '('
- *  pre_operation_statement ';'
+ *  expression_list ';'
  *  true_or_false_expression ';'
- *  post_operation_statement ')' compound_statement
+ *  expression_list ')' compound_statement
  *      ;
  *
  *  pre_operation_statement: statement
