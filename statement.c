@@ -87,7 +87,7 @@ static struct ASTNode *parse_switch_statement() {
         // 跳过 ':'
         verify_colon();
         // 解析 case a: 里面的复合语句
-        left = parse_compound_statement();
+        left = parse_compound_statement(1);
         // 同时计算有多少个 case
         case_count++;
 
@@ -118,12 +118,21 @@ static struct ASTNode *parse_switch_statement() {
 static struct ASTNode *parse_single_statement() {
   int primitive_type, storage_class = STORAGE_CLASS_LOCAL;
   struct SymbolTable *composite_type;
+  struct ASTNode *statement;
 
   switch(token_from_file.token) {
+    case TOKEN_LEFT_BRACE:
+      verify_left_brace();
+      statement = parse_compound_statement(0);
+      verify_right_brace();
+      return statement;
     case TOKEN_IDENTIFIER:
       // 检查是否被 typedef 定义过
-      if (!find_typedef_symbol(text_buffer))
-        return converse_token_2_ast(0);
+      if (!find_typedef_symbol(text_buffer)) {
+        statement = converse_token_2_ast(0);
+        verify_semicolon();
+        return statement;
+      }
     case TOKEN_CHAR:
     case TOKEN_INT:
     case TOKEN_LONG:
@@ -176,12 +185,12 @@ struct ASTNode *parse_if_statement() {
   verify_right_paren();
 
   // 为复合语句创建 ast
-  true_node = parse_compound_statement();
+  true_node = parse_single_statement();
 
   // 如果解析到下一步发现有 else，直接跳过，并同时为复合语句创建 ast
   if (token_from_file.token == TOKEN_ELSE) {
     scan(&token_from_file);
-    false_node = parse_compound_statement();
+    false_node = parse_single_statement();
   }
 
   return create_ast_node(
@@ -218,7 +227,7 @@ struct ASTNode *parse_while_statement() {
   // while 里面都是复合语句，所以直接解析即可
 
   loop_level++;
-  statement_node = parse_compound_statement();
+  statement_node = parse_single_statement();
   loop_level--;
   return create_ast_node(
     AST_WHILE,
@@ -266,7 +275,7 @@ struct ASTNode *parse_for_statement() {
 
   // 解析 for 语句块里面的 stmt
   loop_level++;
-  statement_node = parse_compound_statement();
+  statement_node = parse_single_statement();
   loop_level--;
 
   // 递归构建 for ast
@@ -392,7 +401,7 @@ static struct ASTNode *parse_return_statement() {
  * identifier: TOKEN_IDENTIFIER
  *      ;
 */
-struct ASTNode *parse_compound_statement() {
+struct ASTNode *parse_compound_statement(int in_switch_statement) {
   struct ASTNode *left = NULL;
   struct ASTNode *tree;
 
@@ -402,15 +411,6 @@ struct ASTNode *parse_compound_statement() {
   while (1) {
     // 这里主要兼容对 for 语句的处理
     tree = parse_single_statement();
-
-    // 既然是解析 stmt，那么必须后面带 ;
-    if (tree &&
-        (tree->operation == AST_ASSIGN ||
-         tree->operation == AST_RETURN ||
-         tree->operation == AST_FUNCTION_CALL ||
-         tree->operation == AST_BREAK ||
-         tree->operation == AST_CONTINUE))
-      verify_semicolon();
 
     // 如果 tree 不为空，则更新对应的 left
     // 变成如下的形式
@@ -428,9 +428,10 @@ struct ASTNode *parse_compound_statement() {
     }
 
     // 最后解析右括号 }
-    if (token_from_file.token == TOKEN_RIGHT_BRACE) {
-      verify_right_brace();
-      return left;
-    }
+    if (token_from_file.token == TOKEN_RIGHT_BRACE) return left;
+    if (in_switch_statement && (
+      token_from_file.token == TOKEN_CASE ||
+      token_from_file.token == TOKEN_DEFAULT
+    )) return left;
   }
 }
