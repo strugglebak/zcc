@@ -146,7 +146,7 @@ static int interpret_switch_ast_with_register(struct ASTNode *node) {
     case_label[i] = generate_label();
     case_value[i] = c->integer_value;
     register_label(case_label[i]);
-    if (c->operation == TOKEN_DEFAULT)
+    if (c->operation == AST_DEFAULT)
       label_default = case_label[i];
     else
       case_count++;
