@@ -52,7 +52,6 @@ struct SymbolTable {
 };
 
 
-// + - * / [0-9] 文件结尾
 enum {
   TOKEN_EOF,
 

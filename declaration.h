@@ -5,12 +5,18 @@
 int parse_typedef_declaration(struct SymbolTable **composite_type);
 int parse_type_of_typedef_declaration(char *name, struct SymbolTable **composite_type);
 int convert_token_2_primitive_type(struct SymbolTable **composite_type, int *storage_class);
-struct SymbolTable *parse_var_declaration_statement(
+struct ASTNode *parse_function_declaration(
   int primitive_type,
-  int storage_class,
-  struct SymbolTable *composite_type
+  char *function_name,
+  struct SymbolTable *composite_type,
+  int storage_class
 );
-struct ASTNode *parse_function_declaration_statement(int primitive_type);
-void parse_global_declaration_statement();
+int parse_declaration_list(
+  struct SymbolTable **composite_type,
+  int storage_class,
+  int end_token,
+  int end_token_2
+);
+void parse_global_declaration();
 
 #endif

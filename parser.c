@@ -143,11 +143,11 @@ static struct ASTNode *create_ast_node_from_expression() {
 //    /    \
 //  NULL  expr1(1)
 // 确保处理顺序为 expr4 expr3 expr2 expr1，以便生成汇编代码时压栈顺序正确
-struct ASTNode *parse_expression_list(int end_token_type) {
+struct ASTNode *parse_expression_list(int end_token) {
   struct ASTNode *tree = NULL, *right = NULL;
   int expression_count = 0;
 
-  while (token_from_file.token != end_token_type) {
+  while (token_from_file.token != end_token) {
     right = converse_token_2_ast(0);
     expression_count++;
 
@@ -161,8 +161,8 @@ struct ASTNode *parse_expression_list(int end_token_type) {
       expression_count,
       NULL);
 
-    // 循环到 end_token_type 为止
-    if (token_from_file.token == end_token_type) break;
+    // 循环到 end_token 为止
+    if (token_from_file.token == end_token) break;
 
     // 这里必须检查 ','
     verify_comma();

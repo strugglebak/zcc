@@ -89,7 +89,7 @@ static char *do_compile(char *filename) {
   // 扫描文件中的字符串，并将其赋值给 token_from_file 这个全局变量
   scan(&token_from_file);
   generate_preamble_code();
-  parse_global_declaration_statement();
+  parse_global_declaration();
   generate_postamble_code();
 
   // 关闭文件

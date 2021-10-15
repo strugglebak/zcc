@@ -40,11 +40,9 @@
 // var_declaration_list: <null>
 //           | variable_declaration
 //           | variable_declaration separate_token var_declaration_list ;
-static int parse_var_declaration_list(
-  struct SymbolTable *t,
-  int storage_class,
-  int separate_token, // ',' 或者 ';'
-  int end_token       // ')' 或者 '}'
+static int parse_param_declaration_list(
+  struct SymbolTable *old_function_symbol_table,
+  struct SymbolTable *new_function_symbol_table
 ) {
   // 解析类似 void xxx(int a, int b) {} 函数中间的参数
   // 以及 struct xxx { int a; int b; }; 中间的成员变量
@@ -53,12 +51,19 @@ static int parse_var_declaration_list(
   int parameter_count = 0;
   struct SymbolTable *prototype = NULL, *composite_type;
 
-  if (t) prototype = t->member;
+  if (old_function_symbol_table)
+   prototype = old_function_symbol_table->member;
 
   // 开始解析参数
-  while (token_from_file.token != end_token) {
-    primitive_type = convert_token_2_primitive_type(&composite_type, &storage_class);
-    verify_identifier();
+  while (token_from_file.token != TOKEN_RIGHT_PAREN) {
+    primitive_type = parse_declaration_list(
+      &composite_type,
+      STORAGE_CLASS_FUNCTION_PARAMETER,
+      TOKEN_COMMA,
+      TOKEN_RIGHT_PAREN);
+
+    if (primitive_type == -1)
+      error("Bad type in parameter list");
 
     // 如果已经有【声明】过的 函数/struct
     // 比较【定义】的函数和【声明】的 函数/struct 的参数的类型
@@ -71,32 +76,22 @@ static int parse_var_declaration_list(
           parameter_count + 1);
       // 要比较的参数/member可能不止一个
       prototype = prototype->next;
-    } else {
-      // 如果没有【声明】过的函数/struct
-      // 把这些参数加入 symbol table
-      // 函数参数中的这些定义属于 局部变量，同时也属于 参数/member 定义
-      parse_var_declaration_statement(
-        primitive_type,
-        storage_class,
-        composite_type);
     }
 
     // 解析完一轮参数/member，需要将个数记录下来
     parameter_count++;
 
-    // 检查必须要有分割符',' 或者 ';' 或者结尾符号 ')' 或者 '}'
-    if (token_from_file.token != separate_token &&
-        token_from_file.token != end_token)
-      error_with_message("Unexpected token in parameter list", token_from_file.token_string);
-    if (token_from_file.token == separate_token)
-      scan(&token_from_file);
+    if (token_from_file.token == TOKEN_RIGHT_PAREN)
+      break;
+
+    verify_comma();
   }
 
   // 如果
   // 1. 已经【声明】过的函数/struct
   // 2. 解析完的参数个数跟已经【声明】过的函数/struct的参数/member个数不一致
-  if (t && (parameter_count != t->element_number))
-    error_with_message("Parameter count mismatch for function", t->name);
+  if (old_function_symbol_table && (parameter_count != old_function_symbol_table->element_number))
+    error_with_message("Parameter count mismatch for function", old_function_symbol_table->name);
 
   return parameter_count;
 }
@@ -104,12 +99,12 @@ static int parse_var_declaration_list(
 static struct SymbolTable *parse_composite_declaration(int primitive_type) {
   // 解析 struct 定义的语句
   struct SymbolTable *composite_type = NULL, *member;
-  int offset;
+  int offset, member_primitive_type;
 
-  // 跳过 struct 关键字
+  // 跳过 struct/union 关键字
   scan(&token_from_file);
 
-  // 判断 struct 后面的类型名字是否被定义过
+  // 判断 struct/union 后面的类型名字是否被定义过
   if (token_from_file.token == TOKEN_IDENTIFIER) {
     composite_type =
       primitive_type == PRIMITIVE_STRUCT
@@ -119,20 +114,20 @@ static struct SymbolTable *parse_composite_declaration(int primitive_type) {
     scan(&token_from_file);
   }
 
-  // 如果下一个 token 不是 '{'，说明用户要用这个 struct 类型去声明变量
+  // 如果下一个 token 不是 '{'，说明用户要用这个 struct/union 类型去声明变量
   // 那么直接返回即可
   if (token_from_file.token != TOKEN_LEFT_BRACE) {
-    // 既然要声明变量，说明之前的 struct 声明的类型应该存在
+    // 既然要声明变量，说明之前的 struct/union 声明的类型应该存在
     // 如果此时 composite_type 为空应该要报错
     if (!composite_type) error_with_message("Unknown struct/union type", text_buffer);
     return composite_type;
   }
 
-  // 如果下一个 token 是 '{'，说明用户要用这个 struct 类型去做定义
+  // 如果下一个 token 是 '{'，说明用户要用这个 struct/union 类型去做定义
   // 如果要做定义，那么此时 composite_type 应该要为空
   if (composite_type) error_with_message("Previously defined struct/union", text_buffer);
 
-  // 开始构建 struct node
+  // 开始构建 struct/union node
   composite_type =
     primitive_type == PRIMITIVE_STRUCT
       ? add_struct_symbol(
@@ -150,9 +145,22 @@ static struct SymbolTable *parse_composite_declaration(int primitive_type) {
   // 跳过 '{'
   scan(&token_from_file);
 
-  // 开始解析 struct 里面的成员
-  parse_var_declaration_list(NULL, STORAGE_CLASS_MEMBER, TOKEN_SEMICOLON, TOKEN_RIGHT_BRACE);
+  // 在 member 列表中扫描
+  while (1) {
+    member_primitive_type
+      = parse_declaration_list(&member, STORAGE_CLASS_MEMBER, TOKEN_SEMICOLON, TOKEN_RIGHT_BRACE);
+    if (member_primitive_type == -1)
+      error("Bad type in member list");
+    if (token_from_file.token == TOKEN_SEMICOLON)
+      scan(&token_from_file);
+    if (token_from_file.token == TOKEN_RIGHT_BRACE)
+      break;
+  }
+
   verify_right_brace();
+
+  if (!temp_member_head)
+    error_with_message("No members in struct", composite_type->name);
 
   // 解析完成之后首指针指向 member
   composite_type->member = temp_member_head;
@@ -240,6 +248,162 @@ static void parse_enum_declaration() {
 
   // 跳过 '}'
   scan(&token_from_file);
+}
+
+static int convert_multiply_token_2_primitive_type(int primitive_type) {
+  while (token_from_file.token == TOKEN_MULTIPLY) {
+    primitive_type = pointer_to(primitive_type);
+    scan(&token_from_file);
+  }
+  return primitive_type;
+}
+
+static struct SymbolTable *parse_array_declaration(
+  char *var_name,
+  int primitive_type,
+  struct SymbolTable *composite_type,
+  int storage_class
+) {
+  struct SymbolTable *t;
+
+  // 跳过 '['
+  scan(&token_from_file);
+
+  // 解析 '[0]' 中间的 0
+  if (token_from_file.token == TOKEN_INTEGER_LITERAL) {
+    switch (storage_class) {
+      case STORAGE_CLASS_GLOBAL:
+      case STORAGE_CLASS_EXTERN:
+        t = add_global_symbol(
+          var_name,
+          pointer_to(primitive_type), // 变成指针类型
+          STRUCTURAL_ARRAY,
+          token_from_file.integer_value,
+          storage_class,
+          composite_type);
+        break;
+      case STORAGE_CLASS_LOCAL:
+      case STORAGE_CLASS_FUNCTION_PARAMETER:
+      case STORAGE_CLASS_MEMBER:
+        error("For now, declaration of non-global arrays is not implemented");
+    }
+  }
+
+  // 跳过 ']'
+  scan(&token_from_file);
+  verify_right_bracket();
+  return t;
+}
+
+static struct SymbolTable *parse_scalar_declaration(
+  char *var_name,
+  int primitive_type,
+  struct SymbolTable *composite_type,
+  int storage_class
+) {
+  switch (storage_class) {
+    case STORAGE_CLASS_GLOBAL:
+    case STORAGE_CLASS_EXTERN:
+      return add_global_symbol(
+        var_name,
+        primitive_type,
+        STRUCTURAL_VARIABLE,
+        1,
+        storage_class,
+        composite_type);
+    case STORAGE_CLASS_LOCAL:
+      return add_local_symbol(
+        var_name,
+        primitive_type,
+        STRUCTURAL_VARIABLE,
+        1,
+        composite_type);
+    case STORAGE_CLASS_FUNCTION_PARAMETER:
+      return add_parameter_symbol(
+        var_name,
+        primitive_type,
+        STRUCTURAL_VARIABLE,
+        1,
+        composite_type);
+    case STORAGE_CLASS_MEMBER:
+      return add_temp_member_symbol(
+        var_name,
+        primitive_type,
+        STRUCTURAL_VARIABLE,
+        1,
+        composite_type);
+  }
+  return NULL;
+}
+
+static void parse_array_initialisation(
+  struct SymbolTable *t,
+  int primitive_type,
+  struct SymbolTable **composite_type,
+  int storage_class
+) {
+  error("No array initialisation yet");
+}
+
+
+
+// 解析变量或者函数定义
+static struct SymbolTable *parse_symbol_declaration(
+  int primitive_type,
+  struct SymbolTable *composite_type,
+  int storage_class
+) {
+  struct SymbolTable *t = NULL;
+  char *var_name = strdup(text_buffer);
+  int structural_type = STRUCTURAL_VARIABLE;
+
+  verify_identifier();
+
+  // 如果是 '(' 说明是函数定义
+  if (token_from_file.token == TOKEN_LEFT_PAREN)
+    return parse_function_declaration(primitive_type, var_name, structural_type, storage_class);
+
+  // 先判断是否被定义过
+  switch(storage_class) {
+    case STORAGE_CLASS_GLOBAL:
+    case STORAGE_CLASS_EXTERN:
+      if (find_global_symbol(var_name))
+        error_with_message("Duplicate global/extern variable declaration", var_name);
+    case STORAGE_CLASS_LOCAL:
+    case STORAGE_CLASS_FUNCTION_PARAMETER:
+      if (find_local_symbol(var_name))
+        error_with_message("Duplicate local/(function parameter) variable declaration", var_name);
+    case STORAGE_CLASS_MEMBER:
+      if (find_temp_member_symbol(var_name))
+        error_with_message("Duplicate struct/union variable declaration", var_name);
+  }
+
+  // 如果是 '[' 说明是数组定义
+  if (token_from_file.token == TOKEN_LEFT_BRACKET) {
+    t = parse_array_declaration(var_name, primitive_type, structural_type, storage_class);
+    structural_type = STRUCTURAL_ARRAY;
+  } else
+    // 如果不是当作普通变量处理
+    t = parse_scalar_declaration(var_name, primitive_type, structural_type, storage_class);
+
+  // 如果是 '=' 说明要有赋值操作
+  if (token_from_file.token == TOKEN_ASSIGN) {
+    // 以下两种类型是不能被赋值的
+    if (storage_class == STORAGE_CLASS_FUNCTION_PARAMETER)
+      error_with_message("Initialisation of a function parameter not permitted", var_name);
+    if (storage_class == STORAGE_CLASS_MEMBER)
+      error_with_message("Initialisation of a struct/union member not permitted", var_name);
+
+    scan(&token_from_file);
+
+    // 如果是数组要初始化
+    if (structural_type == STRUCTURAL_ARRAY)
+      parse_array_initialisation(t, primitive_type, composite_type, storage_class);
+    else
+      error("Scalar variable initialisation not done yet");
+  }
+
+  return t;
 }
 
 // typedef_declaration: 'typedef' identifier existing_type
@@ -336,112 +500,15 @@ int convert_token_2_primitive_type(
       error_with_message("Illegal type, token", token_from_file.token_string);
   }
 
-  // 检查后面是否带 *
-  while (token_from_file.token == TOKEN_MULTIPLY) {
-    new_type = pointer_to(new_type);
-    scan(&token_from_file);
-  }
   return new_type;
 }
 
-//  variable_declaration: type identifier ';'
-//                      | type identifier '[' TOKEN_INTEGER_LITERAL ']' ';'
-//                      ;
-struct SymbolTable *parse_var_declaration_statement(
+struct ASTNode *parse_function_declaration(
   int primitive_type,
-  int storage_class,
-  struct SymbolTable *composite_type
+  char *function_name,
+  struct SymbolTable *composite_type,
+  int storage_class
 ) {
-  struct SymbolTable *t = NULL;
-
-  // 先检查变量是否已经被定义过
-  switch (storage_class) {
-    case STORAGE_CLASS_GLOBAL:
-    case STORAGE_CLASS_EXTERN:
-      if (find_global_symbol(text_buffer))
-        error_with_message("Duplicate global variable declaration", text_buffer);
-    case STORAGE_CLASS_LOCAL:
-    case STORAGE_CLASS_FUNCTION_PARAMETER:
-      if (find_local_symbol(text_buffer))
-        error_with_message("Duplicate local variable declaration", text_buffer);
-    case STORAGE_CLASS_MEMBER:
-      if (find_temp_member_symbol(text_buffer))
-        error_with_message("Duplicate struct/union member declaration", text_buffer);
-  }
-
-  // 解析数组变量
-  // 如果是 [
-  if (token_from_file.token == TOKEN_LEFT_BRACKET) {
-    // 检查 [
-    scan(&token_from_file);
-
-    if (token_from_file.token == TOKEN_INTEGER_LITERAL) {
-      switch (storage_class) {
-        case STORAGE_CLASS_GLOBAL:
-        case STORAGE_CLASS_EXTERN:
-          t = add_global_symbol(
-            text_buffer,
-            pointer_to(primitive_type), // 变成指针类型
-            STRUCTURAL_ARRAY,
-            token_from_file.integer_value,
-            storage_class,
-            composite_type);
-          break;
-        case STORAGE_CLASS_LOCAL:
-        case STORAGE_CLASS_FUNCTION_PARAMETER:
-        case STORAGE_CLASS_MEMBER:
-          error("For now, declaration of non-global arrays is not implemented");
-      }
-    }
-
-    // 检查 ]
-    scan(&token_from_file);
-    verify_right_bracket();
-    return t;
-  }
-
-  // 解析普通变量
-  switch (storage_class) {
-    case STORAGE_CLASS_GLOBAL:
-    case STORAGE_CLASS_EXTERN:
-      t = add_global_symbol(
-        text_buffer,
-        primitive_type,
-        STRUCTURAL_VARIABLE,
-        1,
-        storage_class,
-        composite_type);
-      break;
-    case STORAGE_CLASS_LOCAL:
-      t = add_local_symbol(
-        text_buffer,
-        primitive_type,
-        STRUCTURAL_VARIABLE,
-        1,
-        composite_type);
-      break;
-    case STORAGE_CLASS_FUNCTION_PARAMETER:
-      t = add_parameter_symbol(
-        text_buffer,
-        primitive_type,
-        STRUCTURAL_VARIABLE,
-        1,
-        composite_type);
-      break;
-    case STORAGE_CLASS_MEMBER:
-      t = add_temp_member_symbol(
-        text_buffer,
-        primitive_type,
-        STRUCTURAL_VARIABLE,
-        1,
-        composite_type);
-      break;
-  }
-
-  return t;
-}
-
-struct ASTNode *parse_function_declaration_statement(int primitive_type) {
   struct ASTNode *tree, *final_statement;
   int end_label = 0, parameter_count = 0;
   struct SymbolTable *old_function_symbol_table = find_symbol(text_buffer),
@@ -457,7 +524,7 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
   if (!old_function_symbol_table) {
     end_label = generate_label();
     new_function_symbol_table = add_global_symbol(
-      text_buffer,
+      function_name,
       primitive_type,
       STRUCTURAL_FUNCTION,
       end_label,
@@ -467,11 +534,9 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
 
   // 开始解析函数参数
   verify_left_paren();
-  parameter_count = parse_var_declaration_list(
+  parameter_count = parse_param_declaration_list(
     old_function_symbol_table,
-    STORAGE_CLASS_FUNCTION_PARAMETER,
-    TOKEN_COMMA,
-    TOKEN_RIGHT_PAREN);
+    new_function_symbol_table);
   verify_right_paren();
 
   // 新【声明】函数对应的位置需要记录函数参数的个数
@@ -487,10 +552,8 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
 
   // 如果此时的 token 是 ';'，说明只是【声明】函数而不是【定义】函数
   // 可以直接退出
-  if (token_from_file.token == TOKEN_SEMICOLON) {
-    scan(&token_from_file);
-    return NULL;
-  }
+  if (token_from_file.token == TOKEN_SEMICOLON)
+    return old_function_symbol_table;
 
   // 到这一步说明是【定义】一个新函数
   current_function_symbol_id = old_function_symbol_table;
@@ -511,47 +574,79 @@ struct ASTNode *parse_function_declaration_statement(int primitive_type) {
       error("No return for function with non-void type");
   }
 
-  return create_ast_left_node(
+  tree = create_ast_left_node(
     AST_FUNCTION,
     primitive_type,
     tree,
     end_label,
     old_function_symbol_table);
+
+  if (output_dump_ast) {
+    dump_ast(tree, NO_LABEL, 0);
+    fprintf(stdout, "\n\n");
+  }
+
+  interpret_ast_with_register(tree, NO_LABEL, NO_LABEL, NO_LABEL, 0);
+
+  clear_local_symbol_table();
+  return old_function_symbol_table;
 }
 
-void parse_global_declaration_statement() {
-  struct ASTNode *tree;
-  int primitive_type, storage_class = STORAGE_CLASS_GLOBAL;
+// 解析有初始化变量的地方
+// 返回这些变量的 type
+// 主要是解析类似于
+// int xxx, yyy;
+// 这种连续初始化的语句
+int parse_declaration_list(
+  struct SymbolTable **composite_type,
+  int storage_class,
+  int end_token,
+  int end_token_2
+) {
+  int init_primitive_type, primitive_type;
+  struct SymbolTable *t;
+
+  // 检查是否是复合类型
+  if ((init_primitive_type
+    = convert_token_2_primitive_type(
+      composite_type, &storage_class)) == -1)
+    return init_primitive_type;
+
+  // 解析定义列表
+  while(1) {
+    // 检查 symbol 是否为指针
+    primitive_type = convert_multiply_token_2_primitive_type(init_primitive_type);
+
+    // 解析 symbol
+    t = parse_symbol_declaration(primitive_type, *composite_type, storage_class);
+
+    // 函数不在初始化变量的范围，直接返回
+    if (t->structural_type == STRUCTURAL_FUNCTION) {
+      if (storage_class != STORAGE_CLASS_GLOBAL)
+        error("Function definition not at global level");
+      return primitive_type;
+    }
+
+    if (token_from_file.token == end_token ||
+        token_from_file.token == end_token_2)
+      return primitive_type;
+
+    verify_comma();
+  }
+}
+
+void parse_global_declaration() {
   struct SymbolTable *composite_type;
 
   // 解析声明的全局变量/函数
   while (token_from_file.token != TOKEN_EOF) {
-    primitive_type = convert_token_2_primitive_type(&composite_type, &storage_class);
+    parse_declaration_list(
+      &composite_type,
+      STORAGE_CLASS_GLOBAL,
+      TOKEN_SEMICOLON,
+      TOKEN_EOF);
 
-    // 如果碰到 struct xxx; 类似的语句，这里应该不支持
-    if (primitive_type == -1) {
-      verify_semicolon();
-      continue;
-    }
-
-    verify_identifier();
-    // 解析到 ( 说明是个函数
-    if (token_from_file.token == TOKEN_LEFT_PAREN) {
-      tree = parse_function_declaration_statement(primitive_type);
-
-      // 如果是【声明】函数，则不用生成汇编
-      if (!tree) continue;
-
-      if (output_dump_ast) {
-        dump_ast(tree, NO_LABEL, 0);
-        fprintf(stdout, "\n\n");
-      }
-      interpret_ast_with_register(tree, NO_LABEL, NO_LABEL, NO_LABEL, 0);
-      clear_local_symbol_table();
-    } else {
-      // 否则就是变量
-      parse_var_declaration_statement(primitive_type, STORAGE_CLASS_GLOBAL, composite_type);
-      verify_semicolon();
-    }
+    if (token_from_file.token == TOKEN_SEMICOLON)
+      scan(&token_from_file);
   }
 }

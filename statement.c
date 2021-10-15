@@ -145,7 +145,7 @@ static struct ASTNode *parse_single_statement() {
     case TOKEN_TYPEDEF:
       primitive_type = convert_token_2_primitive_type(&composite_type, &storage_class);
       verify_identifier();
-      parse_var_declaration_statement(primitive_type, storage_class, composite_type);
+      parse_declaration_list(&composite_type, STORAGE_CLASS_LOCAL, TOKEN_SEMICOLON, TOKEN_EOF);
       verify_semicolon();
       return NULL;
     case TOKEN_IF:
