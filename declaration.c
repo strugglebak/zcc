@@ -418,11 +418,16 @@ int parse_typedef_declaration(struct SymbolTable **composite_type) {
 
   // 解析 int
   primitive_type = convert_token_2_primitive_type(composite_type, &storage_class);
+  if (storage_class)
+    error("Can't have extern in a typedef declaration");
 
   // 解析 xxx
   // 如果重复定义就报错
   if (find_typedef_symbol(text_buffer))
     error_with_message("Redefinition of typedef", text_buffer);
+
+  // 解析 '*'
+  primitive_type = convert_multiply_token_2_primitive_type(primitive_type);
 
   // 如果没有重复定义就加入 typedef symbol table 链表
   add_typedef_symbol(text_buffer, primitive_type, 0, 0, *composite_type);
