@@ -339,7 +339,7 @@ static struct SymbolTable *parse_scalar_declaration(
 static void parse_array_initialisation(
   struct SymbolTable *t,
   int primitive_type,
-  struct SymbolTable **composite_type,
+  struct SymbolTable *composite_type,
   int storage_class
 ) {
   error("No array initialisation yet");
@@ -361,7 +361,7 @@ static struct SymbolTable *parse_symbol_declaration(
 
   // 如果是 '(' 说明是函数定义
   if (token_from_file.token == TOKEN_LEFT_PAREN)
-    return parse_function_declaration(primitive_type, var_name, structural_type, storage_class);
+    return parse_function_declaration(primitive_type, var_name, composite_type, storage_class);
 
   // 先判断是否被定义过
   switch(storage_class) {
@@ -380,11 +380,11 @@ static struct SymbolTable *parse_symbol_declaration(
 
   // 如果是 '[' 说明是数组定义
   if (token_from_file.token == TOKEN_LEFT_BRACKET) {
-    t = parse_array_declaration(var_name, primitive_type, structural_type, storage_class);
+    t = parse_array_declaration(var_name, primitive_type, composite_type, storage_class);
     structural_type = STRUCTURAL_ARRAY;
   } else
     // 如果不是当作普通变量处理
-    t = parse_scalar_declaration(var_name, primitive_type, structural_type, storage_class);
+    t = parse_scalar_declaration(var_name, primitive_type, composite_type, storage_class);
 
   // 如果是 '=' 说明要有赋值操作
   if (token_from_file.token == TOKEN_ASSIGN) {
@@ -503,7 +503,7 @@ int convert_token_2_primitive_type(
   return new_type;
 }
 
-struct ASTNode *parse_function_declaration(
+struct SymbolTable *parse_function_declaration(
   int primitive_type,
   char *function_name,
   struct SymbolTable *composite_type,

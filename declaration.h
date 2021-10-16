@@ -5,7 +5,7 @@
 int parse_typedef_declaration(struct SymbolTable **composite_type);
 int parse_type_of_typedef_declaration(char *name, struct SymbolTable **composite_type);
 int convert_token_2_primitive_type(struct SymbolTable **composite_type, int *storage_class);
-struct ASTNode *parse_function_declaration(
+struct SymbolTable *parse_function_declaration(
   int primitive_type,
   char *function_name,
   struct SymbolTable *composite_type,
