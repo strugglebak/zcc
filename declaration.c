@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include "definations.h"
 #include "data.h"
 #include "helper.h"
@@ -305,7 +306,7 @@ static struct SymbolTable *parse_array_declaration(
   // 检查括号中间的字面量
   if (token_from_file.token == TOKEN_INTEGER_LITERAL) {
     if (token_from_file.integer_value < 0)
-      error_with_message("Array size is illegal", token_from_file.integer_value);
+      error_with_digital("Array size is illegal", token_from_file.integer_value);
     element_number = token_from_file.integer_value;
     // 跳过字面量
     scan(&token_from_file);
