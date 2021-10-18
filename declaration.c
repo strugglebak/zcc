@@ -133,18 +133,8 @@ static struct SymbolTable *parse_composite_declaration(int primitive_type) {
   // 开始构建 struct/union node
   composite_type =
     primitive_type == PRIMITIVE_STRUCT
-      ? add_struct_symbol(
-        text_buffer,
-        PRIMITIVE_STRUCT,
-        0,
-        0,
-        NULL)
-      : add_union_symbol(
-        text_buffer,
-        PRIMITIVE_UNION,
-        0,
-        0,
-        NULL);
+      ? add_struct_symbol(text_buffer)
+      : add_union_symbol(text_buffer);
   // 跳过 '{'
   scan(&token_from_file);
 
@@ -404,7 +394,7 @@ static struct SymbolTable *parse_scalar_declaration(
   switch (storage_class) {
     case STORAGE_CLASS_GLOBAL:
     case STORAGE_CLASS_EXTERN:
-      return add_global_symbol(
+      t = add_global_symbol(
         var_name,
         primitive_type,
         STRUCTURAL_VARIABLE,
@@ -412,26 +402,30 @@ static struct SymbolTable *parse_scalar_declaration(
         storage_class,
         composite_type,
         0);
+      break;
     case STORAGE_CLASS_LOCAL:
-      return add_local_symbol(
+      t = add_local_symbol(
         var_name,
         primitive_type,
         STRUCTURAL_VARIABLE,
         1,
         composite_type);
+      break;
     case STORAGE_CLASS_FUNCTION_PARAMETER:
-      return add_parameter_symbol(
+      t = add_parameter_symbol(
         var_name,
         primitive_type,
         STRUCTURAL_VARIABLE,
         composite_type);
+      break;
     case STORAGE_CLASS_MEMBER:
-      return add_temp_member_symbol(
+      t = add_temp_member_symbol(
         var_name,
         primitive_type,
         STRUCTURAL_VARIABLE,
         1,
         composite_type);
+      break;
   }
 
   // 如果变量要执行赋值操作
@@ -467,7 +461,6 @@ static struct SymbolTable *parse_symbol_declaration(
 ) {
   struct SymbolTable *t = NULL;
   char *var_name = strdup(text_buffer);
-  int structural_type = STRUCTURAL_VARIABLE;
 
   verify_identifier();
 

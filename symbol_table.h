@@ -56,20 +56,8 @@ struct SymbolTable *add_temp_member_symbol(
   int size,
   struct SymbolTable *composite_type
 );
-struct SymbolTable *add_struct_symbol(
-  char *symbol_string,
-  int primitive_type,
-  int structural_type,
-  int size,
-  struct SymbolTable *composite_type
-);
-struct SymbolTable *add_union_symbol(
-  char *symbol_string,
-  int primitive_type,
-  int structural_type,
-  int size,
-  struct SymbolTable *composite_type
-);
+struct SymbolTable *add_struct_symbol(char *symbol_string);
+struct SymbolTable *add_union_symbol(char *symbol_string);
 struct SymbolTable *add_enum_symbol(
   char *symbol_string,
   int storage_class,

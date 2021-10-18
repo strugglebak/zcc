@@ -29,8 +29,9 @@ static struct SymbolTable *add_symbol_core(
   );
   // size: 变量里面所有元素的【大小】
   // element_number: 变量里面所有元素的【个数】
-  if (primitive_type == PRIMITIVE_STRUCT ||
-      primitive_type == PRIMITIVE_UNION)
+  if ((primitive_type == PRIMITIVE_STRUCT ||
+      primitive_type == PRIMITIVE_UNION) &&
+      composite_type)
     t->size = composite_type->size;
   append_to_symbol_table(head, tail, t);
   return t;
@@ -230,42 +231,30 @@ struct SymbolTable *add_temp_member_symbol(
     composite_type
   );
 }
-struct SymbolTable *add_struct_symbol(
-  char *symbol_string,
-  int primitive_type,
-  int structural_type,
-  int size,
-  struct SymbolTable *composite_type
-) {
+struct SymbolTable *add_struct_symbol(char *symbol_string) {
   return add_symbol_core(
     symbol_string,
-    primitive_type,
-    structural_type,
-    size,
+    PRIMITIVE_STRUCT,
+    0,
+    0,
     STORAGE_CLASS_STRUCT,
     0,
     &struct_head,
     &struct_tail,
-    composite_type
+    NULL
   );
 }
-struct SymbolTable *add_union_symbol(
-  char *symbol_string,
-  int primitive_type,
-  int structural_type,
-  int size,
-  struct SymbolTable *composite_type
-) {
+struct SymbolTable *add_union_symbol(char *symbol_string) {
   return add_symbol_core(
     symbol_string,
-    primitive_type,
-    structural_type,
-    size,
+    PRIMITIVE_UNION,
+    0,
+    0,
     STORAGE_CLASS_UNION,
     0,
     &union_head,
     &union_tail,
-    composite_type
+    NULL
   );
 }
 
