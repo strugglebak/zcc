@@ -458,17 +458,6 @@ static struct SymbolTable *parse_scalar_declaration(
   return t;
 }
 
-static void parse_array_initialisation(
-  struct SymbolTable *t,
-  int primitive_type,
-  struct SymbolTable *composite_type,
-  int storage_class
-) {
-  error("No array initialisation yet");
-}
-
-
-
 // 解析变量或者函数定义
 static struct SymbolTable *parse_symbol_declaration(
   int primitive_type,
@@ -501,29 +490,9 @@ static struct SymbolTable *parse_symbol_declaration(
   }
 
   // 如果是 '[' 说明是数组定义
-  if (token_from_file.token == TOKEN_LEFT_BRACKET) {
-    t = parse_array_declaration(var_name, primitive_type, composite_type, storage_class);
-    structural_type = STRUCTURAL_ARRAY;
-  } else
-    // 如果不是当作普通变量处理
-    t = parse_scalar_declaration(var_name, primitive_type, composite_type, storage_class);
-
-  // 如果是 '=' 说明要有赋值操作
-  if (token_from_file.token == TOKEN_ASSIGN) {
-    // 以下两种类型是不能被赋值的
-    if (storage_class == STORAGE_CLASS_FUNCTION_PARAMETER)
-      error_with_message("Initialisation of a function parameter not permitted", var_name);
-    if (storage_class == STORAGE_CLASS_MEMBER)
-      error_with_message("Initialisation of a struct/union member not permitted", var_name);
-
-    scan(&token_from_file);
-
-    // 如果是数组要初始化
-    if (structural_type == STRUCTURAL_ARRAY)
-      parse_array_initialisation(t, primitive_type, composite_type, storage_class);
-    else
-      error("Scalar variable initialisation not done yet");
-  }
+  t = token_from_file.token == TOKEN_LEFT_BRACKET
+    ? parse_array_declaration(var_name, primitive_type, composite_type, storage_class)
+    : parse_scalar_declaration(var_name, primitive_type, composite_type, storage_class);
 
   return t;
 }
