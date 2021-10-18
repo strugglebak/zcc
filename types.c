@@ -6,7 +6,8 @@
 #include "ast.h"
 
 int check_int_type(int primitive_type) {
-  return ((primitive_type & 0xf) == 0);
+  return ((primitive_type & 0xf) == 0 &&
+          (primitive_type >= PRIMITIVE_CHAR && primitive_type <= PRIMITIVE_LONG));
 }
 
 int check_pointer_type(int primitive_type) {
