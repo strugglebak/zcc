@@ -11,6 +11,8 @@
 #include "declaration.h"
 #include "parser.h"
 
+static int convert_token_2_primitive_type(struct SymbolTable **composite_type, int *storage_class);
+
 /**
  * 如何解析函数声明和定义？
  * 比如
@@ -258,6 +260,29 @@ static int convert_multiply_token_2_primitive_type(int primitive_type) {
   return primitive_type;
 }
 
+int convert_literal_token_2_primitive_type(int primitive_type) {
+  // 如果是类似 char *a = 'xxx'; 这样的赋值
+  if ((primitive_type == pointer_to(PRIMITIVE_CHAR)) &&
+      (token_from_file.token == TOKEN_STRING_LITERAL))
+    return generate_global_string_code(text_buffer);
+
+  if (token_from_file.token == TOKEN_INTEGER_LITERAL) {
+    switch (primitive_type) {
+      // char a = 256; 超范围
+      case PRIMITIVE_CHAR:
+        if (token_from_file.integer_value < 0 || token_from_file.integer_value > 255)
+          error("Integer literal value too big for char type");
+      // int a = 256; 或者 long a = 256;
+      case PRIMITIVE_INT: case PRIMITIVE_LONG: break;
+      // void a = 256; 直接报错
+      default: error("Type mismatch: integer literal vs. variable");
+    }
+  } else
+    error("Expecting an integer literal value");
+
+  return token_from_file.integer_value;
+}
+
 static struct SymbolTable *parse_array_declaration(
   char *var_name,
   int primitive_type,
@@ -452,7 +477,7 @@ int parse_type_of_typedef_declaration(char *name, struct SymbolTable **composite
   return t->primitive_type;
 }
 
-int convert_token_2_primitive_type(
+static int convert_token_2_primitive_type(
   struct SymbolTable **composite_type,
   int *storage_class
 ) {
