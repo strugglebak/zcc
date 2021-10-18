@@ -338,18 +338,48 @@ int register_store_local_value_2_variable(int register_index, struct SymbolTable
 */
 void register_generate_global_symbol(struct SymbolTable *t) {
   if (!t || t->structural_type == STRUCTURAL_FUNCTION) return;
-  int primitive_type_size = get_primitive_type_size(t->primitive_type, t->composite_type);
+  // int primitive_type_size = get_primitive_type_size(t->primitive_type, t->composite_type);
+  int primitive_type,
+      primitive_type_size,
+      init_value,
+      i;
+
+  // 区分是数组还是普通变量
+  if (t->structural_type == STRUCTURAL_ARRAY) {
+    // 数组跟指针一样，所以要 value_at 取得其 primitive_type
+    primitive_type = value_at(t->primitive_type);
+    primitive_type_size = get_primitive_type_size(primitive_type, t->composite_type);
+  } else {
+    primitive_type = t->primitive_type;
+    primitive_type_size = t->size;
+  }
+
   register_data_section_flag();
   fprintf(output_file, "\t.globl\t%s\n", t->name);
   fprintf(output_file, "%s:", t->name);
-  // 支持类似 char a[10]; 这样的写法，size 就是 10
-  switch(primitive_type_size) {
-    case 1: fprintf(output_file, "\t.byte\t0\n"); break;
-    case 4: fprintf(output_file, "\t.long\t0\n"); break;
-    case 8: fprintf(output_file, "\t.quad\t0\n"); break;
-    default:
-      for (int i=0; i < primitive_type_size; i++)
-        fprintf(output_file, "\t.byte\t0\n");
+  for (i = 0; i < t->element_number; i++) {
+    init_value = 0;
+    if (t->init_value_list)
+      init_value = t->init_value_list[i];
+
+    switch(primitive_type_size) {
+      case 1: fprintf(output_file, "\t.byte\t%d\n", init_value); break;
+      case 4: fprintf(output_file, "\t.long\t%d\n", init_value); break;
+      // 类似于
+      // char a[2] = {'1', '2'}
+      // 这种定义
+      case 8:
+        fprintf(
+          output_file,
+          t->init_value_list && primitive_type == pointer_to(PRIMITIVE_CHAR)
+            ? "\t.quad\tL%d\n"
+            : "\t.quad\t%d\n",
+          init_value);
+        break;
+      default:
+        for (int i=0; i < primitive_type_size; i++)
+          fprintf(output_file, "\t.byte\t0\n");
+    }
   }
 }
 
