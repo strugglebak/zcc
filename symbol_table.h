@@ -46,7 +46,6 @@ struct SymbolTable *add_parameter_symbol(
   char *symbol_string,
   int primitive_type,
   int structural_type,
-  int size,
   struct SymbolTable *composite_type
 );
 struct SymbolTable *add_temp_member_symbol(

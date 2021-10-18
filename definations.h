@@ -35,16 +35,16 @@ struct SymbolTable {
   int primitive_type; // 每个变量的原始类型
   int structural_type;// 每个变量的结构类型
   int storage_class;
+  int size; // 在 symbol 中元素的个数
+
+  // 对于函数，为参数的个数
+  // 对于结构体，为结构体的 field 的个数
+  int element_number;
+  int *init_value_list; // 初始化值列表
   union {
-    int size; // 在 symbol 中元素的个数
     int end_label; // 对于 STRUCTURAL_FUNCTION 来说的 end label
-    int integer_value; // 对于枚举变量来说与其关联的值
-  };
-  union {
     int position; // 本地变量相对于栈基指针的负向距离
-    // 对于函数，为参数的个数
-    // 对于结构体，为结构体的 field
-    int element_number;
+    int integer_value; // 对于枚举变量来说与其关联的值
   };
   struct SymbolTable *next; // 下一个 symbol table 的指针
   struct SymbolTable *member; // 指向第一个函数、结构体、联合体、枚举的成员的 symbol table 的指针

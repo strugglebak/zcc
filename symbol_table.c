@@ -183,14 +183,13 @@ struct SymbolTable *add_parameter_symbol(
   char *symbol_string,
   int primitive_type,
   int structural_type,
-  int size,
   struct SymbolTable *composite_type
 ) {
   return add_symbol_core(
     symbol_string,
     primitive_type,
     structural_type,
-    size,
+    1,
     STORAGE_CLASS_FUNCTION_PARAMETER,
     0,
     &parameter_head,

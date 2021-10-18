@@ -260,7 +260,7 @@ static int convert_multiply_token_2_primitive_type(int primitive_type) {
   return primitive_type;
 }
 
-int convert_literal_token_2_primitive_type(int primitive_type) {
+int convert_literal_token_2_integer_value(int primitive_type) {
   // 如果是类似 char *a = 'xxx'; 这样的赋值
   if ((primitive_type == pointer_to(PRIMITIVE_CHAR)) &&
       (token_from_file.token == TOKEN_STRING_LITERAL))
@@ -326,6 +326,8 @@ static struct SymbolTable *parse_scalar_declaration(
   struct SymbolTable *composite_type,
   int storage_class
 ) {
+  struct SymbolTable *t = NULL;
+
   switch (storage_class) {
     case STORAGE_CLASS_GLOBAL:
     case STORAGE_CLASS_EXTERN:
@@ -348,7 +350,6 @@ static struct SymbolTable *parse_scalar_declaration(
         var_name,
         primitive_type,
         STRUCTURAL_VARIABLE,
-        1,
         composite_type);
     case STORAGE_CLASS_MEMBER:
       return add_temp_member_symbol(
@@ -358,7 +359,30 @@ static struct SymbolTable *parse_scalar_declaration(
         1,
         composite_type);
   }
-  return NULL;
+
+  // 如果变量要执行赋值操作
+  // 比如 int x = (long)5;
+  if (token_from_file.token == TOKEN_ASSIGN) {
+    if (storage_class != STORAGE_CLASS_GLOBAL &&
+        storage_class != STORAGE_CLASS_LOCAL)
+      error_with_message("Variable can not be initialised", var_name);
+    // 跳过 '='
+    scan(&token_from_file);
+
+    // 全局变量必须被赋值为一个字面量的值
+    if (storage_class == STORAGE_CLASS_GLOBAL) {
+      t->init_value_list = (int *)malloc(sizeof(int));
+      t->init_value_list[0] = convert_literal_token_2_integer_value(primitive_type);
+      // 跳过 ',' 或者 ';'
+      scan(&token_from_file);
+    }
+  }
+
+  // 全局变量应该要先生成对应的汇编代码
+  if (storage_class == STORAGE_CLASS_GLOBAL)
+    generate_global_symbol(t);
+
+  return t;
 }
 
 static void parse_array_initialisation(
