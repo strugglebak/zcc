@@ -22,7 +22,7 @@ struct SymbolTable *new_symbol_table(
   char *name,
   int primitive_type,
   int structural_type,
-  int size,
+  int element_number,
   int storage_class,
   int position,
   struct SymbolTable *composite_type
@@ -31,9 +31,10 @@ struct SymbolTable *add_global_symbol(
   char *symbol_string,
   int primitive_type,
   int structural_type,
-  int size,
+  int element_number,
   int storage_class,
-  struct SymbolTable *composite_type
+  struct SymbolTable *composite_type,
+  int position
 );
 struct SymbolTable *add_local_symbol(
   char *symbol_string,

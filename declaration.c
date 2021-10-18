@@ -289,34 +289,106 @@ static struct SymbolTable *parse_array_declaration(
   struct SymbolTable *composite_type,
   int storage_class
 ) {
+  // 解析类似于
+  // int a[10];
+  // char a[] = {'1', '2'};
+  // char a[2] = {'1', '2'}
   struct SymbolTable *t;
+  int element_number = -1,
+      max_element_number,
+      *init_value_list,
+      i = 0, j;
 
   // 跳过 '['
   scan(&token_from_file);
 
-  // 解析 '[0]' 中间的 0
+  // 检查括号中间的字面量
   if (token_from_file.token == TOKEN_INTEGER_LITERAL) {
-    switch (storage_class) {
-      case STORAGE_CLASS_GLOBAL:
-      case STORAGE_CLASS_EXTERN:
-        t = add_global_symbol(
-          var_name,
-          pointer_to(primitive_type), // 变成指针类型
-          STRUCTURAL_ARRAY,
-          token_from_file.integer_value,
-          storage_class,
-          composite_type);
-        break;
-      case STORAGE_CLASS_LOCAL:
-      case STORAGE_CLASS_FUNCTION_PARAMETER:
-      case STORAGE_CLASS_MEMBER:
-        error("For now, declaration of non-global arrays is not implemented");
-    }
+    if (token_from_file.integer_value < 0)
+      error_with_message("Array size is illegal", token_from_file.integer_value);
+    element_number = token_from_file.integer_value;
+    // 跳过字面量
+    scan(&token_from_file);
   }
 
   // 跳过 ']'
-  scan(&token_from_file);
   verify_right_bracket();
+
+  // 把 'a' 加入 symbol table
+  switch (storage_class) {
+    case STORAGE_CLASS_GLOBAL:
+    case STORAGE_CLASS_EXTERN:
+      t = add_global_symbol(
+        var_name,
+        pointer_to(primitive_type), // 变成指针类型
+        STRUCTURAL_ARRAY,
+        0,
+        storage_class,
+        composite_type,
+        0);
+      break;
+    default:
+      error("For now, declaration of non-global arrays is not implemented");
+  }
+
+  // 数组赋值
+  if (token_from_file.token == TOKEN_ASSIGN) {
+    if (storage_class != STORAGE_CLASS_GLOBAL)
+      error_with_message("Variable can not be initialised", var_name);
+    // 跳过 '='
+    scan(&token_from_file);
+    // 跳过 '{'
+    verify_left_brace();
+
+#define DEFAULT_TABLE_INCREMENT 10
+
+    max_element_number = element_number != -1
+      ? element_number
+      : DEFAULT_TABLE_INCREMENT;
+
+    init_value_list = (int *)malloc(sizeof(int));
+
+    // 处理 '{}' 中初始化的内容
+    while (1) {
+      if (element_number != -1 && i == max_element_number)
+        error("Too many values in initialisation list");
+
+      init_value_list[i++] = convert_literal_token_2_integer_value(primitive_type);
+      // 跳过其中一个初始化用的字面量
+      scan(&token_from_file);
+
+      // 如果是类似这种语句
+      // char a[] = {'1', '2'};
+      if (element_number == -1 && i == max_element_number) {
+        // 自动扩容
+        max_element_number += DEFAULT_TABLE_INCREMENT;
+        init_value_list = (int *)realloc(init_value_list, max_element_number * sizeof(int));
+      }
+
+      if (token_from_file.token == TOKEN_RIGHT_BRACE) {
+        // 跳过 '}'
+        scan(&token_from_file);
+        break;
+      }
+
+      // 检查 ','
+      verify_comma();
+    }
+
+    // 没用到的空间初始化为 0
+    for (j = i; j < t->element_number; j++)
+      init_value_list[j] = 0;
+    if (i > element_number)
+      element_number = i;
+    t->init_value_list = init_value_list;
+  }
+
+  t->element_number = element_number;
+  t->size = t->element_number * get_primitive_type_size(primitive_type, composite_type);
+
+  if (storage_class == STORAGE_CLASS_GLOBAL)
+    generate_global_symbol(t);
+
   return t;
 }
 
@@ -337,7 +409,8 @@ static struct SymbolTable *parse_scalar_declaration(
         STRUCTURAL_VARIABLE,
         1,
         storage_class,
-        composite_type);
+        composite_type,
+        0);
     case STORAGE_CLASS_LOCAL:
       return add_local_symbol(
         var_name,
@@ -581,9 +654,10 @@ struct SymbolTable *parse_function_declaration(
       function_name,
       primitive_type,
       STRUCTURAL_FUNCTION,
-      end_label,
+      0,
       STORAGE_CLASS_GLOBAL,
-      NULL);
+      NULL,
+      end_label);
   }
 
   // 开始解析函数参数

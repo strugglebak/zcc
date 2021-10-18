@@ -5,6 +5,7 @@
 #include "generator.h"
 #include "symbol_table.h"
 #include "definations.h"
+#include "types.h"
 
 static struct SymbolTable *add_symbol_core(
   char *symbol_string,
@@ -26,6 +27,11 @@ static struct SymbolTable *add_symbol_core(
     position,
     composite_type
   );
+  // size: 变量里面所有元素的【大小】
+  // element_number: 变量里面所有元素的【个数】
+  if (primitive_type == PRIMITIVE_STRUCT ||
+      primitive_type == PRIMITIVE_UNION)
+    t->size = composite_type->size;
   append_to_symbol_table(head, tail, t);
   return t;
 }
@@ -115,7 +121,7 @@ struct SymbolTable *new_symbol_table(
   char *name,
   int primitive_type,
   int structural_type,
-  int size,
+  int element_number,
   int storage_class,
   int position,
   struct SymbolTable *composite_type
@@ -127,15 +133,21 @@ struct SymbolTable *new_symbol_table(
   node->name = strdup(name);
   node->primitive_type = primitive_type;
   node->structural_type = structural_type;
-  node->size = size;
+  node->element_number = element_number;
+
+  // 对于 指针 和 int 类型变量才去设置它们的 size
+  // 对于 struct/union 类型变量，手动设置它们的 size
+  if (check_pointer_type(primitive_type) ||
+      check_int_type(primitive_type))
+    node->size = element_number
+      * get_primitive_type_size(primitive_type, composite_type);
+
   node->storage_class = storage_class;
   node->position = position;
   node->composite_type = composite_type;
   node->next = NULL;
   node->member = NULL;
-
-  if (storage_class == STORAGE_CLASS_GLOBAL)
-    generate_global_symbol(node);
+  node->init_value_list = NULL;
 
   return node;
 }
@@ -143,17 +155,18 @@ struct SymbolTable *add_global_symbol(
   char *symbol_string,
   int primitive_type,
   int structural_type,
-  int size,
+  int element_number,
   int storage_class,
-  struct SymbolTable *composite_type
+  struct SymbolTable *composite_type,
+  int position
 ) {
   return add_symbol_core(
     symbol_string,
     primitive_type,
     structural_type,
-    size,
+    element_number,
     storage_class,
-    0,
+    position,
     &global_head,
     &global_tail,
     composite_type
