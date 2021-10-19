@@ -119,7 +119,6 @@ static struct ASTNode *parse_switch_statement() {
 }
 
 static struct ASTNode *parse_single_statement() {
-  int primitive_type, storage_class = STORAGE_CLASS_LOCAL;
   struct SymbolTable *composite_type;
   struct ASTNode *statement;
 
@@ -150,7 +149,7 @@ static struct ASTNode *parse_single_statement() {
         TOKEN_EOF,
         &statement);
       verify_semicolon();
-      return NULL;
+      return statement;
     case TOKEN_IF:
       return parse_if_statement();
     case TOKEN_WHILE:

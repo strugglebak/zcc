@@ -455,7 +455,9 @@ static struct SymbolTable *parse_scalar_declaration(
       t->init_value_list[0] = convert_literal_token_2_integer_value(primitive_type);
       // 跳过 ',' 或者 ';'
       scan(&token_from_file);
-    } else if (storage_class == STORAGE_CLASS_LOCAL) {
+    }
+
+    if (storage_class == STORAGE_CLASS_LOCAL) {
       // hack: 在这个函数里面创建 ast node
       var_node = create_ast_leaf(AST_IDENTIFIER, t->primitive_type, 0, t);
 
