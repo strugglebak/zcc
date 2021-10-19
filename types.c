@@ -32,6 +32,14 @@ struct ASTNode *modify_type(
     int left_primitive_size, right_primitive_size;
     int left_primitive_type = tree->primitive_type;
 
+    // 特殊情况判断
+    if (left_primitive_type == PRIMITIVE_STRUCT ||
+        left_primitive_type == PRIMITIVE_UNION)
+      error("Does not support this type casting");
+    if (right_primitive_type == PRIMITIVE_STRUCT ||
+        right_primitive_type == PRIMITIVE_UNION)
+      error("Does not support this type casting");
+
     // 左右改变类似于如下的计算
     // x= *ptr;	        // OK
     // x= *(ptr + 2);   // 取从 ptr 指向的地址 + 两个整数的地方的值
@@ -42,8 +50,8 @@ struct ASTNode *modify_type(
     if (check_int_type(left_primitive_type) && check_int_type(right_primitive_type)) {
       if (left_primitive_type == right_primitive_type) return tree;
 
-      left_primitive_size = generate_get_primitive_type_size(left_primitive_type);
-      right_primitive_size = generate_get_primitive_type_size(right_primitive_type);
+      left_primitive_size = get_primitive_type_size(left_primitive_type, NULL);
+      right_primitive_size = get_primitive_type_size(right_primitive_type, NULL);
 
       if (left_primitive_size > right_primitive_size) return NULL;
       else if (left_primitive_size < right_primitive_size)
@@ -51,8 +59,17 @@ struct ASTNode *modify_type(
     }
 
     // 比较 char/int/long 指针
-    if (check_pointer_type(left_primitive_type)) {
+    if (check_pointer_type(left_primitive_type) &&
+        check_pointer_type(right_primitive_type)) {
       if (!operation && left_primitive_type == right_primitive_type) return tree;
+
+      // 如果 left node 是 (void *)
+      // 即 char a = (void *)65536;
+      if (!operation && (
+        left_primitive_type == right_primitive_type ||
+        left_primitive_type == pointer_to(PRIMITIVE_VOID)
+      ))
+        return tree;
     }
 
     // 指针的地址只允许加和减
