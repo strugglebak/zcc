@@ -295,7 +295,7 @@ static struct SymbolTable *parse_array_declaration(
 
   // 检查括号中间的字面量
   if (token_from_file.token == TOKEN_INTEGER_LITERAL) {
-    if (token_from_file.integer_value < 0)
+    if (token_from_file.integer_value <= 0)
       error_with_digital("Array size is illegal", token_from_file.integer_value);
     element_number = token_from_file.integer_value;
     // 跳过字面量
@@ -337,7 +337,7 @@ static struct SymbolTable *parse_array_declaration(
       ? element_number
       : DEFAULT_TABLE_INCREMENT;
 
-    init_value_list = (int *)malloc(sizeof(int));
+    init_value_list = (int *)malloc(max_element_number * sizeof(int));
 
     // 处理 '{}' 中初始化的内容
     while (1) {

@@ -19,15 +19,18 @@ enum {
 
 static int free_registers[FREE_REGISTER_NUMBER] = { 1 };
 static char *register_list[] = {
-  "%r8", "%r9", "%r10", "%r11", "%r12", "%r13",
+  "%r10", "%r11", "%r12", "%r13",
+  "%r9", "%r8",
   "%rcx", "%rdx", "%rsi", "%rdi"
 }; // 64 位寄存器
 static char *lower_8_bits_register_list[] = {
-  "%r8b", "%r9b", "%r10b", "%r11b", "%r12b", "%r13b",
+  "%r10b", "%r11b", "%r12b", "%r13b",
+  "%r9b", "%r8b",
   "%cl", "%dl", "%sil", "%dil"
 }; // 低 8 位寄存器
 static char *lower_32_bits_register_list[] = {
-  "%r8d", "%r9d", "%r10d", "%r11d", "%r12d", "%r13d",
+  "%r10d", "%r11d", "%r12d", "%r13d",
+  "%r9d", "%r8d",
   "%ecx", "%edx", "%esi", "%edi"
 }; // 低 32 位寄存器
 
@@ -356,7 +359,7 @@ void register_generate_global_symbol(struct SymbolTable *t) {
 
   register_data_section_flag();
   fprintf(output_file, "\t.globl\t%s\n", t->name);
-  fprintf(output_file, "%s:", t->name);
+  fprintf(output_file, "%s:\n", t->name);
   for (i = 0; i < t->element_number; i++) {
     init_value = 0;
     if (t->init_value_list)
@@ -557,7 +560,7 @@ int register_get_primitive_type_size(int primitive_type) {
 int register_function_call(struct SymbolTable *t, int argument_number) {
   int out_register_index = allocate_register();
   // 调用函数
-  fprintf(output_file, "\tcall\t%s\n", t->name);
+  fprintf(output_file, "\tcall\t%s@PLT\n", t->name);
 
   // 如果参数大于 6 个，移除在栈上的参数
   if (argument_number > 6)
