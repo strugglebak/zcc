@@ -374,7 +374,13 @@ void register_generate_global_symbol(struct SymbolTable *t) {
       case 8:
         fprintf(
           output_file,
-          t->init_value_list && primitive_type == pointer_to(PRIMITIVE_CHAR)
+          t->init_value_list &&
+          primitive_type == pointer_to(PRIMITIVE_CHAR) &&
+          // char *s = NULL;
+          // 会被解析成
+          // str: .quad L0
+          // 所以这里需要判断 init_value
+          init_value != 0
             ? "\t.quad\tL%d\n"
             : "\t.quad\t%d\n",
           init_value);
