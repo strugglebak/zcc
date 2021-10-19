@@ -53,6 +53,7 @@ static int parse_param_declaration_list(
   //【定义】的函数的参数个数
   int parameter_count = 0;
   struct SymbolTable *prototype = NULL, *composite_type;
+  struct ASTNode *tree;
 
   if (old_function_symbol_table)
    prototype = old_function_symbol_table->member;
@@ -63,7 +64,8 @@ static int parse_param_declaration_list(
       &composite_type,
       STORAGE_CLASS_FUNCTION_PARAMETER,
       TOKEN_COMMA,
-      TOKEN_RIGHT_PAREN);
+      TOKEN_RIGHT_PAREN,
+      &tree);
 
     if (primitive_type == -1)
       error("Bad type in parameter list");
@@ -103,6 +105,7 @@ static struct SymbolTable *parse_composite_declaration(int primitive_type) {
   // 解析 struct 定义的语句
   struct SymbolTable *composite_type = NULL, *member;
   int offset, member_primitive_type;
+  struct ASTNode *tree;
 
   // 跳过 struct/union 关键字
   scan(&token_from_file);
@@ -141,7 +144,12 @@ static struct SymbolTable *parse_composite_declaration(int primitive_type) {
   // 在 member 列表中扫描
   while (1) {
     member_primitive_type
-      = parse_declaration_list(&member, STORAGE_CLASS_MEMBER, TOKEN_SEMICOLON, TOKEN_RIGHT_BRACE);
+      = parse_declaration_list(
+          &member,
+          STORAGE_CLASS_MEMBER,
+          TOKEN_SEMICOLON,
+          TOKEN_RIGHT_BRACE,
+          &tree);
     if (member_primitive_type == -1)
       error("Bad type in member list");
     if (token_from_file.token == TOKEN_SEMICOLON)
@@ -740,7 +748,7 @@ int parse_declaration_list(
     primitive_type = convert_multiply_token_2_primitive_type(init_primitive_type);
 
     // 解析 symbol
-    t = parse_symbol_declaration(primitive_type, *composite_type, storage_class);
+    t = parse_symbol_declaration(primitive_type, *composite_type, storage_class, &tree);
 
     // 函数不在初始化变量的范围，直接返回
     if (t->structural_type == STRUCTURAL_FUNCTION) {
@@ -764,6 +772,7 @@ int parse_declaration_list(
 
 void parse_global_declaration() {
   struct SymbolTable *composite_type;
+  struct ASTNode *tree;
 
   // 解析声明的全局变量/函数
   while (token_from_file.token != TOKEN_EOF) {
@@ -771,7 +780,8 @@ void parse_global_declaration() {
       &composite_type,
       STORAGE_CLASS_GLOBAL,
       TOKEN_SEMICOLON,
-      TOKEN_EOF);
+      TOKEN_EOF,
+      &tree);
 
     if (token_from_file.token == TOKEN_SEMICOLON)
       scan(&token_from_file);
