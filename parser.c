@@ -11,6 +11,7 @@
 #include "types.h"
 #include "parser.h"
 #include "generator.h"
+#include "declaration.h"
 
 static int operation_precedence_array[] = {
   0, 10, 20, 30,  // EOF = || &&
@@ -81,6 +82,7 @@ static int operation_precedence(int operation_in_token) {
 static struct ASTNode *create_ast_node_from_expression() {
   struct ASTNode *node;
   int label;
+  int primitive_type = 0;
 
   switch (token_from_file.token) {
     case TOKEN_STRING_LITERAL:
@@ -110,10 +112,44 @@ static struct ASTNode *create_ast_node_from_expression() {
 
     case TOKEN_LEFT_PAREN:
       // 解析 e= (a+b) * (c+d); 类似的语句
-      // 如果表达式以 ( 开头，跳过它
+      // 跳过 '('
       scan(&token_from_file);
-      node = converse_token_2_ast(0);
-      verify_right_paren();
+
+      // 这里处理类似强制类型转换的语句
+      // 比如
+      // int   x= 65535;
+      // char  y= (char)x;
+      // int  *a= &x;
+      // char *b= (char *)a;
+      // long *z= (void *)0;
+      switch (token_from_file.token) {
+        case TOKEN_IDENTIFIER:
+          if (!find_typedef_symbol(text_buffer)) {
+            node = converse_token_2_ast(0);
+            break;
+          }
+        case TOKEN_VOID:
+        case TOKEN_CHAR:
+        case TOKEN_INT:
+        case TOKEN_LONG:
+        case TOKEN_STRUCT:
+        case TOKEN_UNION:
+        case TOKEN_ENUM:
+          // 获取到强制类型转换后的 type
+          primitive_type = convert_type_casting_token_2_primitive_type();
+          // 跳过 ')'
+          verify_right_paren();
+        default:
+          node = converse_token_2_ast(0);
+      }
+
+      if (!primitive_type)
+        // 没有强制类型转换这样也要跳过 ')'
+        verify_right_paren();
+      else
+        // 否则创建一个 强制类型转换的 node
+        node = create_ast_left_node(AST_TYPE_CASTING, primitive_type, node, 0, NULL);
+
       return node;
     default:
       error_with_message("Expecting a primary expression, got token", token_from_file.token_string);

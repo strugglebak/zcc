@@ -282,6 +282,27 @@ int convert_literal_token_2_integer_value(int primitive_type) {
   return token_from_file.integer_value;
 }
 
+int convert_type_casting_token_2_primitive_type() {
+  int primitive_type, storage_class;
+  struct SymbolTable *t;
+
+  primitive_type = convert_multiply_token_2_primitive_type(
+    convert_token_2_primitive_type(
+      &t,
+      &storage_class
+    )
+  );
+
+  if (
+    primitive_type == PRIMITIVE_STRUCT ||
+    primitive_type == PRIMITIVE_UNION ||
+    primitive_type == PRIMITIVE_VOID
+  )
+    error("Cannot cast to a struct, union or void type");
+
+  return primitive_type;
+}
+
 static struct SymbolTable *parse_array_declaration(
   char *var_name,
   int primitive_type,
