@@ -15,7 +15,8 @@ int parse_declaration_list(
   struct SymbolTable **composite_type,
   int storage_class,
   int end_token,
-  int end_token_2
+  int end_token_2,
+  struct ASTNode **glue_tree
 );
 void parse_global_declaration();
 

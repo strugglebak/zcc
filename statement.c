@@ -143,7 +143,12 @@ static struct ASTNode *parse_single_statement() {
     case TOKEN_UNION:
     case TOKEN_ENUM:
     case TOKEN_TYPEDEF:
-      parse_declaration_list(&composite_type, STORAGE_CLASS_LOCAL, TOKEN_SEMICOLON, TOKEN_EOF);
+      parse_declaration_list(
+        &composite_type,
+        STORAGE_CLASS_LOCAL,
+        TOKEN_SEMICOLON,
+        TOKEN_EOF,
+        &statement);
       verify_semicolon();
       return NULL;
     case TOKEN_IF:

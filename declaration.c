@@ -387,9 +387,13 @@ static struct SymbolTable *parse_scalar_declaration(
   char *var_name,
   int primitive_type,
   struct SymbolTable *composite_type,
-  int storage_class
+  int storage_class,
+  struct ASTNode **tree
 ) {
   struct SymbolTable *t = NULL;
+  struct ASTNode *var_node, *expression_node;
+
+  *tree = NULL;
 
   switch (storage_class) {
     case STORAGE_CLASS_GLOBAL:
@@ -443,6 +447,28 @@ static struct SymbolTable *parse_scalar_declaration(
       t->init_value_list[0] = convert_literal_token_2_integer_value(primitive_type);
       // 跳过 ',' 或者 ';'
       scan(&token_from_file);
+    } else if (storage_class == STORAGE_CLASS_LOCAL) {
+      // hack: 在这个函数里面创建 ast node
+      var_node = create_ast_leaf(AST_IDENTIFIER, t->primitive_type, 0, t);
+
+      // 表达式的值为右值
+      expression_node = converse_token_2_ast(0);
+      expression_node->rvalue = 1;
+
+      // 检查类型
+      expression_node = modify_type(expression_node, var_node->primitive_type, 0);
+      if (!expression_node)
+        error("Incompatible expression in assignment");
+
+      // 创建 local 变量相关 ast tree
+      *tree = create_ast_node(
+        AST_ASSIGN,
+        expression_node->primitive_type,
+        expression_node,
+        NULL,
+        var_node,
+        0,
+        NULL);
     }
   }
 
@@ -457,7 +483,8 @@ static struct SymbolTable *parse_scalar_declaration(
 static struct SymbolTable *parse_symbol_declaration(
   int primitive_type,
   struct SymbolTable *composite_type,
-  int storage_class
+  int storage_class,
+  struct ASTNode **tree
 ) {
   struct SymbolTable *t = NULL;
   char *var_name = strdup(text_buffer);
@@ -486,7 +513,7 @@ static struct SymbolTable *parse_symbol_declaration(
   // 如果是 '[' 说明是数组定义
   t = token_from_file.token == TOKEN_LEFT_BRACKET
     ? parse_array_declaration(var_name, primitive_type, composite_type, storage_class)
-    : parse_scalar_declaration(var_name, primitive_type, composite_type, storage_class);
+    : parse_scalar_declaration(var_name, primitive_type, composite_type, storage_class, tree);
 
   return t;
 }
@@ -692,10 +719,14 @@ int parse_declaration_list(
   struct SymbolTable **composite_type,
   int storage_class,
   int end_token,
-  int end_token_2
+  int end_token_2,
+  struct ASTNode **glue_tree
 ) {
   int init_primitive_type, primitive_type;
   struct SymbolTable *t;
+  struct ASTNode *tree;
+
+  *glue_tree = NULL;
 
   // 检查是否是复合类型
   if ((init_primitive_type
@@ -717,6 +748,11 @@ int parse_declaration_list(
         error("Function definition not at global level");
       return primitive_type;
     }
+
+    // 解析 local 变量，粘接 ast tree
+    *glue_tree = (*glue_tree)
+      ? create_ast_node(AST_GLUE, PRIMITIVE_NONE, *glue_tree, NULL, tree, 0, NULL)
+      : tree;
 
     if (token_from_file.token == end_token ||
         token_from_file.token == end_token_2)
