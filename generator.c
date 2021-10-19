@@ -349,6 +349,8 @@ int interpret_ast_with_register(
     case AST_CONTINUE:
       register_jump(loop_start_label);
       return NO_REGISTER;
+    case AST_TYPE_CASTING:
+      return left_register;
 
     default:
       error_with_digital("Unknown AST operator", node->operation);

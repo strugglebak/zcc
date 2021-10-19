@@ -261,9 +261,11 @@ static int convert_multiply_token_2_primitive_type(int primitive_type) {
 
 int convert_literal_token_2_integer_value(int primitive_type) {
   // 如果是类似 char *a = 'xxx'; 这样的赋值
-  if ((primitive_type == pointer_to(PRIMITIVE_CHAR)) &&
-      (token_from_file.token == TOKEN_STRING_LITERAL))
-    return generate_global_string_code(text_buffer);
+  // 允许 char a = (char)65536; 这样的赋值
+  if (token_from_file.token == TOKEN_STRING_LITERAL)
+    if (primitive_type == pointer_to(PRIMITIVE_CHAR) ||
+        primitive_type == PRIMITIVE_NONE)
+      return generate_global_string_code(text_buffer);
 
   if (token_from_file.token == TOKEN_INTEGER_LITERAL) {
     switch (primitive_type) {
@@ -421,6 +423,7 @@ static struct SymbolTable *parse_scalar_declaration(
 ) {
   struct SymbolTable *t = NULL;
   struct ASTNode *var_node, *expression_node;
+  int type_casting_primitive_type;
 
   *tree = NULL;
 
@@ -472,6 +475,27 @@ static struct SymbolTable *parse_scalar_declaration(
 
     // 全局变量必须被赋值为一个字面量的值
     if (storage_class == STORAGE_CLASS_GLOBAL) {
+
+      // 如果有强制类型转换
+      if (token_from_file.token == TOKEN_LEFT_PAREN) {
+        scan(&token_from_file);
+        type_casting_primitive_type = convert_type_casting_token_2_primitive_type();
+        verify_right_paren();
+
+        // 如果是同类型的强转
+        // 比如
+        // char a= (char)65536;
+        // 或者想强转成 '(void *)'
+        // 比如
+        // char a= (void *)65536;
+        if (type_casting_primitive_type == primitive_type ||
+            (type_casting_primitive_type == pointer_to(PRIMITIVE_VOID) &&
+             check_pointer_type(primitive_type)))
+          primitive_type = PRIMITIVE_NONE;
+        else
+          error("Type mismatch");
+      }
+
       t->init_value_list = (int *)malloc(sizeof(int));
       t->init_value_list[0] = convert_literal_token_2_integer_value(primitive_type);
       // 跳过 ',' 或者 ';'
