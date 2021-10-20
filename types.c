@@ -35,10 +35,10 @@ struct ASTNode *modify_type(
     // 特殊情况判断
     if (left_primitive_type == PRIMITIVE_STRUCT ||
         left_primitive_type == PRIMITIVE_UNION)
-      error("Does not support this type casting");
+      error("Does not support this type casting yet");
     if (right_primitive_type == PRIMITIVE_STRUCT ||
         right_primitive_type == PRIMITIVE_UNION)
-      error("Does not support this type casting");
+      error("Does not support this type casting yet");
 
     // 左右改变类似于如下的计算
     // x= *ptr;	        // OK
@@ -61,7 +61,10 @@ struct ASTNode *modify_type(
     // 比较 char/int/long 指针
     if (check_pointer_type(left_primitive_type) &&
         check_pointer_type(right_primitive_type)) {
-      if (!operation && left_primitive_type == right_primitive_type) return tree;
+
+      // 如果是比较操作符
+      if (operation >= AST_COMPARE_EQUALS && operation <= AST_COMPARE_GREATER_EQUALS)
+        return tree;
 
       // 如果 left node 是 (void *)
       // 即 char a = (void *)65536;
