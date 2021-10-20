@@ -271,7 +271,7 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
     if (ast_operation_type == AST_ASSIGN) {
       // 确保 right 和 left 的类型匹配
       right = modify_type(right, left->primitive_type, 0);
-      if (!left) error("Incompatible expression in assignment");
+      if (!right) error("Incompatible expression in assignment");
 
       // 交换 left 和 right，确保 right 汇编语句能在 left 之前生成
       left_temp = left; left = right; right = left_temp;
@@ -288,8 +288,6 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
       if (right_temp) right = right_temp;
     }
 
-
-    // 开始构建左子树
     left = create_ast_node(
       ast_operation_type,
       left->primitive_type,
