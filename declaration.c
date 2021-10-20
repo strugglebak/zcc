@@ -274,7 +274,7 @@ int convert_literal_token_2_integer_value(int primitive_type) {
         if (token_from_file.integer_value < 0 || token_from_file.integer_value > 255)
           error("Integer literal value too big for char type");
       // int a = 256; 或者 long a = 256;
-      case PRIMITIVE_INT: case PRIMITIVE_LONG: break;
+      case PRIMITIVE_NONE: case PRIMITIVE_INT: case PRIMITIVE_LONG: break;
       // void a = 256; 直接报错
       default: error("Type mismatch: integer literal vs. variable");
     }
@@ -319,7 +319,8 @@ static struct SymbolTable *parse_array_declaration(
   int element_number = -1,
       max_element_number,
       *init_value_list,
-      i = 0, j;
+      i = 0, j,
+      type_casting_primitive_type, new_primitive_type;
 
   // 跳过 '['
   scan(&token_from_file);
@@ -372,10 +373,28 @@ static struct SymbolTable *parse_array_declaration(
 
     // 处理 '{}' 中初始化的内容
     while (1) {
+      new_primitive_type = primitive_type;
+
       if (element_number != -1 && i == max_element_number)
         error("Too many values in initialisation list");
 
-      init_value_list[i++] = convert_literal_token_2_integer_value(primitive_type);
+      // 如果在数组初始化中也有类型转换
+      if (token_from_file.token == TOKEN_LEFT_PAREN) {
+        scan(&token_from_file);
+        type_casting_primitive_type = convert_type_casting_token_2_primitive_type();
+        verify_right_paren();
+
+        if (type_casting_primitive_type == primitive_type ||
+           (type_casting_primitive_type == pointer_to(PRIMITIVE_VOID) &&
+           check_pointer_type(primitive_type)))
+          new_primitive_type = PRIMITIVE_NONE;
+        else
+          error("Type mismatch");
+
+        new_primitive_type = PRIMITIVE_NONE;
+      }
+
+      init_value_list[i++] = convert_literal_token_2_integer_value(new_primitive_type);
       // 跳过其中一个初始化用的字面量
       scan(&token_from_file);
 
