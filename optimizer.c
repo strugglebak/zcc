@@ -31,9 +31,7 @@ static struct ASTNode *fold_2_children(struct ASTNode *node) {
 }
 
 static struct ASTNode *fold_1_children(struct ASTNode *node) {
-  int value;
-
-  value = node->left->ast_node_integer_value;
+  int value = node->left->ast_node_integer_value;
 
   switch (node->operation) {
     // 如果是 x = 3000 + 1;
@@ -48,16 +46,16 @@ static struct ASTNode *fold_1_children(struct ASTNode *node) {
 }
 
 static struct ASTNode *fold(struct ASTNode *node) {
-  if (!node) return node;
+  if (!node) return NULL;
 
   node->left = fold(node->left);
   node->right = fold(node->right);
 
-  if (node->left && node->left->operation == AST_INTEGER_LITERAL) {
+  if (node->left && node->left->operation == AST_INTEGER_LITERAL)
     if (node->right && node->right->operation == AST_INTEGER_LITERAL)
       node = fold_2_children(node);
-  } else
-    node = fold_1_children(node);
+    else
+      node = fold_1_children(node);
 
   return node;
 }
