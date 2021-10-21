@@ -11,6 +11,7 @@
 #include "types.h"
 #include "declaration.h"
 #include "parser.h"
+#include "optimizer.h"
 
 static int convert_token_2_primitive_type(struct SymbolTable **composite_type, int *storage_class);
 
@@ -772,6 +773,9 @@ struct SymbolTable *parse_function_declaration(
     tree,
     end_label,
     old_function_symbol_table);
+
+  // 优化 ast tree
+  tree = optimise(tree);
 
   if (output_dump_ast) {
     dump_ast(tree, NO_LABEL, 0);
