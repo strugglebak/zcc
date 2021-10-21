@@ -36,6 +36,8 @@ static struct ASTNode *fold_1_children(struct ASTNode *node) {
   value = node->left->ast_node_integer_value;
 
   switch (node->operation) {
+    // 如果是 x = 3000 + 1;
+    // 这个 1 如果是 char 类型的，就需要 widen 至 int 类型
     case AST_WIDEN: break;
     case AST_INVERT: value = ~value; break;
     case AST_LOGIC_NOT: value = !value; break;
