@@ -58,7 +58,7 @@ do if [ ! -f "assert/out.$i" -a ! -f "error/error.$i" ]
       cc -o out ${i%%.*}.c
       ./out > assert/out.$i
       echo "gen $i assert Ok!"
-      rm -f ${i%%.*}.c "error/error.$i"
+      rm -f ${i%%.*}.c "error/error.$i" ${i%%.*}.s
     fi
    fi
    rm -f out out.s
