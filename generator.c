@@ -271,7 +271,40 @@ int interpret_ast_with_register(
           return register_load_local_value_from_variable(node->symbol_table, node->operation);
         }
       return NO_REGISTER;
+    // a += b + c
+    // 会被解析成如下
+    //       AST_ASPLUS
+    //      /        \
+    //  AST_IDENT     AST_ADD
+    //  rval a     /     \
+    //         AST_IDENT  AST_IDENT
+    //          rval b  rval c
+    case AST_ASSIGN_PLUS:
+    case AST_ASSIGN_MINUS:
+    case AST_ASSIGN_MULTIPLY:
+    case AST_ASSIGN_DIVIDE:
     case AST_ASSIGN:
+      // 处理前面 += -= *= /=
+      switch (node->operation) {
+        case AST_ASSIGN_PLUS:
+          left_register = register_plus(left_register, right_register);
+          node->right = node->left;
+          break;
+        case AST_ASSIGN_MINUS:
+          left_register = register_minus(left_register, right_register);
+          node->right = node->left;
+          break;
+        case AST_ASSIGN_MULTIPLY:
+          left_register = register_multiply(left_register, right_register);
+          node->right = node->left;
+          break;
+        case AST_ASSIGN_DIVIDE:
+          left_register = register_divide(left_register, right_register);
+          node->right = node->left;
+          break;
+      }
+
+      // 处理 =
       // 是赋值给一个变量还是给一个指针赋值?
       // x = y
       // *x = y

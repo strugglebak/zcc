@@ -220,7 +220,7 @@ void dump_ast(struct ASTNode *n, int label, int level) {
       fprintf(stdout, "AST_ASMINUS\n"); return;
     case AST_ASSIGN_MULTIPLY:
       fprintf(stdout, "AST_ASMULTIPLY\n"); return;
-    case AST_ASSGIN_DIVIDE:
+    case AST_ASSIGN_DIVIDE:
       fprintf(stdout, "AST_ASDIVIDE\n"); return;
     default:
       error_with_digital("Unknown dump_ast operator", n->operation);
