@@ -44,7 +44,6 @@ struct SymbolTable {
   union {
     int end_label; // 对于 STRUCTURAL_FUNCTION 来说的 end label
     int position; // 本地变量相对于栈基指针的负向距离
-    int integer_value; // 对于枚举变量来说与其关联的值
   };
   struct SymbolTable *next; // 下一个 symbol table 的指针
   struct SymbolTable *member; // 指向第一个函数、结构体、联合体、枚举的成员的 symbol table 的指针
