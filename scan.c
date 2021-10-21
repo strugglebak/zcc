@@ -274,6 +274,10 @@ int scan(struct Token *t) {
         t->token = TOKEN_DECREASE;
       } else if (c == '>') {
         t->token = TOKEN_ARROW;
+      } else if (isdigit(c)) {
+        // 有可能是个负数
+        t->integer_value = -scan_integer(c);
+        t->token = TOKEN_INTEGER_LITERAL;
       } else {
         put_back(c);
         t->token = TOKEN_MINUS;
@@ -409,6 +413,5 @@ int scan(struct Token *t) {
   }
 
   t->token_string = token_string[t->token];
-  // printf("scan str = %s\n", t->token_string);
   return 1;
 }
