@@ -31,7 +31,7 @@ static int check_right_associative(int token) {
 
 // 将 token 中的 + - * / 等转换成 ast 中的类型
 static int convert_token_operation_2_ast_operation(int operation_in_token) {
-  if (operation_in_token > TOKEN_EOF && operation_in_token < TOKEN_DIVIDE)
+  if (operation_in_token > TOKEN_EOF && operation_in_token <= TOKEN_DIVIDE)
     return operation_in_token;
   error_with_message("Syntax error, token", token_string[operation_in_token]);
   return 0;
