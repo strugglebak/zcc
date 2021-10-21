@@ -166,7 +166,7 @@ void dump_ast(struct ASTNode *n, int label, int level) {
     case AST_COMPARE_GREATER_EQUALS:
       fprintf(stdout, "AST_GE\n"); return;
     case AST_INTEGER_LITERAL:
-      fprintf(stdout, "AST_INTLIT %d\n", n->integer_value); return;
+      fprintf(stdout, "AST_INTLIT %d\n", n->ast_node_integer_value); return;
     case AST_IDENTIFIER:
       n->rvalue
         ? fprintf(stdout, "AST_IDENT rval %s\n", t->name)
@@ -188,7 +188,7 @@ void dump_ast(struct ASTNode *n, int label, int level) {
     case AST_WIDEN:
       fprintf(stdout, "AST_WIDEN\n"); return;
     case AST_SCALE:
-      fprintf(stdout, "AST_SCALE %d\n", n->scale_size); return;
+      fprintf(stdout, "AST_SCALE %d\n", n->ast_node_scale_size); return;
     default:
       error_with_digital("Unknown dump_ast operator", n->operation);
   }

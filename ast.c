@@ -25,7 +25,7 @@ struct ASTNode *create_ast_node(
   node->left = left;
   node->middle = middle;
   node->right = right;
-  node->integer_value = integer_value;
+  node->ast_node_integer_value = integer_value;
   node->symbol_table = symbol_table;
 
   return node;

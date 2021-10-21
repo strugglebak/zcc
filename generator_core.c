@@ -237,44 +237,44 @@ int register_load_local_value_from_variable(struct SymbolTable *t, int operation
   char *r = register_list[register_index];
   if (register_get_primitive_type_size(t->primitive_type) == 8) {
     if (operation == AST_PRE_INCREASE)
-      fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t->position);
+      fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t->symbol_table_position);
     if (operation == AST_PRE_DECREASE)
-      fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t->position);
+      fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t->symbol_table_position);
 
-    fprintf(output_file, "\tmovq\t%d(\%%rbp), %s\n", t->position, r);
+    fprintf(output_file, "\tmovq\t%d(\%%rbp), %s\n", t->symbol_table_position, r);
 
     if (operation == AST_POST_INCREASE)
-      fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t->position);
+      fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t->symbol_table_position);
     if (operation == AST_POST_DECREASE)
-      fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t->position);
+      fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t->symbol_table_position);
     return register_index;
   }
   switch (t->primitive_type) {
     case PRIMITIVE_CHAR:
       if (operation == AST_PRE_INCREASE)
-        fprintf(output_file, "\tincb\t%d(\%%rbp)\n", t->position);
+        fprintf(output_file, "\tincb\t%d(\%%rbp)\n", t->symbol_table_position);
       if (operation == AST_PRE_DECREASE)
-        fprintf(output_file, "\tdecb\t%d(\%%rbp)\n", t->position);
+        fprintf(output_file, "\tdecb\t%d(\%%rbp)\n", t->symbol_table_position);
 
-      fprintf(output_file, "\tmovzbq\t%d(\%%rbp), %s\n", t->position, r);
+      fprintf(output_file, "\tmovzbq\t%d(\%%rbp), %s\n", t->symbol_table_position, r);
 
       if (operation == AST_POST_INCREASE)
-        fprintf(output_file, "\tincb\t%d(\%%rbp)\n", t->position);
+        fprintf(output_file, "\tincb\t%d(\%%rbp)\n", t->symbol_table_position);
       if (operation == AST_POST_DECREASE)
-        fprintf(output_file, "\tdecb\t%d(\%%rbp)\n", t->position);
+        fprintf(output_file, "\tdecb\t%d(\%%rbp)\n", t->symbol_table_position);
       break;
     case PRIMITIVE_INT:
       if (operation == AST_PRE_INCREASE)
-        fprintf(output_file, "\tincl\t%d(\%%rbp)\n", t->position);
+        fprintf(output_file, "\tincl\t%d(\%%rbp)\n", t->symbol_table_position);
       if (operation == AST_PRE_DECREASE)
-        fprintf(output_file, "\tdecl\t%d(\%%rbp)\n", t->position);
+        fprintf(output_file, "\tdecl\t%d(\%%rbp)\n", t->symbol_table_position);
 
-      fprintf(output_file, "\tmovslq\t%d(\%%rbp), %s\n", t->position, r);
+      fprintf(output_file, "\tmovslq\t%d(\%%rbp), %s\n", t->symbol_table_position, r);
 
       if (operation == AST_POST_INCREASE)
-        fprintf(output_file, "\tincl\t%d(\%%rbp)\n", t->position);
+        fprintf(output_file, "\tincl\t%d(\%%rbp)\n", t->symbol_table_position);
       if (operation == AST_POST_DECREASE)
-        fprintf(output_file, "\tdecl\t%d(\%%rbp)\n", t->position);
+        fprintf(output_file, "\tdecl\t%d(\%%rbp)\n", t->symbol_table_position);
       break;
     default:
       error_with_digital("Bad type in register_load_local_value_from_variable:", t->primitive_type);
@@ -316,19 +316,19 @@ int register_store_local_value_2_variable(int register_index, struct SymbolTable
   if (register_get_primitive_type_size(t->primitive_type) == 8) {
     fprintf(output_file, "\tmovq\t%s, %d(\%%rbp)\n",
     register_list[register_index],
-    t->position);
+    t->symbol_table_position);
     return register_index;
   }
   switch (t->primitive_type) {
     case PRIMITIVE_CHAR:
       fprintf(output_file, "\tmovb\t%s, %d(\%%rbp)\n",
        lower_8_bits_register_list[register_index],
-       t->position);
+       t->symbol_table_position);
       break;
     case PRIMITIVE_INT:
       fprintf(output_file, "\tmovl\t%s, %d(\%%rbp)\n",
        lower_32_bits_register_list[register_index],
-       t->position);
+       t->symbol_table_position);
       break;
     default:
       error_with_digital("Bad type in register_store_local_value_2_variable:", t->primitive_type);
@@ -499,10 +499,10 @@ void register_function_preamble(struct SymbolTable *t) {
     parameter_pointer = parameter_pointer->next, i++
   ) {
     if (i > 6) {
-      parameter_pointer->position = parameter_offset;
+      parameter_pointer->symbol_table_position = parameter_offset;
       parameter_offset += 8;
     } else {
-      parameter_pointer->position
+      parameter_pointer->symbol_table_position
         = register_new_local_offset(parameter_pointer->primitive_type);
       register_store_local_value_2_variable(parameter_register_number--, parameter_pointer);
     }
@@ -515,7 +515,7 @@ void register_function_preamble(struct SymbolTable *t) {
     local_var_pointer;
     local_var_pointer = local_var_pointer->next
   ) {
-    local_var_pointer->position = register_new_local_offset(local_var_pointer->primitive_type);
+    local_var_pointer->symbol_table_position = register_new_local_offset(local_var_pointer->primitive_type);
   }
 
   // 将栈指针对齐为 16 的倍数
@@ -527,7 +527,7 @@ void register_function_preamble(struct SymbolTable *t) {
  * 解析函数定义的后置汇编代码
 */
 void register_function_postamble(struct SymbolTable *t) {
-  register_label(t->end_label);
+  register_label(t->symbol_table_end_label);
   // 栈指针回到最初的位置
   fprintf(output_file, "\taddq\t$%d,%%rsp\n", stack_offset);
   fputs("\tpopq\t%rbp\n"
@@ -595,14 +595,14 @@ void register_function_return(int register_index, struct SymbolTable *t) {
     default:
       error_with_digital("Bad function type in register_function_return:", t->primitive_type);
   }
-  register_jump(t->end_label);
+  register_jump(t->symbol_table_end_label);
 }
 
 int register_load_identifier_address(struct SymbolTable *t) {
   int register_index = allocate_register();
   char *r = register_list[register_index];
   if (t->storage_class == STORAGE_CLASS_LOCAL)
-    fprintf(output_file, "\tleaq\t%d(%%rbp), %s\n", t->position, r);
+    fprintf(output_file, "\tleaq\t%d(%%rbp), %s\n", t->symbol_table_position, r);
   else
     fprintf(output_file, "\tleaq\t%s(%%rip), %s\n", t->name, r);
   return register_index;

@@ -16,10 +16,9 @@ struct ASTNode {
   struct ASTNode *middle;
   struct ASTNode *right;
   struct SymbolTable *symbol_table;
-  union {
-    int integer_value;
-    int scale_size;
-  };
+
+#define ast_node_integer_value ast_node_scale_size
+int ast_node_scale_size;
 };
 
 // 符号表，目前作用是支持变量
@@ -40,11 +39,14 @@ struct SymbolTable {
   // 对于函数，为参数的个数
   // 对于结构体，为结构体的 field 的个数
   int element_number;
+
+// 对于 STRUCTURAL_FUNCTION 来说的 end label
+#define symbol_table_end_label symbol_table_position
+
+  // 本地变量相对于栈基指针的负向距离
+  int symbol_table_position;
+
   int *init_value_list; // 初始化值列表
-  union {
-    int end_label; // 对于 STRUCTURAL_FUNCTION 来说的 end label
-    int position; // 本地变量相对于栈基指针的负向距离
-  };
   struct SymbolTable *next; // 下一个 symbol table 的指针
   struct SymbolTable *member; // 指向第一个函数、结构体、联合体、枚举的成员的 symbol table 的指针
   struct SymbolTable *composite_type; // 指向复合类型 symbol table 的指针

@@ -144,7 +144,7 @@ struct SymbolTable *new_symbol_table(
       * get_primitive_type_size(primitive_type, composite_type);
 
   node->storage_class = storage_class;
-  node->position = position;
+  node->symbol_table_position = position;
   node->composite_type = composite_type;
   node->next = NULL;
   node->member = NULL;

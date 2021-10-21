@@ -420,7 +420,7 @@ struct ASTNode *convert_member_access_2_ast(int with_pointer) {
   if (!member) error_with_message("No member found in struct/union", text_buffer);
 
   // 找到了 'a'，先创建一个右节点，值是 'a' 所在的成员的 offset
-  right = create_ast_leaf(AST_INTEGER_LITERAL, PRIMITIVE_INT, member->position, NULL);
+  right = create_ast_leaf(AST_INTEGER_LITERAL, PRIMITIVE_INT, member->symbol_table_position, NULL);
 
   // 返回一个 AST 树，其中 struct 的基添加了 member 的偏移量
   left = create_ast_node(AST_PLUS, pointer_to(member->primitive_type), left, NULL, right, 0, NULL);
@@ -525,7 +525,7 @@ struct ASTNode *convert_postfix_expression_2_ast() {
   // 如果是得先返回一个 ast node
   if ((enum_pointer = find_enum_value_symbol(text_buffer))) {
     scan(&token_from_file);
-    return create_ast_leaf(AST_INTEGER_LITERAL, PRIMITIVE_INT, enum_pointer->position, NULL);
+    return create_ast_leaf(AST_INTEGER_LITERAL, PRIMITIVE_INT, enum_pointer->symbol_table_position, NULL);
   }
 
   // 扫描下一个，继续判断

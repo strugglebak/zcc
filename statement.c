@@ -78,12 +78,12 @@ static struct ASTNode *parse_switch_statement() {
           // 检查 case a: 这个 a 是一个 int 类型的字面量
           if (left->operation != AST_INTEGER_LITERAL)
             error("Expecting integer literal for case value");
-          case_value = left->integer_value;
+          case_value = left->ast_node_integer_value;
 
           // 遍历所有的 case value 列表，检查是否有重复的 case value
           // 比如 case a: 后面又有一个 case a:
           for (c = case_tree; c; c = c->right)
-            if (case_value == c->integer_value)
+            if (case_value == c->ast_node_integer_value)
               error("Duplicate case value");
         }
 
@@ -109,7 +109,7 @@ static struct ASTNode *parse_switch_statement() {
   switch_level--;
 
   // 解析 case 完之后给初始 node 赋值
-  node->integer_value = case_count;
+  node->ast_node_integer_value = case_count;
   node->right = case_tree;
 
   // 跳过 '}'

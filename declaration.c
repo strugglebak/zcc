@@ -170,13 +170,13 @@ static struct SymbolTable *parse_composite_declaration(int primitive_type) {
   // 根据成员变量的类型设置 offset
   // 先设置首个成员变量
   member = composite_type->member;
-  member->position = 0;
+  member->symbol_table_position = 0;
   offset = get_primitive_type_size(member->primitive_type, member->composite_type);
 
   // 再设置剩下的成员变量
   member = member->next;
   for (; member; member = member->next) {
-    member->position =
+    member->symbol_table_position =
       primitive_type == PRIMITIVE_STRUCT
         ? generate_align(member->primitive_type, offset, 1)
         // union 是共享变量地址，所以这里是 0

@@ -109,9 +109,9 @@ static int interpret_function_call_with_register(struct ASTNode *node) {
     // 先生成相关表达式的汇编代码
     register_index = interpret_ast_with_register(glue_node->right, NO_LABEL, NO_LABEL, NO_LABEL, glue_node->operation);
     // 将其复制到第 n 个函数参数中
-    register_copy_argument(register_index, glue_node->scale_size);
+    register_copy_argument(register_index, glue_node->ast_node_scale_size);
     // 保留第一个参数
-    if (!function_argument_number) function_argument_number = glue_node->scale_size;
+    if (!function_argument_number) function_argument_number = glue_node->ast_node_scale_size;
     clear_all_registers();
     glue_node = glue_node->left;
   }
@@ -128,8 +128,8 @@ static int interpret_switch_ast_with_register(struct ASTNode *node) {
   // 为 case value 和与之对应的 case label 创建数组
   // 注意这里的 node 的 integer_value 存的是构建 case tree 时的 case_count
   // 也就是 case 的个数
-  case_value = (int *) malloc((node->integer_value + 1) * sizeof(int));
-  case_label = (int *) malloc((node->integer_value + 1) * sizeof(int));
+  case_value = (int *) malloc((node->ast_node_integer_value + 1) * sizeof(int));
+  case_label = (int *) malloc((node->ast_node_integer_value + 1) * sizeof(int));
 
   label_jump_start = generate_label();
   label_end = generate_label();
@@ -144,7 +144,7 @@ static int interpret_switch_ast_with_register(struct ASTNode *node) {
   for(i = 0, c = node->right; c; i++, c = c->right) {
     // 为每个 case 创建 label
     case_label[i] = generate_label();
-    case_value[i] = c->integer_value;
+    case_value[i] = c->ast_node_integer_value;
     register_label(case_label[i]);
     if (c->operation == AST_DEFAULT)
       label_default = case_label[i];
@@ -258,7 +258,7 @@ int interpret_ast_with_register(
       return NO_REGISTER;
 
     case AST_INTEGER_LITERAL:
-      return register_load_interger_literal(node->integer_value, node->primitive_type);
+      return register_load_interger_literal(node->ast_node_integer_value, node->primitive_type);
     case AST_IDENTIFIER:
       //               类似于 * y 这种情况
       //                     | |
@@ -302,18 +302,18 @@ int interpret_ast_with_register(
       return register_widen(left_register, node->left->primitive_type, node->primitive_type);
     // 对 char*/int*/long* 指针类型转换的处理
     case AST_SCALE:
-      switch (node->scale_size) {
+      switch (node->ast_node_scale_size) {
         case 2: return register_shift_left_by_constant(left_register, 1); // 左移 1 位
         case 4: return register_shift_left_by_constant(left_register, 2); // 左移 2 位
         case 8: return register_shift_left_by_constant(left_register, 3); // 左移 3 位
         default:
-          right_register = register_load_interger_literal(node->scale_size, PRIMITIVE_INT);
+          right_register = register_load_interger_literal(node->ast_node_scale_size, PRIMITIVE_INT);
           return register_multiply(left_register, right_register);
       }
 
     // 处理 string
     case AST_STRING_LITERAL:
-      return register_load_global_string(node->integer_value);
+      return register_load_global_string(node->ast_node_integer_value);
 
     case AST_AMPERSAND:
       return register_and(left_register, right_register);

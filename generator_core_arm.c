@@ -347,7 +347,7 @@ void register_function_preamble(int symbol_table_index) {
 */
 void register_function_postamble(int symbol_table_index) {
   struct SymbolTable t = symbol_table[symbol_table_index];
-  register_label(t.end_label);
+  register_label(t.symbol_table_end_label);
   fputs("\tsub\tsp, fp, #4\n"
         "\tpop\t{fp, pc}\n"
         "\t.align\t2\n"
@@ -391,7 +391,7 @@ void register_function_return(int register_index, int symbol_table_index) {
   struct SymbolTable t = symbol_table[symbol_table_index];
   char *r = register_list[register_index];
   fprintf(output_file, "\tmov\tr0, %s\n", r);
-  register_jump(t.end_label);
+  register_jump(t.symbol_table_end_label);
 }
 
 int register_load_identifier_address(int symbol_table_index) {
