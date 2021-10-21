@@ -14,7 +14,9 @@
 #include "declaration.h"
 
 static int operation_precedence_array[] = {
-  0, 10, 20, 30,  // EOF = || &&
+  0, 10,          // EOF =
+  10, 10, 10, 10, // += -= *= /=
+  20, 30,         // || &&
   40, 50, 60,     // | ^ &
   70, 70,         // == !=
   80, 80, 80, 80, // < > <= >=
@@ -24,7 +26,15 @@ static int operation_precedence_array[] = {
 };
 
 static int check_right_associative(int token) {
-  return token == TOKEN_ASSIGN ? 1 : 0;
+  return token >= TOKEN_ASSIGN && token <= TOKEN_ASSGIN_DIVIDE ? 1 : 0;
+}
+
+// 将 token 中的 + - * / 等转换成 ast 中的类型
+static int convert_token_operation_2_ast_operation(int operation_in_token) {
+  if (operation_in_token > TOKEN_EOF && operation_in_token < TOKEN_DIVIDE)
+    return operation_in_token;
+  error_with_message("Syntax error, token", token_string[operation_in_token]);
+  return 0;
 }
 
 // 确定操作符的优先级
@@ -205,13 +215,6 @@ struct ASTNode *parse_expression_list(int end_token) {
   }
 
   return tree;
-}
-
-// 将 token 中的 + - * / 等转换成 ast 中的类型
-int convert_token_operation_2_ast_operation(int operation_in_token) {
-  if (operation_in_token > TOKEN_EOF && operation_in_token < TOKEN_INTEGER_LITERAL)
-    return operation_in_token;
-  error_with_message("Syntax error, token", token_string[operation_in_token]);
 }
 
 /**
