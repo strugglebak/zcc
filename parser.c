@@ -248,7 +248,8 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
     TOKEN_RIGHT_PAREN == node_operation_type ||
     TOKEN_RIGHT_BRACKET == node_operation_type ||
     TOKEN_COMMA == node_operation_type ||
-    TOKEN_COLON == node_operation_type
+    TOKEN_COLON == node_operation_type ||
+    TOKEN_RIGHT_BRACE == node_operation_type
     ) {
       left->rvalue = 1;
       return left;
@@ -306,7 +307,8 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
       TOKEN_RIGHT_PAREN == node_operation_type ||
       TOKEN_RIGHT_BRACKET == node_operation_type ||
       TOKEN_COMMA == node_operation_type ||
-      TOKEN_COLON == node_operation_type
+      TOKEN_COLON == node_operation_type ||
+      TOKEN_RIGHT_BRACE == node_operation_type
       ) break;
   }
 
