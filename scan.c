@@ -91,7 +91,6 @@ static int skip(void) {
     ' ' == c ||
     '\t' == c ||
     '\n' == c ||
-    '\t' == c ||
     '\r' == c ||
     '\f' == c
   ) {
@@ -264,6 +263,8 @@ int scan(struct Token *t) {
     case '+':
       if ((c = next()) == '+') {
         t->token = TOKEN_INCREASE;
+      } else if (c == '=') {
+        t->token = TOKEN_ASSIGN_PLUS;
       } else {
         put_back(c);
         t->token = TOKEN_PLUS;
@@ -274,6 +275,8 @@ int scan(struct Token *t) {
         t->token = TOKEN_DECREASE;
       } else if (c == '>') {
         t->token = TOKEN_ARROW;
+      } else if (c == '=') {
+        t->token = TOKEN_ASSIGN_MINUS;
       } else if (isdigit(c)) {
         // 有可能是个负数
         t->integer_value = -scan_integer(c);
@@ -284,10 +287,20 @@ int scan(struct Token *t) {
       }
       break;
     case '*':
-      t->token = TOKEN_MULTIPLY;
+      if ((c = next()) == '=') {
+        t->token = TOKEN_ASSIGN_MULTIPLY;
+      } else {
+        put_back(c);
+        t->token = TOKEN_MULTIPLY;
+      }
       break;
     case '/':
-      t->token = TOKEN_DIVIDE;
+      if ((c = next()) == '=') {
+        t->token = TOKEN_ASSGIN_DIVIDE;
+      } else {
+        put_back(c);
+        t->token = TOKEN_DIVIDE;
+      }
       break;
     case ';':
       t->token = TOKEN_SEMICOLON;
