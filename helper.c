@@ -145,6 +145,10 @@ void dump_ast(struct ASTNode *n, int label, int level) {
 
     case AST_FUNCTION:
       fprintf(stdout, "AST_FUNCTION %s\n", t->name); return;
+    case AST_FUNCTION_CALL:
+      fprintf(stdout, "AST_FUNCCALL %s\n", t->name); return;
+    case AST_RETURN:
+      fprintf(stdout, "AST_RETURN\n"); return;
     case AST_PLUS:
       fprintf(stdout, "AST_PLUS\n"); return;
     case AST_MINUS:
@@ -167,6 +171,8 @@ void dump_ast(struct ASTNode *n, int label, int level) {
       fprintf(stdout, "AST_GE\n"); return;
     case AST_INTEGER_LITERAL:
       fprintf(stdout, "AST_INTLIT %d\n", n->ast_node_integer_value); return;
+    case AST_STRING_LITERAL:
+      fprintf(stdout, "AST_STRLIT rval label L%d\n", n->ast_node_integer_value); return;
     case AST_IDENTIFIER:
       n->rvalue
         ? fprintf(stdout, "AST_IDENT rval %s\n", t->name)
@@ -174,10 +180,6 @@ void dump_ast(struct ASTNode *n, int label, int level) {
       return;
     case AST_ASSIGN:
       fprintf(stdout, "AST_ASSIGN\n"); return;
-    case AST_FUNCTION_CALL:
-      fprintf(stdout, "AST_FUNCCALL %s\n", t->name); return;
-    case AST_RETURN:
-      fprintf(stdout, "AST_RETURN\n"); return;
     case AST_IDENTIFIER_ADDRESS:
       fprintf(stdout, "AST_ADDR %s\n", t->name); return;
     case AST_DEREFERENCE_POINTER:
@@ -189,6 +191,37 @@ void dump_ast(struct ASTNode *n, int label, int level) {
       fprintf(stdout, "AST_WIDEN\n"); return;
     case AST_SCALE:
       fprintf(stdout, "AST_SCALE %d\n", n->ast_node_scale_size); return;
+
+    case AST_PRE_INCREASE:
+      fprintf(stdout, "AST_PREINC %s\n", n->symbol_table->name); return;
+    case AST_PRE_DECREASE:
+      fprintf(stdout, "AST_PREDEC %s\n", n->symbol_table->name); return;
+    case AST_POST_INCREASE:
+      fprintf(stdout, "AST_POSTINC\n"); return;
+    case AST_POST_DECREASE:
+      fprintf(stdout, "AST_POSTDEC\n"); return;
+    case AST_NEGATE:
+      fprintf(stdout, "AST_NEGATE\n"); return;
+    case AST_BREAK:
+      fprintf(stdout, "AST_BREAK\n"); return;
+    case AST_CONTINUE:
+      fprintf(stdout, "AST_CONTINUE\n"); return;
+    case AST_CASE:
+      fprintf(stdout, "AST_CASE %d\n", n->ast_node_integer_value); return;
+    case AST_DEFAULT:
+      fprintf(stdout, "AST_DEFAULT\n"); return;
+    case AST_SWITCH:
+      fprintf(stdout, "AST_SWITCH\n"); return;
+    case AST_TYPE_CASTING:
+      fprintf(stdout, "AST_CAST %d\n", n->primitive_type); return;
+    case AST_ASSIGN_PLUS:
+      fprintf(stdout, "AST_ASPLUS\n"); return;
+    case AST_ASSIGN_MINUS:
+      fprintf(stdout, "AST_ASMINUS\n"); return;
+    case AST_ASSIGN_MULTIPLY:
+      fprintf(stdout, "AST_ASMULTIPLY\n"); return;
+    case AST_ASSGIN_DIVIDE:
+      fprintf(stdout, "AST_ASDIVIDE\n"); return;
     default:
       error_with_digital("Unknown dump_ast operator", n->operation);
   }
