@@ -774,7 +774,9 @@ int register_align(int primitive_type, int offset, int direction) {
   switch (primitive_type) {
     case PRIMITIVE_CHAR: return offset;
     case PRIMITIVE_INT: case PRIMITIVE_LONG: break;
-    default: error_with_digital("Bad type in register_align", primitive_type);
+    default:
+      if (!check_pointer_type(primitive_type))
+        error_with_digital("Bad type in register_align", primitive_type);
   }
 
   // int/long 间隔 4 字节

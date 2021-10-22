@@ -273,6 +273,7 @@ static int get_keyword(char *s) {
     case 's':
       if (!strcmp(s, "struct")) return TOKEN_STRUCT;
       else if (!strcmp(s, "switch")) return TOKEN_SWITCH;
+      else if (!strcmp(s, "sizeof")) return TOKEN_SIZEOF;
       break;
     case 'u':
       if (!strcmp(s, "union")) return TOKEN_UNION;

@@ -93,8 +93,35 @@ static struct ASTNode *create_ast_node_from_expression() {
   struct ASTNode *node;
   int label;
   int primitive_type = 0;
+  struct SymbolTable *composite_type;
+  int primitive_type_size, storage_class;
 
   switch (token_from_file.token) {
+    case TOKEN_SIZEOF:
+      // 解析类似于 int a = 1 + sizeof(char); 这样的语句
+      // 跳过 'sizeof'
+      scan(&token_from_file);
+      if (token_from_file.token != TOKEN_LEFT_PAREN)
+        error("Left parenthesis expected after sizeof");
+      // 跳过 '('
+      scan(&token_from_file);
+
+      // 也可能会解析 sizeof(char *)
+      primitive_type
+        = convert_multiply_token_2_primitive_type(
+          convert_token_2_primitive_type(
+            &composite_type,
+            &storage_class
+          )
+        );
+      primitive_type_size = get_primitive_type_size(primitive_type, composite_type);
+      verify_right_paren();
+      return create_ast_leaf(
+        AST_INTEGER_LITERAL,
+        PRIMITIVE_INT,
+        primitive_type_size,
+        NULL);
+
     case TOKEN_STRING_LITERAL:
       // 先生成全局 string 的汇编代码，然后再解析 ast，因为这个 string 是要放在 .s 文件的最前面
       label = generate_global_string_code(text_buffer);

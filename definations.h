@@ -101,6 +101,7 @@ enum {
   TOKEN_SWITCH,   // switch
   TOKEN_CASE,     // case
   TOKEN_DEFAULT,  // default
+  TOKEN_SIZEOF,   // sizeof
 
   // 结构化 token
   TOKEN_INTEGER_LITERAL,

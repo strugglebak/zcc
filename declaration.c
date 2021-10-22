@@ -13,8 +13,6 @@
 #include "parser.h"
 #include "optimizer.h"
 
-static int convert_token_2_primitive_type(struct SymbolTable **composite_type, int *storage_class);
-
 /**
  * 如何解析函数声明和定义？
  * 比如
@@ -264,7 +262,7 @@ static void parse_enum_declaration() {
   scan(&token_from_file);
 }
 
-static int convert_multiply_token_2_primitive_type(int primitive_type) {
+int convert_multiply_token_2_primitive_type(int primitive_type) {
   while (token_from_file.token == TOKEN_MULTIPLY) {
     primitive_type = pointer_to(primitive_type);
     scan(&token_from_file);
@@ -611,7 +609,7 @@ int parse_type_of_typedef_declaration(char *name, struct SymbolTable **composite
   return t->primitive_type;
 }
 
-static int convert_token_2_primitive_type(
+int convert_token_2_primitive_type(
   struct SymbolTable **composite_type,
   int *storage_class
 ) {
