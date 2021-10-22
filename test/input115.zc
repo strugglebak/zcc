@@ -1,0 +1,44 @@
+#include <stdio.h>
+struct foo { int x; char y; long z; };
+typedef struct foo blah;
+
+struct symtable {
+  char *name;
+  int type;
+  struct symtable *ctype;
+  int stype;
+  int class;
+  int size;
+  int nelems;
+#define st_endlabel st_posn
+  int st_posn;
+
+  int *initlist;
+  struct symtable *next;
+  struct symtable *member;
+};
+
+// Abstract Syntax Tree structure
+struct ASTnode {
+  int op;
+  int type;
+  int rvalue;
+  struct ASTnode *left;
+  struct ASTnode *mid;
+  struct ASTnode *right;
+  struct symtable *sym;
+
+#define a_intvalue a_size
+  int a_size;
+};
+
+int main() {
+  printf("%ld\n", sizeof(char));
+  printf("%ld\n", sizeof(int));
+  printf("%ld\n", sizeof(long));
+  printf("%ld\n", sizeof(char *));
+  printf("%ld\n", sizeof(blah));
+  printf("%ld\n", sizeof(struct symtable));
+  printf("%ld\n", sizeof(struct ASTnode));
+  return(0);
+}
