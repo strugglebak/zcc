@@ -22,6 +22,7 @@ extern_ FILE *output_file;
 extern_ char *global_output_filename;
 extern_ char *global_input_filename;
 extern_ struct Token token_from_file;
+extern_ struct Token look_ahead_token;
 extern_ char text_buffer[TEXT_LENGTH + 1];
 extern_ int loop_level;   // 嵌套的循环的层级
 extern_ int switch_level; // 嵌套的 switch 的层级

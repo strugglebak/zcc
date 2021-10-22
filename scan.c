@@ -245,11 +245,14 @@ static int get_keyword(char *s) {
 // 只有扫描到文件尾时返回 0，表示扫描结束
 // 其他情况均在扫描中
 int scan(struct Token *t) {
-  char c;
+  char c, token_type;
 
-  if (rejected_token) {
-    t = rejected_token;
-    rejected_token = NULL;
+  // 如果提前找到了 token，就直接返回这个 token
+  if (look_ahead_token.token) {
+    t->token = look_ahead_token.token;
+    t->token_string = look_ahead_token.token_string;
+    t->integer_value = look_ahead_token.integer_value;
+    look_ahead_token.token = 0;
     return 1;
   }
 

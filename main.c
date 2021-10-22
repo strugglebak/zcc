@@ -26,6 +26,7 @@ static void init() {
   output_keep_assembly_file = 0;
   output_link_object_file = 1;
   output_verbose = 0;
+  look_ahead_token.token = 0;
 }
 
 static void usage_info(char *info) {
