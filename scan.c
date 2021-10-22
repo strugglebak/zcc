@@ -126,7 +126,7 @@ static int scan_integer(char c) {
       radix = 8;
   }
 
-  while (((k = get_the_position_of_the_charater("0123456789", tolower(c))) >= 0)) {
+  while (((k = get_the_position_of_the_charater("0123456789abcdef", tolower(c))) >= 0)) {
     if (k >= radix)
       error_with_character("invalid digit in integer literal", c);
     value = value * radix + k;
@@ -170,7 +170,7 @@ static int hex_character() {
 
   while (isxdigit(c = next())) {
     // char 变成 int
-    h = get_the_position_of_the_charater("0123456789", tolower(c));
+    h = get_the_position_of_the_charater("0123456789abcdef", tolower(c));
     n = n * 16 + h;
     flag = 1;
   }

@@ -26,7 +26,6 @@ static void init() {
   output_keep_assembly_file = 0;
   output_link_object_file = 1;
   output_verbose = 0;
-  look_ahead_token.token = 0;
 }
 
 static void usage_info(char *info) {
@@ -89,6 +88,7 @@ static char *do_compile(char *filename) {
 
   // 扫描文件中的字符串，并将其赋值给 token_from_file 这个全局变量
   scan(&token_from_file);
+  look_ahead_token.token = 0;
   generate_preamble_code();
   parse_global_declaration();
   generate_postamble_code();
