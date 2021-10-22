@@ -61,6 +61,18 @@ static int parse_param_declaration_list(
 
   // 开始解析参数
   while (token_from_file.token != TOKEN_RIGHT_PAREN) {
+    // 如果第一个 token 是 'void'
+    if (token_from_file.token == TOKEN_VOID) {
+      // 用一个替代指针提前查看
+      scan(&look_ahead_token);
+      // 如果是 xxx(void) 这种
+      if (look_ahead_token.token == TOKEN_RIGHT_PAREN) {
+        parameter_count = 0;
+        scan(&token_from_file);
+        break;
+      }
+    }
+
     primitive_type = parse_declaration_list(
       &composite_type,
       STORAGE_CLASS_FUNCTION_PARAMETER,
