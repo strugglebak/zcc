@@ -582,6 +582,11 @@ int register_function_call(struct SymbolTable *t, int argument_number) {
 */
 void register_function_return(int register_index, struct SymbolTable *t) {
   char *r = register_list[register_index];
+  if (check_pointer_type(t->primitive_type)) {
+    fprintf(output_file, "\tmovq\t%s, %%rax\n", r);
+    return;
+  }
+
   switch (t->primitive_type) {
     case PRIMITIVE_CHAR:
       fprintf(output_file, "\tmovzbl\t%s, %%eax\n", lower_8_bits_register_list[register_index]);
