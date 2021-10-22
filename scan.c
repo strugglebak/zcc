@@ -113,9 +113,23 @@ static int get_the_position_of_the_charater(char *s, int c) {
 
 // 从输入的 file 中扫描并返回一个 integer 字符
 static int scan_integer(char c) {
-  int k, value = 0;
-  while (((k = get_the_position_of_the_charater("0123456789", c)) >= 0)) {
-    value = value * 10 + k;
+  // 默认 10 进制
+  int k, value = 0, radix = 10;
+
+  if (c == '0') {
+    if ((c = next()) == 'x') {
+      // 16 进制
+      radix = 16;
+      c = next();
+    } else
+      // 8 进制
+      radix = 8;
+  }
+
+  while (((k = get_the_position_of_the_charater("0123456789", tolower(c))) >= 0)) {
+    if (k >= radix)
+      error_with_character("invalid digit in integer literal", c);
+    value = value * radix + k;
     // 如果是数字，继续扫描
     c = next();
   }
