@@ -54,6 +54,35 @@ char *modify_string_suffix(char *string, char suffix) {
   return new_string;
 }
 
+void clear_all_static_symbol() {
+  struct SymbolTable *current_symbol_table, *prev_symbol_table = NULL;
+
+  // 遍历 global symbol table，寻找 static symbol
+  for (
+    current_symbol_table = global_head;
+    current_symbol_table;
+    current_symbol_table = current_symbol_table->next
+  ) {
+    // 如果找到了
+    if (current_symbol_table->storage_class == STORAGE_CLASS_STATIC) {
+      // 正常情况: 跳过 static symbol
+      if (prev_symbol_table)
+        prev_symbol_table->next = current_symbol_table->next;
+      else
+        global_head->next = current_symbol_table->next;
+
+      // 如果 static symbol 出现在结尾: 跳过 static symbol
+      if (current_symbol_table == global_tail) {
+        if (prev_symbol_table) global_tail = prev_symbol_table;
+        else global_tail = global_head;
+      }
+    }
+  }
+
+  // 在指向下一个之前 prev 应该指向当前 node
+  prev_symbol_table = current_symbol_table;
+}
+
 // 编译成汇编代码
 static char *do_compile(char *filename) {
   char cmd[TEXT_LENGTH];
@@ -96,6 +125,8 @@ static char *do_compile(char *filename) {
   // 关闭文件
   fclose(input_file);
   fclose(output_file);
+
+  clear_all_static_symbol();
 
   return global_output_filename;
 }
