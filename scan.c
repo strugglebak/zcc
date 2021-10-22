@@ -164,10 +164,29 @@ static int scan_identifier(int c, char *buffer, int limit_length) {
   return length;
 }
 
+// 解析类似于 \0x41 这样的字符
+static int hex_character() {
+  int c, h, n = 0, flag = 0;
+
+  while (isxdigit(c = next())) {
+    // char 变成 int
+    h = get_the_position_of_the_charater("0123456789", tolower(c));
+    n = n * 16 + h;
+    flag = 1;
+  }
+
+  put_back(c);
+
+  if (!flag) error("missing digits after '\\x'");
+  if (n > 255) error("value out of range after '\\x'");
+
+  return n;
+}
+
 // 扫描单引号中的字符
 // 转义部分字符，这里暂时不考虑 8 进制或者其他类型的字符
 static int escape_character() {
-  int c = next();
+  int c = next(), i, c2;
   // 处理类似于 \r\n 这种特殊字符
   // 符号 '\'
   if (c == '\\') {
@@ -183,6 +202,22 @@ static int escape_character() {
       case '\\': return '\\';
       case '"': return '"' ;
       case '\'': return '\'';
+      case '0':
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+        for (i = c2 = 0; isdigit(c) && c < '8'; c = next()) {
+          if (++i > 3) break;
+          c2 = c2 * 8 + (c - '0');
+        }
+        put_back(c);
+        return c2;
+      case 'x':
+        return hex_character();
       default:
         error_with_character("unknown escape sequence", c);
     }
