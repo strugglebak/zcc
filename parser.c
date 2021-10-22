@@ -97,6 +97,9 @@ static struct ASTNode *create_ast_node_from_expression() {
   int primitive_type_size, storage_class;
 
   switch (token_from_file.token) {
+    case TOKEN_STATIC:
+    case TOKEN_EXTERN:
+      error("Compiler doesn't support static or extern local declarations");
     case TOKEN_SIZEOF:
       // 解析类似于 int a = 1 + sizeof(char); 这样的语句
       // 跳过 'sizeof'

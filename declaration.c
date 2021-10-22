@@ -354,6 +354,7 @@ static struct SymbolTable *parse_array_declaration(
 
   // 把 'a' 加入 symbol table
   switch (storage_class) {
+    case STORAGE_CLASS_STATIC:
     case STORAGE_CLASS_GLOBAL:
     case STORAGE_CLASS_EXTERN:
       t = add_global_symbol(
@@ -371,7 +372,8 @@ static struct SymbolTable *parse_array_declaration(
 
   // 数组赋值
   if (token_from_file.token == TOKEN_ASSIGN) {
-    if (storage_class != STORAGE_CLASS_GLOBAL)
+    if (storage_class != STORAGE_CLASS_GLOBAL &&
+        storage_class != STORAGE_CLASS_STATIC)
       error_with_message("Variable can not be initialised", var_name);
     // 跳过 '='
     scan(&token_from_file);
@@ -421,7 +423,8 @@ static struct SymbolTable *parse_array_declaration(
   t->element_number = element_number;
   t->size = t->element_number * get_primitive_type_size(primitive_type, composite_type);
 
-  if (storage_class == STORAGE_CLASS_GLOBAL)
+  if (storage_class == STORAGE_CLASS_GLOBAL ||
+      storage_class == STORAGE_CLASS_STATIC)
     generate_global_symbol(t);
 
   return t;
@@ -441,6 +444,7 @@ static struct SymbolTable *parse_scalar_declaration(
   *tree = NULL;
 
   switch (storage_class) {
+    case STORAGE_CLASS_STATIC:
     case STORAGE_CLASS_GLOBAL:
     case STORAGE_CLASS_EXTERN:
       t = add_global_symbol(
@@ -481,13 +485,15 @@ static struct SymbolTable *parse_scalar_declaration(
   // 比如 int x = (long)5;
   if (token_from_file.token == TOKEN_ASSIGN) {
     if (storage_class != STORAGE_CLASS_GLOBAL &&
+        storage_class != STORAGE_CLASS_STATIC &&
         storage_class != STORAGE_CLASS_LOCAL)
       error_with_message("Variable can not be initialised", var_name);
     // 跳过 '='
     scan(&token_from_file);
 
     // 全局变量必须被赋值为一个字面量的值
-    if (storage_class == STORAGE_CLASS_GLOBAL) {
+    if (storage_class == STORAGE_CLASS_GLOBAL ||
+        storage_class == STORAGE_CLASS_STATIC) {
       t->init_value_list = (int *)malloc(sizeof(int));
       t->init_value_list[0] = convert_literal_token_2_integer_value(primitive_type);
     }
@@ -518,7 +524,8 @@ static struct SymbolTable *parse_scalar_declaration(
   }
 
   // 全局变量应该要先生成对应的汇编代码
-  if (storage_class == STORAGE_CLASS_GLOBAL)
+  if (storage_class == STORAGE_CLASS_GLOBAL ||
+      storage_class == STORAGE_CLASS_STATIC)
     generate_global_symbol(t);
 
   return t;
@@ -542,6 +549,7 @@ static struct SymbolTable *parse_symbol_declaration(
 
   // 先判断是否被定义过
   switch(storage_class) {
+    case STORAGE_CLASS_STATIC:
     case STORAGE_CLASS_GLOBAL:
     case STORAGE_CLASS_EXTERN:
       if (find_global_symbol(var_name))
@@ -619,7 +627,17 @@ int convert_token_2_primitive_type(
   while (storage_class_change_to_extern) {
     switch (token_from_file.token) {
       case TOKEN_EXTERN:
+        if (*storage_class == STORAGE_CLASS_STATIC)
+          error("Illegal to have extern and static at the same time");
         *storage_class = STORAGE_CLASS_EXTERN;
+        scan(&token_from_file);
+        break;
+      case TOKEN_STATIC:
+        if (*storage_class == STORAGE_CLASS_LOCAL)
+          error("Compiler doesn't support static local declarations");
+        else if (*storage_class == STORAGE_CLASS_EXTERN)
+          error("Illegal to have extern and static at the same time");
+        *storage_class = STORAGE_CLASS_STATIC;
         scan(&token_from_file);
         break;
       default: storage_class_change_to_extern = 0;
@@ -792,7 +810,8 @@ int parse_declaration_list(
 
     // 函数不在初始化变量的范围，直接返回
     if (t->structural_type == STRUCTURAL_FUNCTION) {
-      if (storage_class != STORAGE_CLASS_GLOBAL)
+      if (storage_class != STORAGE_CLASS_GLOBAL &&
+          storage_class != STORAGE_CLASS_STATIC)
         error("Function definition not at global level");
       return primitive_type;
     }

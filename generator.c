@@ -266,7 +266,8 @@ int interpret_ast_with_register(
       // parent_ast_operation  node
       if (node->rvalue ||
         parent_ast_operation == AST_DEREFERENCE_POINTER) {
-          if (node->symbol_table->storage_class == STORAGE_CLASS_GLOBAL)
+          if (node->symbol_table->storage_class == STORAGE_CLASS_GLOBAL ||
+              node->symbol_table->storage_class == STORAGE_CLASS_STATIC)
             return register_load_value_from_variable(node->symbol_table, node->operation);
           return register_load_local_value_from_variable(node->symbol_table, node->operation);
         }
@@ -311,7 +312,8 @@ int interpret_ast_with_register(
       // 在 parser 中 left 和 right 做了交换，所以这里要对 right 的 operation 做判断
       switch (node->right->operation) {
         case AST_IDENTIFIER:
-          if (node->right->symbol_table->storage_class == STORAGE_CLASS_GLOBAL)
+          if (node->right->symbol_table->storage_class == STORAGE_CLASS_GLOBAL ||
+              node->right->symbol_table->storage_class == STORAGE_CLASS_STATIC)
             return register_store_value_2_variable(left_register, node->right->symbol_table);
           return register_store_local_value_2_variable(left_register, node->right->symbol_table);
         case AST_DEREFERENCE_POINTER:
@@ -360,12 +362,14 @@ int interpret_ast_with_register(
       return register_shift_right(left_register, right_register);
     case AST_POST_INCREASE:
     case AST_POST_DECREASE:
-      if (node->symbol_table->storage_class == STORAGE_CLASS_GLOBAL)
+      if (node->symbol_table->storage_class == STORAGE_CLASS_GLOBAL ||
+          node->symbol_table->storage_class == STORAGE_CLASS_STATIC)
         return register_load_value_from_variable(node->symbol_table, node->operation);
       return register_load_local_value_from_variable(node->symbol_table, node->operation);
     case AST_PRE_INCREASE:
     case AST_PRE_DECREASE:
-      if (node->left->symbol_table->storage_class == STORAGE_CLASS_GLOBAL)
+      if (node->left->symbol_table->storage_class == STORAGE_CLASS_GLOBAL ||
+          node->left->symbol_table->storage_class == STORAGE_CLASS_STATIC)
         return register_load_value_from_variable(node->left->symbol_table, node->operation);
       return register_load_local_value_from_variable(node->left->symbol_table, node->operation);
     case AST_NEGATE:

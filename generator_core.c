@@ -601,10 +601,11 @@ void register_function_return(int register_index, struct SymbolTable *t) {
 int register_load_identifier_address(struct SymbolTable *t) {
   int register_index = allocate_register();
   char *r = register_list[register_index];
-  if (t->storage_class == STORAGE_CLASS_LOCAL)
-    fprintf(output_file, "\tleaq\t%d(%%rbp), %s\n", t->symbol_table_position, r);
-  else
+  if (t->storage_class == STORAGE_CLASS_GLOBAL ||
+      t->storage_class == STORAGE_CLASS_STATIC)
     fprintf(output_file, "\tleaq\t%s(%%rip), %s\n", t->name, r);
+  else
+    fprintf(output_file, "\tleaq\t%d(%%rbp), %s\n", t->symbol_table_position, r);
   return register_index;
 }
 
