@@ -346,8 +346,8 @@ static struct SymbolTable *parse_array_declaration(
 
   // 获取数组的大小
   if (token_from_file.token != TOKEN_RIGHT_BRACKET) {
-    element_number = convert_literal_token_2_integer_value(primitive_type);
-    if (element_number < 0)
+    element_number = convert_literal_token_2_integer_value(PRIMITIVE_INT);
+    if (element_number <= 0)
       error_with_digital("Array size is illegal", element_number);
   }
 
@@ -395,8 +395,6 @@ static struct SymbolTable *parse_array_declaration(
         error("Too many values in initialisation list");
 
       init_value_list[i++] = convert_literal_token_2_integer_value(primitive_type);
-      // 跳过其中一个初始化用的字面量
-      scan(&token_from_file);
 
       // 如果是类似这种语句
       // char a[] = {'1', '2'};

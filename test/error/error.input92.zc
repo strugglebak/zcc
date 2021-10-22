@@ -1,1 +1,1 @@
-Integer literal value too big for char type on line 1
+Type mismatch: literal vs. variable on line 1
