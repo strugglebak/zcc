@@ -730,6 +730,52 @@ int register_logic_not(int register_index) {
   return register_index;
 }
 
+int register_logic_or(int left_register, int right_register) {
+  char *l = register_list[left_register],
+       *r = register_list[right_register];
+
+  int label_start = generate_label();
+  int label_end = generate_label();
+
+  fprintf(output_file, "\ttest\t%s, %s\n", l, l);
+  fprintf(output_file, "\tjne\tL%d\n", label_start);
+
+  fprintf(output_file, "\ttest\t%s, %s\n", r, r);
+  fprintf(output_file, "\tjne\tL%d\n", label_start);
+
+  fprintf(output_file, "\tmovq\t$0, %s\n", l);
+  fprintf(output_file, "\tjmp\tL%d\n", label_end);
+
+  register_label(label_start);
+  fprintf(output_file, "\tmovq\t$1, %s\n", l);
+  register_label(label_end);
+  clear_register(right_register);
+  return left_register;
+}
+
+int register_logic_and(int left_register, int right_register) {
+  char *l = register_list[left_register],
+       *r = register_list[right_register];
+
+  int label_start = generate_label();
+  int label_end = generate_label();
+
+  fprintf(output_file, "\ttest\t%s, %s\n", l, l);
+  fprintf(output_file, "\tje\tL%d\n", label_start);
+
+  fprintf(output_file, "\ttest\t%s, %s\n", r, r);
+  fprintf(output_file, "\tje\tL%d\n", label_start);
+
+  fprintf(output_file, "\tmovq\t$1, %s\n", l);
+  fprintf(output_file, "\tjmp\tL%d\n", label_end);
+
+  register_label(label_start);
+  fprintf(output_file, "\tmovq\t$0, %s\n", l);
+  register_label(label_end);
+  clear_register(right_register);
+  return left_register;
+}
+
 int register_to_be_boolean(int register_index, int operaion, int label) {
   fprintf(output_file, "\ttest\t%s, %s\n", register_list[register_index], register_list[register_index]);
   if (operaion == AST_IF || operaion == AST_WHILE)

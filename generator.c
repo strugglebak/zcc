@@ -427,6 +427,10 @@ int interpret_ast_with_register(
           node->left->symbol_table->storage_class == STORAGE_CLASS_STATIC)
         return register_load_value_from_variable(node->left->symbol_table, node->operation);
       return register_load_local_value_from_variable(node->left->symbol_table, node->operation);
+    case AST_LOGIC_OR:
+      return register_logic_or(left_register, right_register);
+    case AST_LOGIC_AND:
+      return register_logic_and(left_register, right_register);
     case AST_NEGATE:
       return register_negate(left_register);
     case AST_INVERT:
