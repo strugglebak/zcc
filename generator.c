@@ -77,7 +77,7 @@ static int interpret_while_ast_with_register(struct ASTNode *node) {
   // 解析 while 下面的复合语句
   // statements
   interpret_ast_with_register(node->right, NO_LABEL, label_start, label_end, node->operation);
-  generate_clearable_registersregisters(NO_REGISTER);
+  generate_clearable_registers(NO_REGISTER);
 
   // jump to Lstart
   register_jump(label_start);
@@ -112,7 +112,7 @@ static int interpret_function_call_with_register(struct ASTNode *node) {
     register_copy_argument(register_index, glue_node->ast_node_scale_size);
     // 保留第一个参数
     if (!function_argument_number) function_argument_number = glue_node->ast_node_scale_size;
-    generate_clearable_registersregisters(NO_REGISTER);
+    generate_clearable_registers(NO_REGISTER);
     glue_node = glue_node->left;
   }
 
