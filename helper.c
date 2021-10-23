@@ -226,3 +226,83 @@ void dump_ast(struct ASTNode *n, int label, int level) {
       error_with_digital("Unknown dump_ast operator", n->operation);
   }
 }
+
+static void dump_single_symbol(struct SymbolTable *t, int indent) {
+  int i;
+
+  for (i = 0; i < indent; i++) printf(" ");
+  switch (t->primitive_type & (~0xf)) {
+    case PRIMITIVE_VOID: printf("void "); break;
+    case PRIMITIVE_CHAR: printf("char "); break;
+    case PRIMITIVE_INT: printf("int "); break;
+    case PRIMITIVE_LONG: printf("long "); break;
+    case PRIMITIVE_STRUCT: printf("struct %s ", t->composite_type ? t->composite_type->name : t->name); break;
+    case PRIMITIVE_UNION: printf("union %s ", t->composite_type ? t->composite_type->name : t->name); break;
+    default: printf("unknown primitive type ");
+  }
+
+  for (i = 0; i < (t->primitive_type & 0xf); i++) printf("*");
+  printf("%s", t->name);
+
+  switch (t->structural_type) {
+    case STRUCTURAL_VARIABLE: break;
+    case STRUCTURAL_FUNCTION: printf("()"); break;
+    case STRUCTURAL_ARRAY: printf("[]"); break;
+    default: printf(" unknown structural type");
+  }
+
+  switch (t->storage_class) {
+    case STORAGE_CLASS_GLOBAL: printf(": global"); break;
+    case STORAGE_CLASS_LOCAL: printf(": local"); break;
+    case STORAGE_CLASS_FUNCTION_PARAMETER: printf(": param"); break;
+    case STORAGE_CLASS_EXTERN: printf(": extern"); break;
+    case STORAGE_CLASS_STATIC: printf(": static"); break;
+    case STORAGE_CLASS_STRUCT: printf(": struct"); break;
+    case STORAGE_CLASS_UNION: printf(": union"); break;
+    case STORAGE_CLASS_MEMBER: printf(": member"); break;
+    case STORAGE_CLASS_ENUM_TYPE: printf(": enumtype"); break;
+    case STORAGE_CLASS_ENUM_VALUE: printf(": enumval"); break;
+    case STORAGE_CLASS_TYPEDEF: printf(": typedef"); break;
+    default: printf(": unknown storage class");
+  }
+
+  switch (t->structural_type) {
+    case STRUCTURAL_VARIABLE:
+      if (t->storage_class == STORAGE_CLASS_ENUM_VALUE)
+        printf(", value %d\n", t->symbol_table_position);
+      else
+        printf(", size %d\n", t->size);
+      break;
+    case STRUCTURAL_FUNCTION: printf(", %d params\n", t->element_number); break;
+    case STRUCTURAL_ARRAY: printf(", %d elems, size %d\n", t->element_number, t->size); break;
+  }
+
+  switch (t->primitive_type & (~0xf)) {
+    case PRIMITIVE_STRUCT:
+    case PRIMITIVE_UNION: dump_single_symbol_table(t->member, NULL, 4);
+  }
+
+  switch (t->structural_type) {
+  case STRUCTURAL_FUNCTION:
+    dump_single_symbol_table(t->member, NULL, 4);
+  }
+}
+
+void dump_single_symbol_table(
+  struct SymbolTable *head,
+  char *name,
+  int indent
+) {
+  struct SymbolTable *t;
+
+  if (head && name) printf("%s\n--------\n", name);
+  for (t = head; t; t = t->next) dump_single_symbol(t, indent);
+}
+
+void dump_symbol_table() {
+  dump_single_symbol_table(global_head, "Global", 0);
+  printf("\n");
+  dump_single_symbol_table(enum_head, "Enums", 0);
+  printf("\n");
+  dump_single_symbol_table(typedef_head, "Typedefs", 0);
+}

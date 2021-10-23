@@ -26,15 +26,17 @@ static void init() {
   output_keep_assembly_file = 0;
   output_link_object_file = 1;
   output_verbose = 0;
+  output_dump_symbol_table = 0;
 }
 
 static void usage_info(char *info) {
-  fprintf(stderr, "Usage: %s [-vcST] [-o output file] file [file ...]\n", info);
+  fprintf(stderr, "Usage: %s [-vcSTM] [-o output file] file [file ...]\n", info);
   fprintf(stderr, "       -c generate object files but don't link them\n");
   fprintf(stderr, "       -S generate assembly files but don't link them\n");
   fprintf(stderr, "       -T dump the AST trees for each input file\n");
   fprintf(stderr, "       -o output file, produce the output file executable file\n");
   fprintf(stderr, "       -v give verbose output of the compilation stages\n");
+  fprintf(stderr, "       -M dump the symbol table for each input file\n");
   exit(1);
 }
 
@@ -126,6 +128,12 @@ static char *do_compile(char *filename) {
   fclose(input_file);
   fclose(output_file);
 
+  if (output_dump_symbol_table) {
+    printf("Symbols for %s\n", filename);
+    dump_symbol_table();
+    fprintf(stdout, "\n\n");
+  }
+
   clear_all_static_symbol();
 
   return global_output_filename;
@@ -209,6 +217,7 @@ int main(int argc, char *argv[]) {
           output_link_object_file = 0;
           break;
         case 'v': output_verbose = 1; break;
+        case 'M': output_dump_symbol_table = 1; break;
         default: usage_info(argv[0]);
       }
     }

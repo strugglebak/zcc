@@ -32,6 +32,7 @@ extern_ int output_keep_assembly_file;
 extern_ int output_assemble_assembly_file;
 extern_ int output_link_object_file;
 extern_ int output_verbose;
+extern_ int output_dump_symbol_table;
 
 extern_ struct SymbolTable *current_function_symbol_id;          // 当前函数
 extern_ struct SymbolTable *global_head, *global_tail;           // 全局变量和函数

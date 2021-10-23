@@ -24,5 +24,11 @@ void error_with_digital(char *string, int digital);
 void error_with_character(char *string, char character);
 
 void dump_ast(struct ASTNode *n, int label, int level);
+void dump_single_symbol_table(
+  struct SymbolTable *head,
+  char *name,
+  int indent
+);
+void dump_symbol_table();
 
 #endif
