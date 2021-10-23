@@ -392,6 +392,9 @@ int scan(struct Token *t) {
     case ':':
       t->token = TOKEN_COLON;
       break;
+    case '?':
+      t->token = TOKEN_QUESTION;
+      break;
 
     case '\'':
       // 如果是单引号，则扫描引号中字符的值以及尾单引号
