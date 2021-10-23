@@ -303,24 +303,43 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
     // 将 Token 操作符类型转换成 AST 操作符类型
     ast_operation_type = convert_token_operation_2_ast_operation(node_operation_type);
     right->rvalue = 1;
-    if (ast_operation_type == AST_ASSIGN) {
-      // 确保 right 和 left 的类型匹配
-      right = modify_type(right, left->primitive_type, 0);
-      if (!right) error("Incompatible expression in assignment");
 
-      // 交换 left 和 right，确保 right 汇编语句能在 left 之前生成
-      left_temp = left; left = right; right = left_temp;
-    } else {
-      // 如果不是赋值操作，那么显然所有的 tree node 都是 rvalue 右值
-      left->rvalue = 1;
+    switch (ast_operation_type) {
+      case AST_TERNARY:
+        // 解析三元表达式
+        // ternary_expression:
+        // logical_expression '?' true_expression ':' false_expression
+        // ;
+        verify_colon();
+        left_temp = converse_token_2_ast(0);
+        return create_ast_node(
+          AST_TERNARY,
+          right->primitive_type,
+          left, // logical_expression
+          right, // true_expression
+          left_temp, // false_expression
+          0,
+          NULL);
+      case AST_ASSIGN:
+        // 确保 right 和 left 的类型匹配
+        right = modify_type(right, left->primitive_type, 0);
+        if (!right) error("Incompatible expression in assignment");
 
-      // 检查 left 和 right 节点的 primitive_type 是否兼容
-      // 这里同时判断了指针的类型
-      left_temp = modify_type(left, right->primitive_type, ast_operation_type);
-      right_temp = modify_type(right, left->primitive_type, ast_operation_type);
-      if (!left_temp && !right_temp) error("Incompatible types in binary expression");
-      if (left_temp) left = left_temp;
-      if (right_temp) right = right_temp;
+        // 交换 left 和 right，确保 right 汇编语句能在 left 之前生成
+        left_temp = left; left = right; right = left_temp;
+        break;
+      default:
+        // 如果不是赋值操作，那么显然所有的 tree node 都是 rvalue 右值
+        left->rvalue = 1;
+
+        // 检查 left 和 right 节点的 primitive_type 是否兼容
+        // 这里同时判断了指针的类型
+        left_temp = modify_type(left, right->primitive_type, ast_operation_type);
+        right_temp = modify_type(right, left->primitive_type, ast_operation_type);
+        if (!left_temp && !right_temp) error("Incompatible types in binary expression");
+        if (left_temp) left = left_temp;
+        if (right_temp) right = right_temp;
+        break;
     }
 
     left = create_ast_node(
