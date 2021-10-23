@@ -66,18 +66,16 @@ int allocate_register() {
     }
   }
 
-  fprintf(stderr, "Out of registers\n");
-  exit(1);
+  error("Out of registers\n");
+  return NO_REGISTER;
 }
 
 /**
  * 清空某个寄存器
 */
 static void clear_register(int index) {
-  if (free_registers[index]) {
-    fprintf(stderr, "Error trying to clear registers\n");
-    exit(1);
-  }
+  if (free_registers[index])
+    error("Error trying to clear registers\n");
   free_registers[index] = 1;
 }
 

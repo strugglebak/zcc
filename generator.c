@@ -210,6 +210,7 @@ static int interpret_ternary_ast_with_register(struct ASTNode *node) {
   register_move(expression_register_index, register_index);
   // 这个时候不要 clear 用来保存俩表达式结果的寄存器
   generate_clearable_registers(register_index);
+
   register_label(label_end);
 
   return register_index;
@@ -302,7 +303,8 @@ int interpret_ast_with_register(
     case AST_COMPARE_LESS_EQUALS:
     case AST_COMPARE_GREATER_EQUALS:
       if (parent_ast_operation == AST_IF ||
-        parent_ast_operation == AST_WHILE)
+          parent_ast_operation == AST_WHILE ||
+          parent_ast_operation == AST_TERNARY)
         return register_compare_and_jump( node->operation, left_register, right_register, if_label);
       return register_compare_and_set(node->operation, left_register, right_register);
     case AST_RETURN:
