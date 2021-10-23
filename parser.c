@@ -402,11 +402,21 @@ struct ASTNode *convert_array_access_2_ast() {
   struct SymbolTable *t = find_symbol(text_buffer);
 
   // 解析类似于 x = a[12];
-  if (!t || t->structural_type != STRUCTURAL_ARRAY)
-    error_with_message("Undeclared array", text_buffer);
+  if (!t) error_with_message("Undeclared array", text_buffer);
+  // 因为数组也可以被当作指针看待，所以这里要同时检查一个变量是否也是指针
+  if (t->structural_type != STRUCTURAL_ARRAY && (
+      t->structural_type == STRUCTURAL_VARIABLE &&
+      !check_pointer_type(t->primitive_type)))
+    error_with_message("Not an array or pointer", text_buffer);
 
   // 为数组变量创建一个子节点，这个子节点指向数组的基
-  left = create_ast_leaf(AST_IDENTIFIER_ADDRESS, t->primitive_type, 0, t);
+  if (t->structural_type == STRUCTURAL_ARRAY)
+    left = create_ast_leaf(AST_IDENTIFIER_ADDRESS, t->primitive_type, 0, t);
+  else {
+    // 指针变量就作为右值
+    left = create_ast_leaf(AST_IDENTIFIER, t->primitive_type, 0, t);
+    left->rvalue = 1;
+  }
 
   // 跳过 [
   scan(&token_from_file);
@@ -570,6 +580,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
 struct ASTNode *convert_postfix_expression_2_ast() {
   struct ASTNode *tree;
   struct SymbolTable *t = NULL, *enum_pointer;
+  int rvalue = 0;
 
   // 解析类似的语句时需要注意的问题，即区别是变量名还是函数调用还是数组访问
   //  x = fred + jim;
@@ -580,7 +591,11 @@ struct ASTNode *convert_postfix_expression_2_ast() {
   // 如果是得先返回一个 ast node
   if ((enum_pointer = find_enum_value_symbol(text_buffer))) {
     scan(&token_from_file);
-    return create_ast_leaf(AST_INTEGER_LITERAL, PRIMITIVE_INT, enum_pointer->symbol_table_position, NULL);
+    return create_ast_leaf(
+      AST_INTEGER_LITERAL,
+      PRIMITIVE_INT,
+      enum_pointer->symbol_table_position,
+      NULL);
   }
 
   // 扫描下一个，继续判断
@@ -602,24 +617,36 @@ struct ASTNode *convert_postfix_expression_2_ast() {
 
   // 检查标识符是否存在
   t = find_symbol(text_buffer);
-  if (!t ||
-      (t->structural_type != STRUCTURAL_VARIABLE &&
-       t->structural_type != STRUCTURAL_ARRAY))
-    error_with_message("Unknown variable", text_buffer);
+  if (!t) error_with_message("Unknown variable", text_buffer);
+  switch(t->structural_type) {
+    case STRUCTURAL_VARIABLE: break;
+    case STRUCTURAL_ARRAY: rvalue = 1; break;
+    default: error_with_message("Identifier not a scalar or array variable", text_buffer);
+  }
+
 
   switch (token_from_file.token) {
     case TOKEN_INCREASE:
+      if (rvalue)
+        error_with_message("Cannot ++ on rvalue", text_buffer);
       // 解析类似 x = y++; 语句
       scan(&token_from_file);
       tree = create_ast_leaf(AST_POST_INCREASE, t->primitive_type, 0, t);
       break;
     case TOKEN_DECREASE:
+      if (rvalue)
+        error_with_message("Cannot -- on rvalue", text_buffer);
       // 解析类似 x = y--; 语句
       scan(&token_from_file);
       tree = create_ast_leaf(AST_POST_DECREASE, t->primitive_type, 0, t);
       break;
     default:
-      tree = create_ast_leaf(AST_IDENTIFIER, t->primitive_type, 0, t);
+      // array 可以被当作指针，但是只能被作为右值
+      if (t->structural_type == STRUCTURAL_ARRAY) {
+        tree = create_ast_leaf(AST_IDENTIFIER_ADDRESS, t->primitive_type, 0, t);
+        tree->rvalue = rvalue;
+      } else
+        tree = create_ast_leaf(AST_IDENTIFIER, t->primitive_type, 0, t);
       break;
   }
 
