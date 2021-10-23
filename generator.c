@@ -152,7 +152,8 @@ static int interpret_switch_ast_with_register(struct ASTNode *node) {
       case_count++;
 
     // 为每个 case 生成汇编代码
-    interpret_ast_with_register(c->left, NO_LABEL, NO_LABEL, label_end, 0);
+    if (c->left)
+      interpret_ast_with_register(c->left, NO_LABEL, NO_LABEL, label_end, 0);
     generate_clearable_registers(NO_REGISTER);
   }
 

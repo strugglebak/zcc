@@ -89,10 +89,14 @@ static struct ASTNode *parse_switch_statement() {
 
         // 跳过 ':'
         verify_colon();
-        // 解析 case a: 里面的复合语句
-        left = parse_compound_statement(1);
         // 同时计算有多少个 case
         case_count++;
+
+        // 解析 case a: 里面的复合语句
+        // 也支持 case a: case b: xxx(); break; 这样的语句
+        left = token_from_file.token == TOKEN_CASE
+          ? NULL
+          : parse_compound_statement(1);
 
         // 创建 case tree
         if (!case_tree) {
