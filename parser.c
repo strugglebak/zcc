@@ -602,7 +602,9 @@ struct ASTNode *convert_postfix_expression_2_ast() {
 
   // 检查标识符是否存在
   t = find_symbol(text_buffer);
-  if (!t || t->structural_type != STRUCTURAL_VARIABLE)
+  if (!t ||
+      (t->structural_type != STRUCTURAL_VARIABLE &&
+       t->structural_type != STRUCTURAL_ARRAY))
     error_with_message("Unknown variable", text_buffer);
 
   switch (token_from_file.token) {
