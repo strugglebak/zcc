@@ -2,7 +2,8 @@
 #define __GENERATOR_CORE_H__
 
 
-void clear_all_registers();
+void clear_all_registers(int keep_register_index);
+int allocate_register();
 
 void register_preamble();
 void register_postamble();
@@ -81,6 +82,8 @@ void register_switch(
   int *case_value,
   int label_default
 );
+
+void register_move(int left_register, int right_register);
 
 
 #endif

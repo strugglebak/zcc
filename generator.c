@@ -29,11 +29,11 @@ static int interpret_if_ast_with_register(
   // 这个条件语句最终的执行的结果是 0，并跳转到 label_false 存在的地方
   // 这里可以把 label_false 这个整型数值当作一个 register_index 给到对应的寄存器做处理
   interpret_ast_with_register(node->left, label_start, NO_LABEL, NO_LABEL, node->operation);
-  clear_all_registers();
+  generate_clearable_registers(NO_REGISTER);
 
   // 解析 true 部分的 statements，并生成对应汇编代码
   interpret_ast_with_register(node->middle, NO_LABEL, loop_start_label, loop_end_label, node->operation);
-  clear_all_registers();
+  generate_clearable_registers(NO_REGISTER);
 
   // 如果有 ELSE 分支，则跳转到 label_end
   if (node->right) register_jump(label_end);
@@ -42,7 +42,7 @@ static int interpret_if_ast_with_register(
   register_label(label_start);
   if (node->right) {
     interpret_ast_with_register(node->right, NO_LABEL, NO_LABEL, NO_LABEL, node->operation);
-    clear_all_registers();
+    generate_clearable_registers(NO_REGISTER);
     register_label(label_end);
   }
 
@@ -72,12 +72,12 @@ static int interpret_while_ast_with_register(struct ASTNode *node) {
   // evaluate condition
   // jump to Lend if condition false
   interpret_ast_with_register(node->left, label_end, label_start, label_end, node->operation);
-  clear_all_registers();
+  generate_clearable_registers(NO_REGISTER);
 
   // 解析 while 下面的复合语句
   // statements
   interpret_ast_with_register(node->right, NO_LABEL, label_start, label_end, node->operation);
-  clear_all_registers();
+  generate_clearable_registersregisters(NO_REGISTER);
 
   // jump to Lstart
   register_jump(label_start);
@@ -112,7 +112,7 @@ static int interpret_function_call_with_register(struct ASTNode *node) {
     register_copy_argument(register_index, glue_node->ast_node_scale_size);
     // 保留第一个参数
     if (!function_argument_number) function_argument_number = glue_node->ast_node_scale_size;
-    clear_all_registers();
+    generate_clearable_registersregisters(NO_REGISTER);
     glue_node = glue_node->left;
   }
 
@@ -138,7 +138,7 @@ static int interpret_switch_ast_with_register(struct ASTNode *node) {
   // 先生成 switch 条件语句的汇编代码
   register_index = interpret_ast_with_register(node->left, NO_LABEL, NO_LABEL, NO_LABEL, 0);
   register_jump(label_jump_start);
-  clear_all_registers();
+  generate_clearable_registers(register_index);
 
   // 遍历 tree 的右节点，为每个 case 生成汇编代码
   for(i = 0, c = node->right; c; i++, c = c->right) {
@@ -153,7 +153,7 @@ static int interpret_switch_ast_with_register(struct ASTNode *node) {
 
     // 为每个 case 生成汇编代码
     interpret_ast_with_register(c->left, NO_LABEL, NO_LABEL, label_end, 0);
-    clear_all_registers();
+    generate_clearable_registers(NO_REGISTER);
   }
 
   // 确保最后一个 case 跳过 switch 表
@@ -163,6 +163,56 @@ static int interpret_switch_ast_with_register(struct ASTNode *node) {
   register_switch(register_index, case_count, label_jump_start, case_label, case_value, label_default);
   register_label(label_end);
   return NO_REGISTER;
+}
+
+// 生成三元运算符语句的汇编代码
+static int interpret_ternary_ast_with_register(struct ASTNode *node) {
+  int label_start, label_end, register_index, expression_register_index;
+
+  label_start = generate_label();
+  label_end = generate_label();
+
+  // 先产生条件语句的汇编，这个条件语句后面跟着是跳到 false 情况的
+  interpret_ast_with_register(
+    node->left,
+    label_start,
+    NO_LABEL,
+    NO_LABEL,
+    node->operation);
+  generate_clearable_registers(NO_REGISTER);
+
+  // 弄一个寄存器来保存俩表达式的结果
+  register_index = allocate_register();
+
+  // 生成 true 表达式的汇编以及 false label
+  // 把结果放入上述的寄存器中
+  expression_register_index = interpret_ast_with_register(
+    node->middle,
+    NO_LABEL,
+    NO_LABEL,
+    NO_LABEL,
+    node->operation);
+  register_move(expression_register_index, register_index);
+  // 这个时候不要 clear 用来保存俩表达式结果的寄存器
+  generate_clearable_registers(register_index);
+
+  register_jump(label_end);
+  register_label(label_start);
+
+  // 生成 false 表达式的汇编以及 end label
+  // 把结果放入上述的寄存器中
+  expression_register_index = interpret_ast_with_register(
+    node->right,
+    NO_LABEL,
+    NO_LABEL,
+    NO_LABEL,
+    node->operation);
+  register_move(expression_register_index, register_index);
+  // 这个时候不要 clear 用来保存俩表达式结果的寄存器
+  generate_clearable_registers(register_index);
+  register_label(label_end);
+
+  return register_index;
 }
 
 /**
@@ -208,10 +258,10 @@ int interpret_ast_with_register(
     case AST_GLUE:
       if (node->left)
         interpret_ast_with_register(node->left, if_label, loop_start_label, loop_end_label, node->operation);
-      clear_all_registers();
+      generate_clearable_registers(NO_REGISTER);
       if (node->right)
         interpret_ast_with_register(node->right, if_label, loop_start_label, loop_end_label, node->operation);
-      clear_all_registers();
+      generate_clearable_registers(NO_REGISTER);
       return NO_REGISTER;
     case AST_WHILE:
       return interpret_while_ast_with_register(node);
@@ -224,6 +274,8 @@ int interpret_ast_with_register(
       return NO_REGISTER;
     case AST_SWITCH:
       return interpret_switch_ast_with_register(node);
+    case AST_TERNARY:
+      return interpret_ternary_ast_with_register(node);
   }
 
   if (node->left) {
@@ -408,8 +460,8 @@ void generate_postamble_code() {
   register_postamble();
 }
 
-void generate_clearable_registers() {
-  clear_all_registers();
+void generate_clearable_registers(int keep_register_index) {
+  clear_all_registers(keep_register_index);
 }
 
 int generate_global_string_code(char *string_value) {

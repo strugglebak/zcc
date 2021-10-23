@@ -11,7 +11,7 @@ int interpret_ast_with_register(
 );
 void generate_preamble_code();
 void generate_postamble_code();
-void generate_clearable_registers();
+void generate_clearable_registers(int keep_register_index);
 int generate_global_string_code(char *string_value);
 void generate_global_symbol(struct SymbolTable *t);
 void generate_reset_local_variables();

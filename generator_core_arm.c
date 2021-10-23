@@ -28,7 +28,7 @@ static char *inverted_branch_list[] =
 // none/void/char/int/long
 static int primitive_size[] = { 0, 0, 1, 4, 4, 4, 4, 4 };
 
-void clear_all_registers() {
+void clear_all_registers(NO_REGISTER) {
   free_registers[0] = free_registers[1] = free_registers[2] = free_registers[3] = 1;
 }
 
@@ -96,7 +96,7 @@ static void set_variable_offset(int symbol_table_index) {
  * 汇编前置代码，写入到 output_file 中
 */
 void register_preamble() {
-  clear_all_registers();
+  clear_all_registers(NO_REGISTER);
   fputs("\t.text\n", output_file);
 }
 
@@ -308,7 +308,7 @@ int register_compare_and_jump(
     inverted_branch_list[ast_operation - AST_COMPARE_EQUALS],
     label);
 
-  clear_all_registers();
+  clear_all_registers(NO_REGISTER);
   return NO_REGISTER;
 }
 

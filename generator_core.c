@@ -46,15 +46,19 @@ static int primitive_size[] = { 0, 0, 1, 4, 8, 8, 8, 8 };
 static int local_offset;
 static int stack_offset;
 
-void clear_all_registers() {
-  free_registers[0] = free_registers[1] = free_registers[2] = free_registers[3] = 1;
+void clear_all_registers(int keep_register_index) {
+  int i;
+  for (i = 0; i < FREE_REGISTER_NUMBER; i++) {
+    if (i != keep_register_index)
+      free_registers[i] = 1;
+  }
 }
 
 /**
  * 分配一个寄存器，返回这个寄存器对应的下标
  * 如果已经没有寄存器分配，则抛出异常
 */
-static int allocate_register() {
+int allocate_register() {
   for (int i = 0; i < GET_ARRAY_LENGTH(free_registers); i++) {
     if (free_registers[i]) {
       free_registers[i] = 0;
@@ -93,7 +97,7 @@ static int compare_register(int left_register, int right_register, char *set_ins
  * 汇编前置代码，写入到 output_file 中
 */
 void register_preamble() {
-  clear_all_registers();
+  clear_all_registers(NO_REGISTER);
   register_text_section_flag();
   fprintf(output_file,
   "# %%rsi = switch table, %%rax = expr\n"
@@ -451,7 +455,7 @@ int register_compare_and_jump(
     inverted_compare_list[ast_operation - AST_COMPARE_EQUALS],
     label);
 
-  clear_all_registers();
+  clear_all_registers(NO_REGISTER);
   return NO_REGISTER;
 }
 
@@ -825,4 +829,10 @@ void register_switch(
   fprintf(output_file, "\tmovq\t%s, %%rax\n", register_list[register_index]);
   fprintf(output_file, "\tleaq\tL%d(%%rip), %%rdx\n", label);
   fprintf(output_file, "\tjmp\tswitch\n");
+}
+
+void register_move(int left_register, int right_register) {
+  fprintf(output_file, "\tmovq\t%s, %s\n",
+    register_list[left_register],
+    register_list[right_register]);
 }
