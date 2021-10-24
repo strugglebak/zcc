@@ -302,13 +302,12 @@ int convert_literal_token_2_integer_value(int primitive_type) {
   return 0;
 }
 
-int convert_type_casting_token_2_primitive_type() {
+int convert_type_casting_token_2_primitive_type(struct SymbolTable **composite_type) {
   int primitive_type, storage_class;
-  struct SymbolTable *t;
 
   primitive_type = convert_multiply_token_2_primitive_type(
     convert_token_2_primitive_type(
-      &t,
+      composite_type,
       &storage_class
     )
   );
@@ -439,7 +438,6 @@ static struct SymbolTable *parse_scalar_declaration(
 ) {
   struct SymbolTable *t = NULL;
   struct ASTNode *var_node, *expression_node;
-  int type_casting_primitive_type;
 
   *tree = NULL;
 

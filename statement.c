@@ -17,7 +17,7 @@ static struct ASTNode *parse_break_statement() {
     error("no loop or switch to break out from");
   scan(&token_from_file);
   verify_semicolon();
-  return create_ast_leaf(AST_BREAK, 0, 0, NULL, NULL);
+  return create_ast_leaf(AST_BREAK, PRIMITIVE_NONE, 0, NULL, NULL);
 }
 static struct ASTNode *parse_continue_statement() {
   // 解析类似 continue; 这样的语句
@@ -25,7 +25,7 @@ static struct ASTNode *parse_continue_statement() {
     error("no loop to continue out from");
   scan(&token_from_file);
   verify_semicolon();
-  return create_ast_leaf(AST_CONTINUE, 0, 0, NULL, NULL);
+  return create_ast_leaf(AST_CONTINUE, PRIMITIVE_NONE, 0, NULL, NULL);
 }
 
 static struct ASTNode *parse_switch_statement() {

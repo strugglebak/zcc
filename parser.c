@@ -13,6 +13,8 @@
 #include "generator.h"
 #include "declaration.h"
 
+static struct ASTNode *parse_paren_expression();
+
 static int operation_precedence_array[] = {
   0, 10,          // EOF =
   10, 10, 10, 10, // += -= *= /=
@@ -92,9 +94,9 @@ static int operation_precedence(int operation_in_token) {
 //         ;
 static struct ASTNode *create_ast_node_from_expression() {
   struct ASTNode *node;
+  struct SymbolTable *composite_type, *var_pointer, *enum_pointer;
   int label;
   int primitive_type = 0;
-  struct SymbolTable *composite_type;
   int primitive_type_size, storage_class;
 
   switch (token_from_file.token) {
@@ -138,6 +140,7 @@ static struct ASTNode *create_ast_node_from_expression() {
         NULL,
         NULL);
       break;
+
     // 解析类似   char j; j= 2; 这样的语句需要考虑的情况
     // 即把 2 这个 int 数值转换成 char 类型的
     case TOKEN_INTEGER_LITERAL:
@@ -152,49 +155,51 @@ static struct ASTNode *create_ast_node_from_expression() {
       break;
 
     case TOKEN_IDENTIFIER:
-      return convert_postfix_expression_2_ast();
+      enum_pointer = find_enum_value_symbol(text_buffer);
+      if (enum_pointer) {
+        node = create_ast_leaf(
+          AST_INTEGER_LITERAL,
+          PRIMITIVE_INT,
+          enum_pointer->symbol_table_position,
+          NULL,
+          NULL);
+        break;
+      }
+      var_pointer = find_symbol(text_buffer);
+      if (!var_pointer)
+        error_with_message("Unknown variable or function", text_buffer);
+      switch (var_pointer->structural_type) {
+        case STRUCTURAL_VARIABLE:
+          node = create_ast_leaf(
+            AST_IDENTIFIER,
+            var_pointer->primitive_type,
+            0,
+            var_pointer,
+            var_pointer->composite_type);
+          break;
+        case STRUCTURAL_ARRAY:
+          node = create_ast_leaf(
+            AST_IDENTIFIER_ADDRESS,
+            var_pointer->primitive_type,
+            0,
+            var_pointer,
+            var_pointer->composite_type);
+          node->rvalue = 1;
+          break;
+        case STRUCTURAL_FUNCTION:
+          scan(&token_from_file);
+          if (token_from_file.token != TOKEN_LEFT_PAREN)
+            error_with_message("Function name used without parentheses", text_buffer);
+          return convert_function_call_2_ast();
+        default:
+          error_with_message("Identifier not a scalar or array variable", text_buffer);
+      }
+      break;
 
     case TOKEN_LEFT_PAREN:
       // 解析 e= (a+b) * (c+d); 类似的语句
-      // 跳过 '('
-      scan(&token_from_file);
+      return parse_paren_expression();
 
-      // 这里处理类似强制类型转换的语句
-      // 比如
-      // int   x= 65535;
-      // char  y= (char)x;
-      // int  *a= &x;
-      // char *b= (char *)a;
-      // long *z= (void *)0;
-      switch (token_from_file.token) {
-        case TOKEN_IDENTIFIER:
-          if (!find_typedef_symbol(text_buffer)) {
-            node = converse_token_2_ast(0);
-            break;
-          }
-        case TOKEN_VOID:
-        case TOKEN_CHAR:
-        case TOKEN_INT:
-        case TOKEN_LONG:
-        case TOKEN_STRUCT:
-        case TOKEN_UNION:
-        case TOKEN_ENUM:
-          // 获取到强制类型转换后的 type
-          primitive_type = convert_type_casting_token_2_primitive_type();
-          // 跳过 ')'
-          verify_right_paren();
-        default:
-          node = converse_token_2_ast(0);
-      }
-
-      if (!primitive_type)
-        // 没有强制类型转换这样也要跳过 ')'
-        verify_right_paren();
-      else
-        // 否则创建一个 强制类型转换的 node
-        node = create_ast_left_node(AST_TYPE_CASTING, primitive_type, node, 0, NULL, NULL);
-
-      return node;
     default:
       error_with_message("Expecting a primary expression, got token", token_from_file.token_string);
   }
@@ -203,6 +208,46 @@ static struct ASTNode *create_ast_node_from_expression() {
   scan(&token_from_file);
 
   return node;
+}
+
+// 解析 (expression) 即括号中的语句
+static struct ASTNode *parse_paren_expression() {
+  struct ASTNode *tree;
+  struct SymbolTable *composite_type = NULL;
+  int primitive_type = 0;
+
+  // 跳过 '('
+  scan(&token_from_file);
+
+  switch (token_from_file.token) {
+    case TOKEN_IDENTIFIER:
+      if (!find_typedef_symbol(text_buffer)) {
+        tree = converse_token_2_ast(0);
+        break;
+      }
+    case TOKEN_VOID:
+    case TOKEN_CHAR:
+    case TOKEN_INT:
+    case TOKEN_LONG:
+    case TOKEN_STRUCT:
+    case TOKEN_UNION:
+    case TOKEN_ENUM:
+      // 获取到强制类型转换后的 type
+      primitive_type = convert_type_casting_token_2_primitive_type(&composite_type);
+      // 跳过 ')'
+      verify_right_paren();
+    default:
+      tree = converse_token_2_ast(0);
+  }
+
+  if (!primitive_type)
+    // 没有强制类型转换这样也要跳过 ')'
+    verify_right_paren();
+  else
+    // 否则创建一个 强制类型转换的 tree
+    tree = create_ast_left_node(AST_TYPE_CASTING, primitive_type, tree, 0, NULL, composite_type);
+
+  return tree;
 }
 
 // expression_list: <null>
@@ -294,10 +339,9 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
   // 或者它是个右结合操作符 =，并且优先级和上一个操作符相同
   // 则进行树的循环构建
   while(
-    (operation_precedence(node_operation_type)
-      > previous_token_precedence) ||
-    (check_right_associative(node_operation_type)
-      && operation_precedence(node_operation_type) == previous_token_precedence)
+    (operation_precedence(node_operation_type) > previous_token_precedence) ||
+    (check_right_associative(node_operation_type) &&
+     operation_precedence(node_operation_type) == previous_token_precedence)
   ) {
     // 继续扫描
     scan(&token_from_file);
@@ -306,7 +350,6 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
 
     // 将 Token 操作符类型转换成 AST 操作符类型
     ast_operation_type = convert_token_operation_2_ast_operation(node_operation_type);
-    right->rvalue = 1;
 
     switch (ast_operation_type) {
       case AST_TERNARY:
@@ -326,6 +369,8 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
           NULL,
           right->composite_type);
       case AST_ASSIGN:
+        right->rvalue = 1;
+
         // 确保 right 和 left 的类型匹配
         right = modify_type(right, left->primitive_type, 0, left->composite_type);
         if (!right) error("Incompatible expression in assignment");
@@ -336,6 +381,7 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
       default:
         // 如果不是赋值操作，那么显然所有的 tree node 都是 rvalue 右值
         left->rvalue = 1;
+        right->rvalue = 1;
 
         // 检查 left 和 right 节点的 primitive_type 是否兼容
         // 这里同时判断了指针的类型
@@ -356,6 +402,18 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
       0,
       NULL,
       left->composite_type);
+
+    switch (ast_operation_type) {
+      case AST_LOGIC_OR:
+      case AST_LOGIC_AND:
+      case AST_COMPARE_EQUALS:
+      case AST_COMPARE_NOT_EQUALS:
+      case AST_COMPARE_LESS_THAN:
+      case AST_COMPARE_GREATER_THAN:
+      case AST_COMPARE_LESS_EQUALS:
+      case AST_COMPARE_GREATER_EQUALS:
+        left->primitive_type = PRIMITIVE_INT;
+    }
 
     node_operation_type = token_from_file.token;
     if (TOKEN_SEMICOLON == node_operation_type ||
@@ -404,26 +462,11 @@ struct ASTNode *convert_function_call_2_ast() {
   return tree;
 }
 
-struct ASTNode *convert_array_access_2_ast() {
-  struct ASTNode *left, *right;
-  struct SymbolTable *t = find_symbol(text_buffer);
+struct ASTNode *convert_array_access_2_ast(struct ASTNode *left) {
+  struct ASTNode *right;
 
-  // 解析类似于 x = a[12];
-  if (!t) error_with_message("Undeclared array", text_buffer);
-  // 因为数组也可以被当作指针看待，所以这里要同时检查一个变量是否也是指针
-  if (t->structural_type != STRUCTURAL_ARRAY && (
-      t->structural_type == STRUCTURAL_VARIABLE &&
-      !check_pointer_type(t->primitive_type)))
-    error_with_message("Not an array or pointer", text_buffer);
-
-  // 为数组变量创建一个子节点，这个子节点指向数组的基
-  if (t->structural_type == STRUCTURAL_ARRAY)
-    left = create_ast_leaf(AST_IDENTIFIER_ADDRESS, t->primitive_type, 0, t, t->composite_type);
-  else {
-    // 指针变量就作为右值
-    left = create_ast_leaf(AST_IDENTIFIER, t->primitive_type, 0, t, t->composite_type);
-    left->rvalue = 1;
-  }
+  if (!check_pointer_type(left->primitive_type))
+    error("Not an array or pointer");
 
   // 跳过 [
   scan(&token_from_file);
@@ -438,47 +481,39 @@ struct ASTNode *convert_array_access_2_ast() {
   if (!check_int_type(right->primitive_type))
     error("Array index is not of integer type");
 
+  left->rvalue = 1;
+
   // 对于 int a[20]; 数组索引 a[12] 来说，需要用 int 类型(4) 来扩展 数组索引(12)
   // 以便在生成汇编代码时增加偏移量
   right = modify_type(right, left->primitive_type, AST_PLUS, left->composite_type);
 
   // 返回一个 AST 树，其中数组的基添加了偏移量
-  left = create_ast_node(AST_PLUS, t->primitive_type, left, NULL, right, 0, NULL, left->composite_type);
+  left = create_ast_node(AST_PLUS, left->primitive_type, left, NULL, right, 0, NULL, left->composite_type);
   // 这个时候也必须要解除引用，因为可能后面会有 a[12] = 100; 这样的语句出现，所以把它看作左值 lvalue
   left = create_ast_left_node(AST_DEREFERENCE_POINTER, value_at(left->primitive_type), left, 0, NULL, left->composite_type);
 
   return left;
 }
 
-struct ASTNode *convert_member_access_2_ast(int with_pointer) {
+struct ASTNode *convert_member_access_2_ast(int with_pointer, struct ASTNode *left) {
   // 解析类似于 y = xxx.a; 或者 y = xxx->a; 这样的语句
-  struct ASTNode *left, *right;
-  struct SymbolTable *var_pointer, *type_pointer, *member;
+  struct ASTNode *right;
+  struct SymbolTable *type_pointer, *member;
 
-  // 检查 identifier 是否用 struct 定义过
-  if (!(var_pointer = find_symbol(text_buffer)))
-    error_with_message("Undeclared variable", text_buffer);
-  // 定义过用的是 'xxx->a' 的用法，检查 xxx 是不是指针类型
   if (with_pointer &&
-      var_pointer->primitive_type != pointer_to(PRIMITIVE_STRUCT) &&
-      var_pointer->primitive_type != pointer_to(PRIMITIVE_UNION))
-    error_with_message("Variable is not a pointer type", text_buffer);
-  // 定义过用的是 'xxx.a' 的用法，检查 xxx 是不是结构体类型
-  if (!with_pointer &&
-      var_pointer->primitive_type != PRIMITIVE_STRUCT &&
-      var_pointer->primitive_type != PRIMITIVE_UNION)
-    error_with_message("Variable is not a struct type", text_buffer);
+      (left->primitive_type != pointer_to(PRIMITIVE_STRUCT) &&
+       left->primitive_type != pointer_to(PRIMITIVE_UNION)))
+    error("Expression is not a pointer to a struct/union");
 
-  // 创建 left 节点
-  left = with_pointer
-    // 指针
-    ? create_ast_leaf(AST_IDENTIFIER, pointer_to(PRIMITIVE_STRUCT), 0, var_pointer, NULL)
-    // 结构体
-    : create_ast_leaf(AST_IDENTIFIER_ADDRESS, var_pointer->primitive_type, 0, var_pointer, NULL);
-  // 它是一个右值
-  left->rvalue = 1;
+  if (!with_pointer) {
+    if (left->primitive_type == PRIMITIVE_STRUCT ||
+        left->primitive_type == PRIMITIVE_UNION)
+      left->operation = AST_IDENTIFIER_ADDRESS;
+    else
+      error("Expression is not a struct/union");
+  }
 
-  type_pointer = var_pointer->composite_type;
+  type_pointer = left->composite_type;
 
   // 跳过 '.' 或者 '->'
   scan(&token_from_file);
@@ -490,6 +525,8 @@ struct ASTNode *convert_member_access_2_ast(int with_pointer) {
 
   // 没找到 'a' 直接退出
   if (!member) error_with_message("No member found in struct/union", text_buffer);
+
+  left->rvalue = 1;
 
   // 找到了 'a'，先创建一个右节点，值是 'a' 所在的成员的 offset
   right = create_ast_leaf(AST_INTEGER_LITERAL, PRIMITIVE_INT, member->symbol_table_position, NULL, NULL);
@@ -511,6 +548,9 @@ struct ASTNode *convert_prefix_expression_2_ast() {
 
       if (tree->operation != AST_IDENTIFIER)
         error("& operator must be followed by an identifier");
+      if (tree->symbol_table->structural_type == STRUCTURAL_ARRAY)
+        error("& operator cannot be performed on an array");
+
       tree->operation = AST_IDENTIFIER_ADDRESS;
       tree->primitive_type = pointer_to(tree->primitive_type);
       break;
@@ -520,7 +560,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
       tree = convert_prefix_expression_2_ast();
 
       if (tree->operation != AST_IDENTIFIER &&
-        tree->operation != AST_DEREFERENCE_POINTER)
+          tree->operation != AST_DEREFERENCE_POINTER)
         error("* operator must be followed by an identifier or *");
       // 生成一个父级节点
       tree = create_ast_left_node(
@@ -537,6 +577,9 @@ struct ASTNode *convert_prefix_expression_2_ast() {
       tree = convert_prefix_expression_2_ast();
 
       tree->rvalue = 1;
+      if (tree->primitive_type == PRIMITIVE_CHAR)
+        tree->primitive_type = PRIMITIVE_INT;
+
       // 有可能 y 是 char(unsigned)，而 x 是 int 型的，所以需要做一个拓展让其变成有符号(signed)的
       // 并且 unsigned 值不能取负数
       tree = modify_type(tree, PRIMITIVE_INT, 0, NULL);
@@ -579,85 +622,60 @@ struct ASTNode *convert_prefix_expression_2_ast() {
       tree = create_ast_left_node(AST_PRE_DECREASE, tree->primitive_type, tree, 0, NULL, tree->composite_type);
       break;
     default:
-      tree = create_ast_node_from_expression();
+      tree = convert_postfix_expression_2_ast();
   }
 
   return tree;
 }
 
 struct ASTNode *convert_postfix_expression_2_ast() {
-  struct ASTNode *tree;
-  struct SymbolTable *t = NULL, *enum_pointer;
-  int rvalue = 0;
+  struct ASTNode *tree = create_ast_node_from_expression();
 
   // 解析类似的语句时需要注意的问题，即区别是变量名还是函数调用还是数组访问
   //  x = fred + jim;
   //  x = fred(5) + jim;
   //  x = a[12];
 
-  // 先判断 fred 或者 jim 是不是 enum 变量
-  // 如果是得先返回一个 ast node
-  if ((enum_pointer = find_enum_value_symbol(text_buffer))) {
-    scan(&token_from_file);
-    return create_ast_leaf(
-      AST_INTEGER_LITERAL,
-      PRIMITIVE_INT,
-      enum_pointer->symbol_table_position,
-      NULL,
-      NULL);
+  while(1) {
+    switch (token_from_file.token) {
+      // 如果是左 [，则直接看作是访问数组
+      case TOKEN_LEFT_BRACKET:
+        tree = convert_array_access_2_ast(tree);
+        break;
+      // 如果是 '.' 或者 '->' 看作是访问 struct/union
+      case TOKEN_DOT:
+        tree = convert_member_access_2_ast(0, tree);
+        break;
+      case TOKEN_ARROW:
+        tree = convert_member_access_2_ast(1, tree);
+        break;
+      case TOKEN_INCREASE:
+        if (tree->rvalue)
+          error("Cannot ++ on rvalue");
+        // 解析类似 x = y++; 语句
+        scan(&token_from_file);
+
+        if (tree->operation == AST_POST_INCREASE ||
+            tree->operation == AST_POST_DECREASE)
+          error("Cannot ++ and/or -- more than once");
+        tree->operation = AST_POST_INCREASE;
+        break;
+      case TOKEN_DECREASE:
+        if (tree->rvalue)
+          error("Cannot -- on rvalue");
+        // 解析类似 x = y--; 语句
+        scan(&token_from_file);
+
+        if (tree->operation == AST_POST_INCREASE ||
+            tree->operation == AST_POST_DECREASE)
+          error("Cannot ++ and/or -- more than once");
+
+        tree->operation = AST_POST_DECREASE;
+        break;
+
+      default: return tree;
+    }
   }
 
-  // 扫描下一个，继续判断
-  scan(&token_from_file);
-
-  // 如果是左 (，则直接看作是函数调用
-  if (token_from_file.token == TOKEN_LEFT_PAREN)
-    return convert_function_call_2_ast();
-
-  // 如果是左 [，则直接看作是访问数组
-  if (token_from_file.token == TOKEN_LEFT_BRACKET)
-    return convert_array_access_2_ast();
-
-  // 如果是 '.' 或者 '->' 看作是访问 struct/union
-  if (token_from_file.token == TOKEN_DOT)
-    return convert_member_access_2_ast(0);
-  if (token_from_file.token == TOKEN_ARROW)
-    return convert_member_access_2_ast(1);
-
-  // 检查标识符是否存在
-  t = find_symbol(text_buffer);
-  if (!t) error_with_message("Unknown variable", text_buffer);
-  switch(t->structural_type) {
-    case STRUCTURAL_VARIABLE: break;
-    case STRUCTURAL_ARRAY: rvalue = 1; break;
-    default: error_with_message("Identifier not a scalar or array variable", text_buffer);
-  }
-
-
-  switch (token_from_file.token) {
-    case TOKEN_INCREASE:
-      if (rvalue)
-        error_with_message("Cannot ++ on rvalue", text_buffer);
-      // 解析类似 x = y++; 语句
-      scan(&token_from_file);
-      tree = create_ast_leaf(AST_POST_INCREASE, t->primitive_type, 0, t, t->composite_type);
-      break;
-    case TOKEN_DECREASE:
-      if (rvalue)
-        error_with_message("Cannot -- on rvalue", text_buffer);
-      // 解析类似 x = y--; 语句
-      scan(&token_from_file);
-      tree = create_ast_leaf(AST_POST_DECREASE, t->primitive_type, 0, t, t->composite_type);
-      break;
-    default:
-      // array 可以被当作指针，但是只能被作为右值
-      if (t->structural_type == STRUCTURAL_ARRAY) {
-        tree = create_ast_leaf(AST_IDENTIFIER_ADDRESS, t->primitive_type, 0, t, t->composite_type);
-        tree->rvalue = rvalue;
-      } else
-        tree = create_ast_leaf(AST_IDENTIFIER, t->primitive_type, 0, t, t->composite_type);
-      break;
-  }
-
-  return tree;
+  return NULL;
 }
