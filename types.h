@@ -12,7 +12,8 @@ int get_primitive_type_size(
 struct ASTNode *modify_type(
   struct ASTNode *tree,
   int right_primitive_type,
-  int operation
+  int operation,
+  struct SymbolTable *right_composite_type
 );
 
 #endif

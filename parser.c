@@ -124,6 +124,7 @@ static struct ASTNode *create_ast_node_from_expression() {
         AST_INTEGER_LITERAL,
         PRIMITIVE_INT,
         primitive_type_size,
+        NULL,
         NULL);
 
     case TOKEN_STRING_LITERAL:
@@ -134,6 +135,7 @@ static struct ASTNode *create_ast_node_from_expression() {
         AST_STRING_LITERAL,
         pointer_to(PRIMITIVE_CHAR),
         label,
+        NULL,
         NULL);
       break;
     // 解析类似   char j; j= 2; 这样的语句需要考虑的情况
@@ -145,6 +147,7 @@ static struct ASTNode *create_ast_node_from_expression() {
           ? PRIMITIVE_CHAR
           : PRIMITIVE_INT,
         token_from_file.integer_value,
+        NULL,
         NULL);
       break;
 
@@ -189,7 +192,7 @@ static struct ASTNode *create_ast_node_from_expression() {
         verify_right_paren();
       else
         // 否则创建一个 强制类型转换的 node
-        node = create_ast_left_node(AST_TYPE_CASTING, primitive_type, node, 0, NULL);
+        node = create_ast_left_node(AST_TYPE_CASTING, primitive_type, node, 0, NULL, NULL);
 
       return node;
     default:
@@ -236,6 +239,7 @@ struct ASTNode *parse_expression_list(int end_token) {
       NULL,
       right,
       expression_count,
+      NULL,
       NULL);
 
     // 循环到 end_token 为止
@@ -319,10 +323,11 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
           right, // true_expression
           left_temp, // false_expression
           0,
-          NULL);
+          NULL,
+          right->composite_type);
       case AST_ASSIGN:
         // 确保 right 和 left 的类型匹配
-        right = modify_type(right, left->primitive_type, 0);
+        right = modify_type(right, left->primitive_type, 0, left->composite_type);
         if (!right) error("Incompatible expression in assignment");
 
         // 交换 left 和 right，确保 right 汇编语句能在 left 之前生成
@@ -334,8 +339,8 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
 
         // 检查 left 和 right 节点的 primitive_type 是否兼容
         // 这里同时判断了指针的类型
-        left_temp = modify_type(left, right->primitive_type, ast_operation_type);
-        right_temp = modify_type(right, left->primitive_type, ast_operation_type);
+        left_temp = modify_type(left, right->primitive_type, ast_operation_type, right->composite_type);
+        right_temp = modify_type(right, left->primitive_type, ast_operation_type, left->composite_type);
         if (!left_temp && !right_temp) error("Incompatible types in binary expression");
         if (left_temp) left = left_temp;
         if (right_temp) right = right_temp;
@@ -349,7 +354,8 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
       NULL,
       right,
       0,
-      NULL);
+      NULL,
+      left->composite_type);
 
     node_operation_type = token_from_file.token;
     if (TOKEN_SEMICOLON == node_operation_type ||
@@ -389,7 +395,8 @@ struct ASTNode *convert_function_call_2_ast() {
     t->primitive_type,
     tree,
     0,
-    t);
+    t,
+    t->composite_type);
 
   // 解析右 )
   verify_right_paren();
@@ -411,10 +418,10 @@ struct ASTNode *convert_array_access_2_ast() {
 
   // 为数组变量创建一个子节点，这个子节点指向数组的基
   if (t->structural_type == STRUCTURAL_ARRAY)
-    left = create_ast_leaf(AST_IDENTIFIER_ADDRESS, t->primitive_type, 0, t);
+    left = create_ast_leaf(AST_IDENTIFIER_ADDRESS, t->primitive_type, 0, t, t->composite_type);
   else {
     // 指针变量就作为右值
-    left = create_ast_leaf(AST_IDENTIFIER, t->primitive_type, 0, t);
+    left = create_ast_leaf(AST_IDENTIFIER, t->primitive_type, 0, t, t->composite_type);
     left->rvalue = 1;
   }
 
@@ -433,12 +440,12 @@ struct ASTNode *convert_array_access_2_ast() {
 
   // 对于 int a[20]; 数组索引 a[12] 来说，需要用 int 类型(4) 来扩展 数组索引(12)
   // 以便在生成汇编代码时增加偏移量
-  right = modify_type(right, left->primitive_type, AST_PLUS);
+  right = modify_type(right, left->primitive_type, AST_PLUS, left->composite_type);
 
   // 返回一个 AST 树，其中数组的基添加了偏移量
-  left = create_ast_node(AST_PLUS, t->primitive_type, left, NULL, right, 0, NULL);
+  left = create_ast_node(AST_PLUS, t->primitive_type, left, NULL, right, 0, NULL, left->composite_type);
   // 这个时候也必须要解除引用，因为可能后面会有 a[12] = 100; 这样的语句出现，所以把它看作左值 lvalue
-  left = create_ast_left_node(AST_DEREFERENCE_POINTER, value_at(left->primitive_type), left, 0, NULL);
+  left = create_ast_left_node(AST_DEREFERENCE_POINTER, value_at(left->primitive_type), left, 0, NULL, left->composite_type);
 
   return left;
 }
@@ -465,9 +472,9 @@ struct ASTNode *convert_member_access_2_ast(int with_pointer) {
   // 创建 left 节点
   left = with_pointer
     // 指针
-    ? create_ast_leaf(AST_IDENTIFIER, pointer_to(PRIMITIVE_STRUCT), 0, var_pointer)
+    ? create_ast_leaf(AST_IDENTIFIER, pointer_to(PRIMITIVE_STRUCT), 0, var_pointer, NULL)
     // 结构体
-    : create_ast_leaf(AST_IDENTIFIER_ADDRESS, var_pointer->primitive_type, 0, var_pointer);
+    : create_ast_leaf(AST_IDENTIFIER_ADDRESS, var_pointer->primitive_type, 0, var_pointer, NULL);
   // 它是一个右值
   left->rvalue = 1;
 
@@ -485,12 +492,12 @@ struct ASTNode *convert_member_access_2_ast(int with_pointer) {
   if (!member) error_with_message("No member found in struct/union", text_buffer);
 
   // 找到了 'a'，先创建一个右节点，值是 'a' 所在的成员的 offset
-  right = create_ast_leaf(AST_INTEGER_LITERAL, PRIMITIVE_INT, member->symbol_table_position, NULL);
+  right = create_ast_leaf(AST_INTEGER_LITERAL, PRIMITIVE_INT, member->symbol_table_position, NULL, NULL);
 
   // 返回一个 AST 树，其中 struct 的基添加了 member 的偏移量
-  left = create_ast_node(AST_PLUS, pointer_to(member->primitive_type), left, NULL, right, 0, NULL);
+  left = create_ast_node(AST_PLUS, pointer_to(member->primitive_type), left, NULL, right, 0, NULL, member->composite_type);
   // 这个时候也必须要解除引用，因为可能后面会有 xxx.a = 100; 这样的语句出现，所以把它看作左值 lvalue
-  left = create_ast_left_node(AST_DEREFERENCE_POINTER, member->primitive_type, left, 0, NULL);
+  left = create_ast_left_node(AST_DEREFERENCE_POINTER, member->primitive_type, left, 0, NULL, member->composite_type);
   return left;
 }
 
@@ -521,7 +528,8 @@ struct ASTNode *convert_prefix_expression_2_ast() {
         value_at(tree->primitive_type),
         tree,
         0,
-        NULL);
+        NULL,
+        tree->composite_type);
       break;
     case TOKEN_MINUS:
       // 解析类似 x = -y; 这样的表达式
@@ -531,8 +539,8 @@ struct ASTNode *convert_prefix_expression_2_ast() {
       tree->rvalue = 1;
       // 有可能 y 是 char(unsigned)，而 x 是 int 型的，所以需要做一个拓展让其变成有符号(signed)的
       // 并且 unsigned 值不能取负数
-      tree = modify_type(tree, PRIMITIVE_INT, 0);
-      tree = create_ast_left_node(AST_NEGATE, tree->primitive_type, tree, 0, NULL);
+      tree = modify_type(tree, PRIMITIVE_INT, 0, NULL);
+      tree = create_ast_left_node(AST_NEGATE, tree->primitive_type, tree, 0, NULL, tree->composite_type);
       break;
     case TOKEN_INVERT:
       // 解析类似 x = ~y; 这样的表达式
@@ -540,7 +548,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
       tree = convert_prefix_expression_2_ast();
 
       tree->rvalue = 1;
-      tree = create_ast_left_node(AST_INVERT, tree->primitive_type, tree, 0, NULL);
+      tree = create_ast_left_node(AST_INVERT, tree->primitive_type, tree, 0, NULL, tree->composite_type);
       break;
     case TOKEN_LOGIC_NOT:
       // 解析类似 x = !y; 这样的表达式
@@ -548,7 +556,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
       tree = convert_prefix_expression_2_ast();
 
       tree->rvalue = 1;
-      tree = create_ast_left_node(AST_LOGIC_NOT, tree->primitive_type, tree, 0, NULL);
+      tree = create_ast_left_node(AST_LOGIC_NOT, tree->primitive_type, tree, 0, NULL, tree->composite_type);
       break;
     case TOKEN_INCREASE:
       // 解析类似 x = ++y; 这样的表达式
@@ -558,7 +566,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
       if (tree->operation != AST_IDENTIFIER)
         error("++ operator must be followed by an identifier");
 
-      tree = create_ast_left_node(AST_PRE_INCREASE, tree->primitive_type, tree, 0, NULL);
+      tree = create_ast_left_node(AST_PRE_INCREASE, tree->primitive_type, tree, 0, NULL, tree->composite_type);
       break;
     case TOKEN_DECREASE:
       // 解析类似 x = --y; 这样的表达式
@@ -568,7 +576,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
       if (tree->operation != AST_IDENTIFIER)
         error("-- operator must be followed by an identifier");
 
-      tree = create_ast_left_node(AST_PRE_DECREASE, tree->primitive_type, tree, 0, NULL);
+      tree = create_ast_left_node(AST_PRE_DECREASE, tree->primitive_type, tree, 0, NULL, tree->composite_type);
       break;
     default:
       tree = create_ast_node_from_expression();
@@ -595,6 +603,7 @@ struct ASTNode *convert_postfix_expression_2_ast() {
       AST_INTEGER_LITERAL,
       PRIMITIVE_INT,
       enum_pointer->symbol_table_position,
+      NULL,
       NULL);
   }
 
@@ -631,22 +640,22 @@ struct ASTNode *convert_postfix_expression_2_ast() {
         error_with_message("Cannot ++ on rvalue", text_buffer);
       // 解析类似 x = y++; 语句
       scan(&token_from_file);
-      tree = create_ast_leaf(AST_POST_INCREASE, t->primitive_type, 0, t);
+      tree = create_ast_leaf(AST_POST_INCREASE, t->primitive_type, 0, t, t->composite_type);
       break;
     case TOKEN_DECREASE:
       if (rvalue)
         error_with_message("Cannot -- on rvalue", text_buffer);
       // 解析类似 x = y--; 语句
       scan(&token_from_file);
-      tree = create_ast_leaf(AST_POST_DECREASE, t->primitive_type, 0, t);
+      tree = create_ast_leaf(AST_POST_DECREASE, t->primitive_type, 0, t, t->composite_type);
       break;
     default:
       // array 可以被当作指针，但是只能被作为右值
       if (t->structural_type == STRUCTURAL_ARRAY) {
-        tree = create_ast_leaf(AST_IDENTIFIER_ADDRESS, t->primitive_type, 0, t);
+        tree = create_ast_leaf(AST_IDENTIFIER_ADDRESS, t->primitive_type, 0, t, t->composite_type);
         tree->rvalue = rvalue;
       } else
-        tree = create_ast_leaf(AST_IDENTIFIER, t->primitive_type, 0, t);
+        tree = create_ast_leaf(AST_IDENTIFIER, t->primitive_type, 0, t, t->composite_type);
       break;
   }
 

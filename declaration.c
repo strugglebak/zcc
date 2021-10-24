@@ -500,14 +500,14 @@ static struct SymbolTable *parse_scalar_declaration(
 
     if (storage_class == STORAGE_CLASS_LOCAL) {
       // hack: 在这个函数里面创建 ast node
-      var_node = create_ast_leaf(AST_IDENTIFIER, t->primitive_type, 0, t);
+      var_node = create_ast_leaf(AST_IDENTIFIER, t->primitive_type, 0, t, t->composite_type);
 
       // 表达式的值为右值
       expression_node = converse_token_2_ast(0);
       expression_node->rvalue = 1;
 
       // 检查类型
-      expression_node = modify_type(expression_node, var_node->primitive_type, 0);
+      expression_node = modify_type(expression_node, var_node->primitive_type, 0, var_node->composite_type);
       if (!expression_node)
         error("Incompatible expression in assignment");
 
@@ -519,7 +519,8 @@ static struct SymbolTable *parse_scalar_declaration(
         NULL,
         var_node,
         0,
-        NULL);
+        NULL,
+        expression_node->composite_type);
     }
   }
 
@@ -760,7 +761,8 @@ struct SymbolTable *parse_function_declaration(
     primitive_type,
     tree,
     end_label,
-    old_function_symbol_table);
+    old_function_symbol_table,
+    composite_type);
 
   // 优化 ast tree
   tree = optimise(tree);
@@ -818,7 +820,7 @@ int parse_declaration_list(
 
     // 解析 local 变量，粘接 ast tree
     *glue_tree = (*glue_tree)
-      ? create_ast_node(AST_GLUE, PRIMITIVE_NONE, *glue_tree, NULL, tree, 0, NULL)
+      ? create_ast_node(AST_GLUE, PRIMITIVE_NONE, *glue_tree, NULL, tree, 0, NULL, NULL)
       : tree;
 
     if (token_from_file.token == end_token ||

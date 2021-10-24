@@ -27,7 +27,7 @@ static struct ASTNode *fold_2_children(struct ASTNode *node) {
       return node;
   }
 
-  return create_ast_leaf(AST_INTEGER_LITERAL, node->primitive_type, value, NULL);
+  return create_ast_leaf(AST_INTEGER_LITERAL, node->primitive_type, value, NULL, NULL);
 }
 
 static struct ASTNode *fold_1_children(struct ASTNode *node) {
@@ -42,7 +42,7 @@ static struct ASTNode *fold_1_children(struct ASTNode *node) {
     default: return node;
   }
 
-  return create_ast_leaf(AST_INTEGER_LITERAL, node->primitive_type, value, NULL);
+  return create_ast_leaf(AST_INTEGER_LITERAL, node->primitive_type, value, NULL, NULL);
 }
 
 static struct ASTNode *fold(struct ASTNode *node) {

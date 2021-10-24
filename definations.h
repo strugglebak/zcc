@@ -16,6 +16,7 @@ struct ASTNode {
   struct ASTNode *middle;
   struct ASTNode *right;
   struct SymbolTable *symbol_table;
+  struct SymbolTable *composite_type; // 指向复合类型 symbol table 的指针
 
 #define ast_node_integer_value ast_node_scale_size
 int ast_node_scale_size;

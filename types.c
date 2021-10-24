@@ -28,7 +28,8 @@ int get_primitive_type_size(
 struct ASTNode *modify_type(
   struct ASTNode *tree,
   int right_primitive_type,
-  int operation) {
+  int operation,
+  struct SymbolTable *right_composite_type) {
     int left_primitive_size, right_primitive_size;
     int left_primitive_type = tree->primitive_type;
 
@@ -55,7 +56,7 @@ struct ASTNode *modify_type(
 
       if (left_primitive_size > right_primitive_size) return NULL;
       else if (left_primitive_size < right_primitive_size)
-        return create_ast_left_node(AST_WIDEN, right_primitive_type, tree, 0, NULL);
+        return create_ast_left_node(AST_WIDEN, right_primitive_type, tree, 0, NULL, NULL);
     }
 
     // 比较 char/int/long 指针
@@ -90,7 +91,8 @@ struct ASTNode *modify_type(
             right_primitive_type,
             tree,
             right_primitive_size,
-            NULL);
+            NULL,
+            right_composite_type);
         // 如果 size 就是 int，那么就返回这颗树
         return tree;
       }

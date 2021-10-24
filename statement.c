@@ -17,7 +17,7 @@ static struct ASTNode *parse_break_statement() {
     error("no loop or switch to break out from");
   scan(&token_from_file);
   verify_semicolon();
-  return create_ast_leaf(AST_BREAK, 0, 0, NULL);
+  return create_ast_leaf(AST_BREAK, 0, 0, NULL, NULL);
 }
 static struct ASTNode *parse_continue_statement() {
   // 解析类似 continue; 这样的语句
@@ -25,7 +25,7 @@ static struct ASTNode *parse_continue_statement() {
     error("no loop to continue out from");
   scan(&token_from_file);
   verify_semicolon();
-  return create_ast_leaf(AST_CONTINUE, 0, 0, NULL);
+  return create_ast_leaf(AST_CONTINUE, 0, 0, NULL, NULL);
 }
 
 static struct ASTNode *parse_switch_statement() {
@@ -46,7 +46,7 @@ static struct ASTNode *parse_switch_statement() {
     error("Switch expression is not of integer type");
 
   // 创建一个 AST_SWITCH 的 node
-  node = create_ast_left_node(AST_SWITCH, 0, left, 0, NULL);
+  node = create_ast_left_node(AST_SWITCH, 0, left, 0, NULL, NULL);
 
   // 开始解析 'case' 语句
   switch_level++;
@@ -100,9 +100,9 @@ static struct ASTNode *parse_switch_statement() {
 
         // 创建 case tree
         if (!case_tree) {
-          case_tree = case_tail = create_ast_left_node(ast_operation, 0, left, case_value, NULL);
+          case_tree = case_tail = create_ast_left_node(ast_operation, 0, left, case_value, NULL, NULL);
         } else {
-          case_tail->right = create_ast_left_node(ast_operation, 0, left, case_value, NULL);
+          case_tail->right = create_ast_left_node(ast_operation, 0, left, case_value, NULL, NULL);
           case_tail = case_tail->right;
         }
         break;
@@ -194,7 +194,8 @@ struct ASTNode *parse_if_statement() {
         condition_node->primitive_type,
         condition_node,
         0,
-        NULL);
+        NULL,
+        condition_node->composite_type);
   verify_right_paren();
 
   // 为复合语句创建 ast
@@ -213,6 +214,7 @@ struct ASTNode *parse_if_statement() {
     true_node,
     false_node,
     0,
+    NULL,
     NULL);
 }
 
@@ -233,7 +235,8 @@ struct ASTNode *parse_while_statement() {
         condition_node->primitive_type,
         condition_node,
         0,
-        NULL);
+        NULL,
+        condition_node->composite_type);
 
   verify_right_paren();
 
@@ -249,6 +252,7 @@ struct ASTNode *parse_while_statement() {
     NULL,
     statement_node,
     0,
+    NULL,
     NULL);
 }
 
@@ -279,7 +283,8 @@ struct ASTNode *parse_for_statement() {
         condition_node->primitive_type,
         condition_node,
         0,
-        NULL);
+        NULL,
+        condition_node->composite_type);
   verify_semicolon();
 
   // 解析 i = i+1)
@@ -300,9 +305,9 @@ struct ASTNode *parse_for_statement() {
   // true_or_false_condition  AST_GLUE
   //                          /    \
   //                 compound_stmt  postop
-  tree = create_ast_node(AST_GLUE, PRIMITIVE_NONE, statement_node, NULL, post_operation_statement_node, 0, NULL);
-  tree = create_ast_node(AST_WHILE, PRIMITIVE_NONE, condition_node, NULL, tree, 0, NULL);
-  return create_ast_node(AST_GLUE, PRIMITIVE_NONE, pre_operation_statement_node, NULL, tree, 0, NULL);
+  tree = create_ast_node(AST_GLUE, PRIMITIVE_NONE, statement_node, NULL, post_operation_statement_node, 0, NULL, NULL);
+  tree = create_ast_node(AST_WHILE, PRIMITIVE_NONE, condition_node, NULL, tree, 0, NULL, NULL);
+  return create_ast_node(AST_GLUE, PRIMITIVE_NONE, pre_operation_statement_node, NULL, tree, 0, NULL, NULL);
 }
 
 static struct ASTNode *parse_return_statement() {
@@ -321,12 +326,12 @@ static struct ASTNode *parse_return_statement() {
   tree = converse_token_2_ast(0);
 
   // 检查 return type 和 function type 是否兼容
-  tree = modify_type(tree, t->primitive_type, 0);
+  tree = modify_type(tree, t->primitive_type, 0, t->composite_type);
   if (!tree) // 不允许强制转换
     error("Incompatible types to return");
 
   // 生成 return_statement 的 node
-  tree = create_ast_left_node(AST_RETURN, PRIMITIVE_NONE, tree, 0, NULL);
+  tree = create_ast_left_node(AST_RETURN, PRIMITIVE_NONE, tree, 0, NULL, NULL);
 
   // 检查 );
   verify_right_paren();
@@ -434,7 +439,7 @@ struct ASTNode *parse_compound_statement(int in_switch_statement) {
     // stmt1  stmt2
     if (tree) {
       left = left
-        ? create_ast_node(AST_GLUE, PRIMITIVE_NONE, left, NULL, tree, 0, NULL)
+        ? create_ast_node(AST_GLUE, PRIMITIVE_NONE, left, NULL, tree, 0, NULL, NULL)
         : tree;
     }
 
