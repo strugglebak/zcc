@@ -127,6 +127,10 @@ static struct ASTNode *parse_single_statement() {
   struct ASTNode *statement;
 
   switch(token_from_file.token) {
+    // ';' 就是一个空语句
+    case TOKEN_SEMICOLON:
+      verify_semicolon();
+      break;
     case TOKEN_LEFT_BRACE:
       verify_left_brace();
       statement = parse_compound_statement(0);
@@ -425,6 +429,13 @@ struct ASTNode *parse_compound_statement(int in_switch_statement) {
   struct ASTNode *tree;
 
   while (1) {
+    // 可以允许 {} 里面的空语句
+    if (token_from_file.token == TOKEN_RIGHT_BRACE) return left;
+    if (in_switch_statement && (
+      token_from_file.token == TOKEN_CASE ||
+      token_from_file.token == TOKEN_DEFAULT
+    )) return left;
+
     // 这里主要兼容对 for 语句的处理
     tree = parse_single_statement();
 
@@ -442,12 +453,7 @@ struct ASTNode *parse_compound_statement(int in_switch_statement) {
         ? create_ast_node(AST_GLUE, PRIMITIVE_NONE, left, NULL, tree, 0, NULL, NULL)
         : tree;
     }
-
-    // 最后解析右括号 }
-    if (token_from_file.token == TOKEN_RIGHT_BRACE) return left;
-    if (in_switch_statement && (
-      token_from_file.token == TOKEN_CASE ||
-      token_from_file.token == TOKEN_DEFAULT
-    )) return left;
   }
+
+  return NULL;
 }
