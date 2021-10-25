@@ -340,7 +340,6 @@ static struct ASTNode *parse_return_statement() {
   }
 
   // 生成 return_statement 的 node
-  printf("return 在这里执行\n");
   tree = create_ast_left_node(AST_RETURN, PRIMITIVE_NONE, tree, 0, NULL, NULL);
 
   verify_semicolon();
