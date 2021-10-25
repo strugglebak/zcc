@@ -229,7 +229,9 @@ int interpret_ast_with_register(
   int loop_end_label,
   int parent_ast_operation
 ) {
-  int left_register, right_register;
+  int left_register = NO_REGISTER, right_register = NO_REGISTER;
+
+  if (!node) return NO_REGISTER;
 
   /**
    * 对于两种 ast 做特殊处理

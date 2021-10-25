@@ -106,13 +106,13 @@ static int skip(void) {
 }
 
 static int get_the_position_of_the_charater(char *s, int c) {
-  char *p;
-
-  p = strchr(s, c);
   // s = "0123456789"
-  // s 这里是字符串的首地址，p 是返回这个字符在这个字符串的位置的地址
-  // 相减就是对应的值
-  return (p ? p - s : -1);
+  // s 这里是字符串的首地址
+  int i;
+  for (i = 0; s[i] != '\0'; i++)
+    if (s[i] == (char) c)
+      return i;
+  return -1;
 }
 
 // 从输入的 file 中扫描并返回一个 integer 字符
@@ -487,6 +487,6 @@ int scan(struct Token *t) {
   }
 
   t->token_string = token_string[t->token];
-  // printf("scan %s\n", t->token_string);
+  // printf("scan %s (%s)\n", t->token_string, text_buffer);
   return 1;
 }
