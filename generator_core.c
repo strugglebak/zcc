@@ -402,7 +402,7 @@ void register_generate_global_string(
   char *string_value,
   int is_append_string
 ) {
-  if (!is_append_string) return register_label(label);
+  if (!is_append_string) register_label(label);
   for (char *p = string_value; *p; p++) {
     fprintf(output_file, "\t.byte\t%d\n", *p);
   }
