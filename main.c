@@ -240,7 +240,7 @@ int main(int argc, char *argv[]) {
       object_file_list[object_file_count] = NULL;
     }
 
-    if (output_keep_assembly_file) do_unlink(assembly_file);
+    if (!output_keep_assembly_file) do_unlink(assembly_file);
     i++;
   }
 
