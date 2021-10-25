@@ -1,5 +1,4 @@
 CC= cc
-LIB=
 DEBUG= -T
 
 COMMON= data.c parser.c interpreter.c main.c \
@@ -9,7 +8,7 @@ COMMON= data.c parser.c interpreter.c main.c \
 
 SRCS= $(COMMON) generator_core.c
 ARM_SRCS= $(COMMON) generator_core_arm.c
-TEST_CASE_NAME= 129
+TEST_CASE_NAME= 136
 TEST_CASE= test/input$(TEST_CASE_NAME).zc
 INCLUDE_DIRECTORY= /tmp/include
 BINARAY_DIRECTORY= /tmp
@@ -39,7 +38,8 @@ test: parser test/run_test
 test_arm: parser_arm test/run_test
 	(cd test; chmod +x run_test; ./run_test)
 
-t: parser $(TEST_CASE) $(LIB)
+t: parser $(TEST_CASE)
+	# ./parser -T $(TEST_CASE)
 	./parser -o out $(TEST_CASE)
 	./out
 

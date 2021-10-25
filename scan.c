@@ -487,6 +487,6 @@ int scan(struct Token *t) {
   }
 
   t->token_string = token_string[t->token];
-  // printf("scan %s (%s)\n", t->token_string, text_buffer);
+  // printf("scan '%s' -> (%s)\n", t->token_string, text_buffer);
   return 1;
 }

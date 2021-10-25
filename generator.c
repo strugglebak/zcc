@@ -231,7 +231,8 @@ int interpret_ast_with_register(
 ) {
   int left_register = NO_REGISTER, right_register = NO_REGISTER;
 
-  if (!node) return NO_REGISTER;
+  if (!node)
+    return NO_REGISTER;
 
   /**
    * 对于两种 ast 做特殊处理
@@ -282,12 +283,10 @@ int interpret_ast_with_register(
       return interpret_ternary_ast_with_register(node);
   }
 
-  if (node->left) {
+  if (node->left)
     left_register = interpret_ast_with_register(node->left, NO_LABEL, NO_LABEL, NO_LABEL, node->operation);
-  }
-  if (node->right) {
+  if (node->right)
     right_register = interpret_ast_with_register(node->right, NO_LABEL, NO_LABEL, NO_LABEL, node->operation);
-  }
 
   switch (node->operation) {
     case AST_PLUS:
@@ -331,7 +330,7 @@ int interpret_ast_with_register(
       return NO_REGISTER;
     // a += b + c
     // 会被解析成如下
-    //       AST_ASPLUS
+    //       AST_PLUS
     //      /        \
     //  AST_IDENT     AST_ADD
     //  rval a     /     \

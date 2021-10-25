@@ -725,7 +725,7 @@ struct SymbolTable *parse_function_declaration(
 ) {
   struct ASTNode *tree, *final_statement;
   int end_label = 0, parameter_count = 0;
-  struct SymbolTable *old_function_symbol_table = find_symbol(text_buffer),
+  struct SymbolTable *old_function_symbol_table = find_symbol(function_name),
                      *new_function_symbol_table = NULL;
 
   // 如果之前有相同的 identifier，但是这个 identifier 不是函数
@@ -808,6 +808,7 @@ struct SymbolTable *parse_function_declaration(
   interpret_ast_with_register(tree, NO_LABEL, NO_LABEL, NO_LABEL, 0);
 
   clear_local_symbol_table();
+
   return old_function_symbol_table;
 }
 
