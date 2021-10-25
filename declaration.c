@@ -555,8 +555,6 @@ static struct SymbolTable *parse_symbol_declaration(
     case STORAGE_CLASS_STATIC:
     case STORAGE_CLASS_GLOBAL:
     case STORAGE_CLASS_EXTERN:
-      if (find_global_symbol(var_name))
-        error_with_message("Duplicate global/extern variable declaration", var_name);
     case STORAGE_CLASS_LOCAL:
     case STORAGE_CLASS_FUNCTION_PARAMETER:
       if (find_local_symbol(var_name))
