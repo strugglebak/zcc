@@ -318,29 +318,32 @@ static struct ASTNode *parse_return_statement() {
   struct ASTNode *tree;
   struct SymbolTable *t = current_function_symbol_id;
 
-  // 如果函数返回的是 void 则不能进行返回
-  if (t->primitive_type == PRIMITIVE_VOID)
-    error("Can't return from a void function");
+  verify_return();
 
-  // 检查 return (
-  verify_token_and_fetch_next_token(TOKEN_RETURN, "return");
-  verify_left_paren();
+  if (token_from_file.token == TOKEN_LEFT_PAREN) {
+    if (t->primitive_type == PRIMITIVE_VOID)
+      error("Can't return from a void function");
 
-  // 解析 return 中间的语句
-  tree = converse_token_2_ast(0);
+    verify_left_paren();
+    // 解析 return 中间的语句
+    tree = converse_token_2_ast(0);
+    // 检查 return type 和 function type 是否兼容
+    tree = modify_type(tree, t->primitive_type, 0, t->composite_type);
 
-  // 检查 return type 和 function type 是否兼容
-  tree = modify_type(tree, t->primitive_type, 0, t->composite_type);
-  if (!tree) // 不允许强制转换
-    error("Incompatible types to return");
+    if (!tree) // 不允许强制转换
+      error("Incompatible types to return");
+
+    // 检查 )
+    verify_right_paren();
+  } else {
+    if (t->primitive_type != PRIMITIVE_VOID)
+      error("Must return a value from a non-void function");
+  }
 
   // 生成 return_statement 的 node
   tree = create_ast_left_node(AST_RETURN, PRIMITIVE_NONE, tree, 0, NULL, NULL);
 
-  // 检查 );
-  verify_right_paren();
   verify_semicolon();
-
   return tree;
 }
 

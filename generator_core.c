@@ -590,9 +590,16 @@ int register_function_call(struct SymbolTable *t, int argument_number) {
  * 处理函数返回 function_return
 */
 void register_function_return(int register_index, struct SymbolTable *t) {
+  if (register_index == NO_REGISTER) {
+    register_jump(t->symbol_table_end_label);
+    return;
+  };
+
   char *r = register_list[register_index];
+
   if (check_pointer_type(t->primitive_type)) {
     fprintf(output_file, "\tmovq\t%s, %%rax\n", r);
+    register_jump(t->symbol_table_end_label);
     return;
   }
 
@@ -604,7 +611,7 @@ void register_function_return(int register_index, struct SymbolTable *t) {
       fprintf(output_file, "\tmovl\t%s, %%eax\n", lower_32_bits_register_list[register_index]);
       break;
     case PRIMITIVE_LONG:
-      fprintf(output_file, "\tmovq\t%s, %%rax\n", register_list[register_index]);
+      fprintf(output_file, "\tmovq\t%s, %%rax\n", r);
       break;
     default:
       error_with_digital("Bad function type in register_function_return:", t->primitive_type);

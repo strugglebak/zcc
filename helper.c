@@ -41,6 +41,10 @@ void verify_for() {
   verify_token_and_fetch_next_token(TOKEN_FOR, "for");
 }
 
+void verify_return() {
+  verify_token_and_fetch_next_token(TOKEN_RETURN, "return");
+}
+
 void verify_left_paren() {
   verify_token_and_fetch_next_token(TOKEN_LEFT_PAREN, "(");
 }
