@@ -13,6 +13,7 @@ void generate_preamble_code();
 void generate_postamble_code();
 void generate_clearable_registers(int keep_register_index);
 int generate_global_string_code(char *string_value, int is_append_string);
+void generate_global_string_code_end();
 void generate_global_symbol(struct SymbolTable *t);
 void generate_reset_local_variables();
 int generate_get_local_offset(int primitive_type);
