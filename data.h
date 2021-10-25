@@ -16,6 +16,7 @@
 extern_ char *token_string[TOKEN_STRING_NUMBER];
 
 extern_ int line;
+extern_ int start_line;
 extern_ int putback_buffer;
 extern_ FILE *input_file;
 extern_ FILE *output_file;

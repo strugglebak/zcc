@@ -111,6 +111,7 @@ static char *do_compile(char *filename) {
   }
 
   line = 1;
+  start_line = 1;
   putback_buffer = '\n';
   clear_all_symbol_tables();
 

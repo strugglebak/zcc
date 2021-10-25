@@ -45,7 +45,8 @@ static int next(void) {
   // int main() {...}
 
   // 先从 '#' 开始
-  while (c == '#') {
+  while (start_line && c == '#') {
+    start_line = 0;
     // 跳过 '#'
     scan(&token_from_file);
     // 如果不是 '1' 报错
@@ -69,10 +70,13 @@ static int next(void) {
     // 跳过行尾继续下一个
     while ((c = fgetc(input_file) != '\n'));
     c = fgetc(input_file);
+    start_line = 1;
   }
 
+  start_line = 0;
   if ('\n' == c) {
     line ++;
+    start_line = 1;
   }
 
   return c;
