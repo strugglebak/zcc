@@ -356,14 +356,16 @@ static struct SymbolTable *parse_array_declaration(
     case STORAGE_CLASS_STATIC:
     case STORAGE_CLASS_GLOBAL:
     case STORAGE_CLASS_EXTERN:
-      t = add_global_symbol(
-        var_name,
-        pointer_to(primitive_type), // 变成指针类型
-        STRUCTURAL_ARRAY,
-        0,
-        storage_class,
-        composite_type,
-        0);
+      t = find_global_symbol(var_name);
+      if (is_new_symbol(t, storage_class, pointer_to(primitive_type), composite_type))
+        t = add_global_symbol(
+          var_name,
+          pointer_to(primitive_type), // 变成指针类型
+          STRUCTURAL_ARRAY,
+          0,
+          storage_class,
+          composite_type,
+          0);
       break;
     default:
       error("For now, declaration of non-global arrays is not implemented");
@@ -445,14 +447,16 @@ static struct SymbolTable *parse_scalar_declaration(
     case STORAGE_CLASS_STATIC:
     case STORAGE_CLASS_GLOBAL:
     case STORAGE_CLASS_EXTERN:
-      t = add_global_symbol(
-        var_name,
-        primitive_type,
-        STRUCTURAL_VARIABLE,
-        1,
-        storage_class,
-        composite_type,
-        0);
+      t = find_global_symbol(var_name);
+      if (is_new_symbol(t, storage_class, primitive_type, composite_type))
+        t = add_global_symbol(
+          var_name,
+          primitive_type,
+          STRUCTURAL_VARIABLE,
+          1,
+          storage_class,
+          composite_type,
+          0);
       break;
     case STORAGE_CLASS_LOCAL:
       t = add_local_symbol(
@@ -568,6 +572,39 @@ static struct SymbolTable *parse_symbol_declaration(
     : parse_scalar_declaration(var_name, primitive_type, composite_type, storage_class, tree);
 
   return t;
+}
+
+// 这里用于比较同时用 extern 声明的变量和 global 变量
+// 这俩名字一样的情况下
+// 用于将 extern 声明的变量变成 global
+// return 1 为 true, 0 为 false
+int is_new_symbol(
+  struct SymbolTable *t,
+  int storage_class,
+  int primitive_type,
+  struct SymbolTable *composite_type
+) {
+  if (!t) return 1;
+
+  if ((t->storage_class == STORAGE_CLASS_GLOBAL && storage_class == STORAGE_CLASS_EXTERN) ||
+      (t->storage_class == STORAGE_CLASS_EXTERN && storage_class == STORAGE_CLASS_GLOBAL)) {
+
+    // 普通类型的比较
+    if (primitive_type != t->primitive_type)
+      error_with_message("Type mismatch between global/extern", t->name);
+
+    // struct/union 的比较
+    if (primitive_type >= PRIMITIVE_STRUCT &&
+        composite_type != t->composite_type)
+      error_with_message("Type mismatch between global/extern", t->name);
+
+    // 如果类型比较后一样，将 extern 转为 global
+    t->storage_class = STORAGE_CLASS_GLOBAL;
+    return 0;
+  }
+
+  error_with_message("Duplicate global variable declaration", t->name);
+  return -1;
 }
 
 // typedef_declaration: 'typedef' identifier existing_type

@@ -2,6 +2,13 @@
 #define __DECLARATION_H__
 
 
+int is_new_symbol(
+  struct SymbolTable *t,
+  int storage_class,
+  int primitive_type,
+  struct SymbolTable *composite_type
+);
+
 int convert_token_2_primitive_type(
   struct SymbolTable **composite_type,
   int *storage_class
