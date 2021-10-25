@@ -33,6 +33,21 @@ struct ASTNode *modify_type(
     int left_primitive_size, right_primitive_size;
     int left_primitive_type = tree->primitive_type;
 
+    // 比如这种情况
+    // int *a, b;
+    // if (a && b > 1) {...}
+    // 如果是 && 或者 ||
+    // left 和 right 的 type 必须都是 int 类型 或者指针类型
+    if (operation == AST_LOGIC_AND || operation == AST_LOGIC_OR) {
+      if (!check_int_type(left_primitive_type) &&
+          !check_pointer_type(left_primitive_type))
+        return NULL;
+      if (!check_int_type(left_primitive_type) &&
+          !check_pointer_type(right_primitive_type))
+        return NULL;
+      return tree;
+    }
+
     // 特殊情况判断
     if (left_primitive_type == PRIMITIVE_STRUCT ||
         left_primitive_type == PRIMITIVE_UNION)
