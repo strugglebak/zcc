@@ -471,10 +471,14 @@ void generate_clearable_registers(int keep_register_index) {
   clear_all_registers(keep_register_index);
 }
 
-int generate_global_string_code(char *string_value) {
+int generate_global_string_code(char *string_value, int is_append_string) {
   int label = generate_label();
-  register_generate_global_string(label, string_value);
+  register_generate_global_string(label, string_value, is_append_string);
   return label;
+}
+
+void generate_global_string_code_end() {
+  register_generate_global_string_end();
 }
 
 void generate_reset_local_variables() {

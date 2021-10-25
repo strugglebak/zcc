@@ -397,11 +397,18 @@ void register_generate_global_symbol(struct SymbolTable *t) {
 /**
  * 创建全局字符串
 */
-void register_generate_global_string(int label, char *string_value) {
-  register_label(label);
+void register_generate_global_string(
+  int label,
+  char *string_value,
+  int is_append_string
+) {
+  if (!is_append_string) return register_label(label);
   for (char *p = string_value; *p; p++) {
     fprintf(output_file, "\t.byte\t%d\n", *p);
   }
+}
+
+void register_generate_global_string_end() {
   fprintf(output_file, "\t.byte\t0\n");
 }
 

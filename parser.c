@@ -131,7 +131,19 @@ static struct ASTNode *create_ast_node_from_expression() {
 
     case TOKEN_STRING_LITERAL:
       // 先生成全局 string 的汇编代码，然后再解析 ast，因为这个 string 是要放在 .s 文件的最前面
-      label = generate_global_string_code(text_buffer);
+      label = generate_global_string_code(text_buffer, 0);
+
+      // 支持连续的字符串赋值，类似 char *a = "hello" "world";
+      while(1) {
+        scan(&look_ahead_token);
+        if (look_ahead_token.token != TOKEN_STRING_LITERAL)
+          break;
+        generate_global_string_code(text_buffer, 1);
+        scan(&token_from_file);
+      }
+
+      generate_global_string_code_end();
+
       // symbole_table_index 留给 generator 解析时用
       node = create_ast_leaf(
         AST_STRING_LITERAL,

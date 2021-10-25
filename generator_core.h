@@ -19,7 +19,12 @@ int register_load_local_value_from_variable(struct SymbolTable *t, int operation
 int register_store_value_2_variable(int register_index, struct SymbolTable *t);
 int register_store_local_value_2_variable(int register_index, struct SymbolTable *t);
 void register_generate_global_symbol(struct SymbolTable *t);
-void register_generate_global_string(int label, char *string_value);
+void register_generate_global_string(
+  int label,
+  char *string_value,
+  int is_append_string
+);
+void register_generate_global_string_end();
 
 int register_compare_and_set(
   int ast_operation,
