@@ -93,6 +93,8 @@ static int interpret_function_call_with_register(struct ASTNode *node) {
   int register_index;
   int function_argument_number = 0;
 
+  spill_all_register();
+
   // 处理如下的 tree
   //                AST_FUNCCALL
   //                 /
