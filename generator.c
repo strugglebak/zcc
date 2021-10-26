@@ -114,7 +114,6 @@ static int interpret_function_call_with_register(struct ASTNode *node) {
     register_copy_argument(register_index, glue_node->ast_node_scale_size);
     // 保留第一个参数
     if (!function_argument_number) function_argument_number = glue_node->ast_node_scale_size;
-    generate_clearable_registers(NO_REGISTER);
     glue_node = glue_node->left;
   }
 
