@@ -48,6 +48,14 @@ static int stack_offset;
 
 static int spilling_register_index = 0;
 
+static void push_register(int register_index) {
+  fprintf(output_file, "\tpushq\t%s\n", register_list[register_index]);
+}
+
+static void pop_register(int register_index) {
+  fprintf(output_file, "\tpopq\t%s\n", register_list[register_index]);
+}
+
 void clear_all_registers(int keep_register_index) {
   int i;
   for (i = 0; i < FREE_REGISTER_NUMBER; i++) {
@@ -118,14 +126,6 @@ static int compare_register(int left_register, int right_register, char *set_ins
   fprintf(output_file, "\tandq\t$255,%s\n", register_list[right_register]);
   clear_register(left_register);
   return right_register;
-}
-
-static void push_register(int register_index) {
-  fprintf(output_file, "\tpushq\t%s\n", register_list[register_index]);
-}
-
-static void pop_register(int register_index) {
-  fprintf(output_file, "\tpopq\t%s\n", register_list[register_index]);
 }
 
 /**
