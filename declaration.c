@@ -371,7 +371,7 @@ static struct SymbolTable *parse_array_declaration(
       t = add_local_symbol(var_name, pointer_to(primitive_type), STRUCTURAL_ARRAY, 0, composite_type);
       break;
     default:
-      error("For now, declaration of non-global arrays is not implemented");
+      error("Declaration of array parameters is not implemented");
   }
 
   // 数组赋值
@@ -394,7 +394,6 @@ static struct SymbolTable *parse_array_declaration(
 
     // 处理 '{}' 中初始化的内容
     while (1) {
-
       if (element_number != -1 && i == max_element_number)
         error("Too many values in initialisation list");
 
@@ -573,9 +572,12 @@ static struct SymbolTable *parse_symbol_declaration(
   }
 
   // 如果是 '[' 说明是数组定义
-  t = token_from_file.token == TOKEN_LEFT_BRACKET
-    ? parse_array_declaration(var_name, primitive_type, composite_type, storage_class)
-    : parse_scalar_declaration(var_name, primitive_type, composite_type, storage_class, tree);
+  if (token_from_file.token == TOKEN_LEFT_BRACKET) {
+    t = parse_array_declaration(var_name, primitive_type, composite_type, storage_class);
+    // 局部数组变量没有初始化
+    *tree = NULL;
+  } else
+    t = parse_scalar_declaration(var_name, primitive_type, composite_type, storage_class, tree);
 
   return t;
 }

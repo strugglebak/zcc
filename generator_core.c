@@ -572,6 +572,7 @@ void register_function_postamble(struct SymbolTable *t) {
   fprintf(output_file, "\taddq\t$%d,%%rsp\n", stack_offset);
   fputs("\tpopq\t%rbp\n"
         "\tret\n", output_file);
+  clear_all_registers(NO_REGISTER);
 }
 
 /**
@@ -591,9 +592,9 @@ int register_widen(
 int register_get_primitive_type_size(int primitive_type) {
   if (check_pointer_type(primitive_type)) return 8;
   switch (primitive_type) {
-    case PRIMITIVE_CHAR: return 1; break;
-    case PRIMITIVE_INT: return 4; break;
-    case PRIMITIVE_LONG: return 8; break;
+    case PRIMITIVE_CHAR: return 1;
+    case PRIMITIVE_INT: return 4;
+    case PRIMITIVE_LONG: return 8;
     default:
       error_with_digital("Bad type in register_get_primitive_type_size()", primitive_type);
   }
@@ -693,8 +694,11 @@ int register_store_dereference_pointer(int left_register, int right_register, in
         lower_8_bits_register_list[left_register],
         register_list[right_register]);
       break;
-    case 2:
     case 4:
+      fprintf(output_file, "\tmovl\t%s, (%s)\n",
+        lower_32_bits_register_list[left_register],
+        register_list[right_register]);
+      break;
     case 8:
       fprintf(output_file, "\tmovq\t%s, (%s)\n",
         register_list[left_register],
