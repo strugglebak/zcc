@@ -46,6 +46,8 @@ static int primitive_size[] = { 0, 0, 1, 4, 8, 8, 8, 8 };
 static int local_offset;
 static int stack_offset;
 
+static int spilling_register_index = 0;
+
 void clear_all_registers(int keep_register_index) {
   int i;
   for (i = 0; i < FREE_REGISTER_NUMBER; i++) {
@@ -59,24 +61,51 @@ void clear_all_registers(int keep_register_index) {
  * 如果已经没有寄存器分配，则抛出异常
 */
 int allocate_register() {
-  for (int i = 0; i < GET_ARRAY_LENGTH(free_registers); i++) {
+  int i;
+  for (i = 0; i < GET_ARRAY_LENGTH(free_registers); i++) {
     if (free_registers[i]) {
       free_registers[i] = 0;
       return i;
     }
   }
 
-  error("Out of registers\n");
-  return NO_REGISTER;
+  // 如果没有 register，就匀一个出来
+  i = spilling_register_index % GET_ARRAY_LENGTH(free_registers);
+  spilling_register_index++;
+  fprintf(output_file, "# spilling reg %d\n", i);
+  push_register(i);
+  return i;
 }
 
 /**
  * 清空某个寄存器
 */
-static void clear_register(int index) {
-  if (free_registers[index])
-    error("Error trying to clear registers\n");
-  free_registers[index] = 1;
+static void clear_register(int register_index) {
+  if (free_registers[register_index]) {
+    fprintf(output_file, "# error trying to free register %d\n", register_index);
+    error_with_digital("Error trying to clear registers\n", register_index);
+  }
+
+  if (spilling_register_index <= 0) {
+    free_registers[register_index] = 1;
+    return;
+  }
+
+  // 如果是之前匀出来的 register, 现在需要放回去
+  spilling_register_index--;
+  register_index = spilling_register_index % GET_ARRAY_LENGTH(free_registers);
+  fprintf(output_file, "# unspilling reg %d\n", register_index);
+  pop_register(register_index);
+}
+
+void spill_all_register() {
+  for (int i = 0; i < GET_ARRAY_LENGTH(free_registers); i++)
+    push_register(i);
+}
+
+static void unspill_all_register() {
+  for (int i = GET_ARRAY_LENGTH(free_registers) - 1; i >= 0; i--)
+    pop_register(i);
 }
 
 /**
@@ -89,6 +118,14 @@ static int compare_register(int left_register, int right_register, char *set_ins
   fprintf(output_file, "\tandq\t$255,%s\n", register_list[right_register]);
   clear_register(left_register);
   return right_register;
+}
+
+static void push_register(int register_index) {
+  fprintf(output_file, "\tpushq\t%s\n", register_list[register_index]);
+}
+
+static void pop_register(int register_index) {
+  fprintf(output_file, "\tpopq\t%s\n", register_list[register_index]);
 }
 
 /**
@@ -140,9 +177,9 @@ int register_load_interger_literal(int value, int primitive_type) {
  * 两个寄存器相加，并将其放入其中一个寄存器中
 */
 int register_plus(int left_register, int right_register) {
-  fprintf(output_file, "\taddq\t%s, %s\n", register_list[left_register], register_list[right_register]);
-  clear_register(left_register);
-  return right_register;
+  fprintf(output_file, "\taddq\t%s, %s\n", register_list[right_register], register_list[left_register]);
+  clear_register(right_register);
+  return left_register;
 }
 
 /**
@@ -158,9 +195,9 @@ int register_minus(int left_register, int right_register) {
  * 两个寄存器相乘，并将其放入其中一个寄存器中
 */
 int register_multiply(int left_register, int right_register) {
-  fprintf(output_file, "\timulq\t%s, %s\n", register_list[left_register], register_list[right_register]);
-  clear_register(left_register);
-  return right_register;
+  fprintf(output_file, "\timulq\t%s, %s\n", register_list[right_register], register_list[left_register]);
+  clear_register(right_register);
+  return left_register;
 }
 
 /**
@@ -417,27 +454,27 @@ void register_generate_global_string_end() {
 */
 int register_compare_and_set(
   int ast_operation,
-  int register_left,
-  int register_right
+  int left_register,
+  int right_register
 ) {
   if (ast_operation < AST_COMPARE_EQUALS
     || ast_operation > AST_COMPARE_GREATER_EQUALS)
     error("Bad ast operaion in register_compare_and_set function");
 
   fprintf(output_file, "\tcmpq\t%s, %s\n",
-    register_list[register_right],
-    register_list[register_left]);
+    register_list[right_register],
+    register_list[left_register]);
 
   fprintf(output_file, "\t%s\t%s\n",
     compare_list[ast_operation - AST_COMPARE_EQUALS],
-    lower_8_bits_register_list[register_right]);
+    lower_8_bits_register_list[right_register]);
 
   fprintf(output_file, "\tmovzbq\t%s, %s\n",
-    lower_8_bits_register_list[register_right],
-    register_list[register_right]);
+    lower_8_bits_register_list[right_register],
+    register_list[right_register]);
 
-  clear_register(register_left);
-  return register_right;
+  clear_register(left_register);
+  return right_register;
 }
 
 /**
@@ -445,8 +482,8 @@ int register_compare_and_set(
 */
 int register_compare_and_jump(
   int ast_operation,
-  int register_left,
-  int register_right,
+  int left_register,
+  int right_register,
   int label
 ) {
   if (ast_operation < AST_COMPARE_EQUALS
@@ -454,8 +491,8 @@ int register_compare_and_jump(
     error("Bad ast operaion in register_compare_and_jump function");
 
   fprintf(output_file, "\tcmpq\t%s, %s\n",
-    register_list[register_right],
-    register_list[register_left]);
+    register_list[right_register],
+    register_list[left_register]);
   fprintf(output_file, "\t%s\tL%d\n",
     inverted_compare_list[ast_operation - AST_COMPARE_EQUALS],
     label);
@@ -573,13 +610,17 @@ int register_get_primitive_type_size(int primitive_type) {
  * 处理函数调用 function_call
 */
 int register_function_call(struct SymbolTable *t, int argument_number) {
-  int out_register_index = allocate_register();
+  int out_register_index;
   // 调用函数
   fprintf(output_file, "\tcall\t%s@PLT\n", t->name);
 
   // 如果参数大于 6 个，移除在栈上的参数
   if (argument_number > 6)
     fprintf(output_file, "\taddq\t$%d, %%rsp\n", 8 * (argument_number - 6));
+
+  unspill_all_register();
+
+  out_register_index = allocate_register();
 
   // 把返回值复制进寄存器
   fprintf(output_file, "\tmovq\t%%rax, %s\n", register_list[out_register_index]);
@@ -688,27 +729,21 @@ int register_load_global_string(int label) {
 }
 
 int register_and(int left_register, int right_register) {
-  fprintf(output_file, "\tandq\t%s, %s\n",
-    register_list[left_register],
-    register_list[right_register]);
-  clear_register(left_register);
-  return right_register;
+  fprintf(output_file, "\tandq\t%s, %s\n", register_list[right_register], register_list[left_register]);
+  clear_register(right_register);
+  return left_register;
 }
 
 int register_or(int left_register, int right_register) {
-  fprintf(output_file, "\torq\t%s, %s\n",
-    register_list[left_register],
-    register_list[right_register]);
-  clear_register(left_register);
-  return right_register;
+  fprintf(output_file, "\torq\t%s, %s\n", register_list[right_register], register_list[left_register]);
+  clear_register(right_register);
+  return left_register;
 }
 
 int register_xor(int left_register, int right_register) {
-  fprintf(output_file, "\txorq\t%s, %s\n",
-    register_list[left_register],
-    register_list[right_register]);
-  clear_register(left_register);
-  return right_register;
+  fprintf(output_file, "\txorq\t%s, %s\n", register_list[right_register], register_list[left_register]);
+  clear_register(right_register);
+  return left_register;
 }
 
 int register_negate(int register_index) {
@@ -828,12 +863,13 @@ void register_copy_argument(int register_index, int argument_position) {
   char *r = register_list[register_index];
   if (argument_position > 6) {
     fprintf(output_file, "\tpushq\t%s\n", r);
-    return;
+  } else {
+    // 如果参数在 6 个以内，则用其他寄存器的值存这些参数
+    fprintf(output_file, "\tmovq\t%s, %s\n",
+      r,
+      register_list[FIRST_PARAMETER_REGISTER_NUMBER - argument_position + 1]);
   }
-  // 如果参数在 6 个以内，则用其他寄存器的值存这些参数
-  fprintf(output_file, "\tmovq\t%s, %s\n",
-    r,
-    register_list[FIRST_PARAMETER_REGISTER_NUMBER - argument_position + 1]);
+  clear_register(register_index);
 }
 
 int register_align(int primitive_type, int offset, int direction) {

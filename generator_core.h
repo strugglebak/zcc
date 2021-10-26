@@ -4,6 +4,7 @@
 
 void clear_all_registers(int keep_register_index);
 int allocate_register();
+void spill_all_register();
 
 void register_preamble();
 void register_postamble();
@@ -28,13 +29,13 @@ void register_generate_global_string_end();
 
 int register_compare_and_set(
   int ast_operation,
-  int register_left,
-  int register_right
+  int left_register,
+  int right_register
 );
 int register_compare_and_jump(
   int ast_operation,
-  int register_left,
-  int register_right,
+  int left_register,
+  int right_register,
   int label
 );
 
