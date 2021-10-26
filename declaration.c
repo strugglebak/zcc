@@ -367,6 +367,9 @@ static struct SymbolTable *parse_array_declaration(
           composite_type,
           0);
       break;
+    case STORAGE_CLASS_LOCAL:
+      t = add_local_symbol(var_name, pointer_to(primitive_type), STRUCTURAL_ARRAY, 0, composite_type);
+      break;
     default:
       error("For now, declaration of non-global arrays is not implemented");
   }
@@ -420,6 +423,11 @@ static struct SymbolTable *parse_array_declaration(
     if (i > element_number) element_number = i;
     t->init_value_list = init_value_list;
   }
+
+  // 设置一个数组变量的 element number 和 size 之前，先检查下这个变量是否是 extern 声明的
+  // 如果不是并且 element number <= 0
+  if (storage_class != STORAGE_CLASS_EXTERN && element_number <= 0)
+    error_with_message("Array must have non-zero elements", t->name);
 
   t->element_number = element_number;
   t->size = t->element_number * get_primitive_type_size(primitive_type, composite_type);
