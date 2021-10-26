@@ -218,6 +218,45 @@ static int interpret_ternary_ast_with_register(struct ASTNode *node) {
   return register_index;
 }
 
+static int interpret_logic_and_or_ast_with_register(struct ASTNode *node) {
+  int label_start = generate_label();
+  int label_end = generate_label();
+  int register_index ;
+
+  register_index = interpret_ast_with_register(
+    node->left,
+    NO_LABEL,
+    NO_LABEL,
+    NO_LABEL,
+    0);
+  register_to_be_boolean(register_index, node->operation, label_start);
+  generate_clearable_registers(NO_REGISTER);
+
+  register_index = interpret_ast_with_register(
+    node->right,
+    NO_LABEL,
+    NO_LABEL,
+    NO_LABEL,
+    0);
+  register_to_be_boolean(register_index, node->operation, label_start);
+  generate_clearable_registers(register_index);
+
+  if (node->operation == AST_LOGIC_AND) {
+    register_load_boolean(register_index, 1);
+    register_jump(label_end);
+    register_label(label_start);
+    register_load_boolean(register_index, 0);
+  } else {
+    register_load_boolean(register_index, 0);
+    register_jump(label_end);
+    register_label(label_start);
+    register_load_boolean(register_index, 1);
+  }
+
+  register_label(label_end);
+  return register_index;
+}
+
 /**
  * 这里主要将 ast 中的代码取出来，然后用汇编的方式进行值的加减乘除
  * 这里加减乘除后返回的是寄存器的标识
@@ -282,6 +321,9 @@ int interpret_ast_with_register(
       return interpret_switch_ast_with_register(node);
     case AST_TERNARY:
       return interpret_ternary_ast_with_register(node);
+    case AST_LOGIC_AND:
+    case AST_LOGIC_OR:
+      return interpret_logic_and_or_ast_with_register(node);
   }
 
   if (node->left)
@@ -429,10 +471,6 @@ int interpret_ast_with_register(
           node->left->symbol_table->storage_class == STORAGE_CLASS_STATIC)
         return register_load_value_from_variable(node->left->symbol_table, node->operation);
       return register_load_local_value_from_variable(node->left->symbol_table, node->operation);
-    case AST_LOGIC_OR:
-      return register_logic_or(left_register, right_register);
-    case AST_LOGIC_AND:
-      return register_logic_and(left_register, right_register);
     case AST_NEGATE:
       return register_negate(left_register);
     case AST_INVERT:

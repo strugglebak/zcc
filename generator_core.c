@@ -117,18 +117,6 @@ static void unspill_all_register() {
 }
 
 /**
- * 比较两个寄存器值的大小
- * 使用 cmpq 比较了大小之后，需要将一个 8 位的寄存器置位
-*/
-static int compare_register(int left_register, int right_register, char *set_instruction) {
-  fprintf(output_file, "\tcmpq\t%s, %s\n", register_list[right_register], register_list[left_register]);
-  fprintf(output_file, "\t%s\t%s\n", set_instruction, lower_8_bits_register_list[right_register]);
-  fprintf(output_file, "\tandq\t$255,%s\n", register_list[right_register]);
-  clear_register(left_register);
-  return right_register;
-}
-
-/**
  * 汇编前置代码，写入到 output_file 中
 */
 void register_preamble() {
@@ -459,7 +447,7 @@ int register_compare_and_set(
 ) {
   if (ast_operation < AST_COMPARE_EQUALS
     || ast_operation > AST_COMPARE_GREATER_EQUALS)
-    error("Bad ast operaion in register_compare_and_set function");
+    error("Bad ast operation in register_compare_and_set function");
 
   fprintf(output_file, "\tcmpq\t%s, %s\n",
     register_list[right_register],
@@ -488,7 +476,7 @@ int register_compare_and_jump(
 ) {
   if (ast_operation < AST_COMPARE_EQUALS
     || ast_operation > AST_COMPARE_GREATER_EQUALS)
-    error("Bad ast operaion in register_compare_and_jump function");
+    error("Bad ast operation in register_compare_and_jump function");
 
   fprintf(output_file, "\tcmpq\t%s, %s\n",
     register_list[right_register],
@@ -679,10 +667,9 @@ int register_dereference_pointer(int register_index, int primitive_type) {
     case 1:
       fprintf(output_file, "\tmovzbq\t(%s), %s\n", r, r);
       break;
-    case 2:
+    case 4:
       fprintf(output_file, "\tmovslq\t(%s), %s\n", r, r);
       break;
-    case 4:
     case 8:
       fprintf(output_file, "\tmovq\t(%s), %s\n", r, r);
       break;
@@ -779,60 +766,28 @@ int register_logic_not(int register_index) {
   return register_index;
 }
 
-int register_logic_or(int left_register, int right_register) {
-  char *l = register_list[left_register],
-       *r = register_list[right_register];
-
-  int label_start = generate_label();
-  int label_end = generate_label();
-
-  fprintf(output_file, "\ttest\t%s, %s\n", l, l);
-  fprintf(output_file, "\tjne\tL%d\n", label_start);
-
-  fprintf(output_file, "\ttest\t%s, %s\n", r, r);
-  fprintf(output_file, "\tjne\tL%d\n", label_start);
-
-  fprintf(output_file, "\tmovq\t$0, %s\n", l);
-  fprintf(output_file, "\tjmp\tL%d\n", label_end);
-
-  register_label(label_start);
-  fprintf(output_file, "\tmovq\t$1, %s\n", l);
-  register_label(label_end);
-  clear_register(right_register);
-  return left_register;
+void register_load_boolean(int register_index, int value) {
+  fprintf(output_file, "\tmovq\t$%d, %s\n", value, register_list[register_index]);
 }
 
-int register_logic_and(int left_register, int right_register) {
-  char *l = register_list[left_register],
-       *r = register_list[right_register];
-
-  int label_start = generate_label();
-  int label_end = generate_label();
-
-  fprintf(output_file, "\ttest\t%s, %s\n", l, l);
-  fprintf(output_file, "\tje\tL%d\n", label_start);
-
+int register_to_be_boolean(int register_index, int operation, int label) {
+  char *r = register_list[register_index];
+  char *lower_r = lower_8_bits_register_list[register_index];
   fprintf(output_file, "\ttest\t%s, %s\n", r, r);
-  fprintf(output_file, "\tje\tL%d\n", label_start);
-
-  fprintf(output_file, "\tmovq\t$1, %s\n", l);
-  fprintf(output_file, "\tjmp\tL%d\n", label_end);
-
-  register_label(label_start);
-  fprintf(output_file, "\tmovq\t$0, %s\n", l);
-  register_label(label_end);
-  clear_register(right_register);
-  return left_register;
-}
-
-int register_to_be_boolean(int register_index, int operaion, int label) {
-  fprintf(output_file, "\ttest\t%s, %s\n", register_list[register_index], register_list[register_index]);
-  if (operaion == AST_IF || operaion == AST_WHILE)
-    fprintf(output_file, "\tje\tL%d\n", label);
-  else {
-    fprintf(output_file, "\tsetnz\t%s\n", lower_8_bits_register_list[register_index]);
-    fprintf(output_file, "\tmovzbq\t%s, %s\n", lower_8_bits_register_list[register_index], register_list[register_index]);
+  switch (operation) {
+    case AST_IF:
+    case AST_WHILE:
+    case AST_LOGIC_AND:
+      fprintf(output_file, "\tje\tL%d\n", label);
+      break;
+    case AST_LOGIC_OR:
+      fprintf(output_file, "\tjne\tL%d\n", label);
+      break;
+    default:
+      fprintf(output_file, "\tsetnz\t%s\n", lower_r);
+      fprintf(output_file, "\tmovzbq\t%s, %s\n", lower_r, r);
   }
+
   return register_index;
 }
 
