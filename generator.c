@@ -524,9 +524,6 @@ void generate_global_string_code_end() {
 void generate_reset_local_variables() {
   register_reset_local_variables();
 }
-int generate_get_local_offset(int primitive_type) {
-  return register_new_local_offset(primitive_type);
-}
 
 int generate_get_primitive_type_size(int primitive_type) {
   return register_get_primitive_type_size(primitive_type);

@@ -48,6 +48,12 @@ static int stack_offset;
 
 static int spilling_register_index = 0;
 
+static int register_new_local_offset(int primitive_type_size) {
+  // 栈上位置至少间隔为 4 byte
+  local_offset += primitive_type_size > 4 ? primitive_type_size : 4;
+  return -local_offset;
+}
+
 static void push_register(int register_index) {
   fprintf(output_file, "\tpushq\t%s\n", register_list[register_index]);
 }
@@ -537,7 +543,7 @@ void register_function_preamble(struct SymbolTable *t) {
       parameter_offset += 8;
     } else {
       parameter_pointer->symbol_table_position
-        = register_new_local_offset(parameter_pointer->primitive_type);
+        = register_new_local_offset(parameter_pointer->size);
       register_store_local_value_2_variable(parameter_register_number--, parameter_pointer);
     }
   }
@@ -549,7 +555,7 @@ void register_function_preamble(struct SymbolTable *t) {
     local_var_pointer;
     local_var_pointer = local_var_pointer->next
   ) {
-    local_var_pointer->symbol_table_position = register_new_local_offset(local_var_pointer->primitive_type);
+    local_var_pointer->symbol_table_position = register_new_local_offset(local_var_pointer->size);
   }
 
   // 将栈指针对齐为 16 的倍数
@@ -793,13 +799,6 @@ int register_to_be_boolean(int register_index, int operation, int label) {
 
 void register_reset_local_variables() {
   local_offset = 0;
-}
-
-int register_new_local_offset(int primitive_type) {
-  int primitive_type_size = register_get_primitive_type_size(primitive_type);
-  // 栈上位置至少间隔为 4 byte
-  local_offset += primitive_type_size > 4 ? primitive_type_size : 4;
-  return -local_offset;
 }
 
 void register_text_section_flag() {
