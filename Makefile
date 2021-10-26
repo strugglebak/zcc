@@ -40,7 +40,6 @@ test_arm: parser_arm test/run_test
 
 t: parser $(TEST_CASE)
 	./parser -o out $(TEST_CASE)
-	./parser -S $(TEST_CASE)
 	./out
 
 t_arm: parser_arm $(TEST_CASE) $(LIB)
