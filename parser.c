@@ -570,6 +570,7 @@ struct ASTNode *convert_prefix_expression_2_ast(int previous_token_precedence) {
       // 解析类似于 x= ***y;
       scan(&token_from_file);
       tree = convert_prefix_expression_2_ast(previous_token_precedence);
+      tree->rvalue = 1;
 
       if (!check_pointer_type(tree->primitive_type))
         error("* operator must be followed by an identifier or *");
