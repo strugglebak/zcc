@@ -571,8 +571,7 @@ struct ASTNode *convert_prefix_expression_2_ast(int previous_token_precedence) {
       scan(&token_from_file);
       tree = convert_prefix_expression_2_ast(previous_token_precedence);
 
-      if (tree->operation != AST_IDENTIFIER &&
-          tree->operation != AST_DEREFERENCE_POINTER)
+      if (!check_pointer_type(tree->primitive_type))
         error("* operator must be followed by an identifier or *");
       // 生成一个父级节点
       tree = create_ast_left_node(
@@ -592,9 +591,6 @@ struct ASTNode *convert_prefix_expression_2_ast(int previous_token_precedence) {
       if (tree->primitive_type == PRIMITIVE_CHAR)
         tree->primitive_type = PRIMITIVE_INT;
 
-      // 有可能 y 是 char(unsigned)，而 x 是 int 型的，所以需要做一个拓展让其变成有符号(signed)的
-      // 并且 unsigned 值不能取负数
-      tree = modify_type(tree, PRIMITIVE_INT, 0, NULL);
       tree = create_ast_left_node(AST_NEGATE, tree->primitive_type, tree, 0, NULL, tree->composite_type);
       break;
     case TOKEN_INVERT:
