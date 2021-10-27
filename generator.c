@@ -414,6 +414,7 @@ int interpret_ast_with_register(
       switch (node->right->operation) {
         case AST_IDENTIFIER:
           if (node->right->symbol_table->storage_class == STORAGE_CLASS_GLOBAL ||
+              node->right->symbol_table->storage_class == STORAGE_CLASS_EXTERN ||
               node->right->symbol_table->storage_class == STORAGE_CLASS_STATIC)
             return register_store_value_2_variable(left_register, node->right->symbol_table);
           return register_store_local_value_2_variable(left_register, node->right->symbol_table);
