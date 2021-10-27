@@ -91,8 +91,11 @@ struct ASTNode *modify_type(
         return tree;
     }
 
-    // 指针的地址只允许加和减
-    if (operation == AST_PLUS || operation == AST_MINUS) {
+    // 指针的地址只允许加和减, +=, -=
+    if (operation == AST_PLUS ||
+        operation == AST_MINUS ||
+        operation == AST_ASSIGN_PLUS ||
+        operation == AST_ASSIGN_MINUS) {
       if (check_int_type(left_primitive_type) &&
           check_pointer_type(right_primitive_type)) {
         right_primitive_size =
