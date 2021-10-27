@@ -14,7 +14,11 @@ int register_load_variable(struct SymbolTable *t, int operation);
 int register_plus(int left_register, int right_register);
 int register_minus(int left_register, int right_register);
 int register_multiply(int left_register, int right_register);
-int register_divide(int left_register, int right_register);
+int register_divide_and_mod(
+  int left_register,
+  int right_register,
+  int operation
+);
 
 int register_store_value_2_variable(int register_index, struct SymbolTable *t);
 int register_store_local_value_2_variable(int register_index, struct SymbolTable *t);

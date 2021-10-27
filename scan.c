@@ -360,6 +360,14 @@ int scan(struct Token *t) {
         t->token = TOKEN_DIVIDE;
       }
       break;
+    case '%':
+      if ((c = next()) == '=') {
+        t->token = TOKEN_ASSGIN_MOD;
+      } else {
+        put_back(c);
+        t->token = TOKEN_MOD;
+      }
+      break;
     case ';':
       t->token = TOKEN_SEMICOLON;
       break;

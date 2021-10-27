@@ -16,16 +16,16 @@
 static struct ASTNode *parse_paren_expression();
 
 static int operation_precedence_array[] = {
-  0, 10,          // EOF =
-  10, 10, 10, 10, // += -= *= /=
-  15,             // \? 三元操作符
-  20, 30,         // || &&
-  40, 50, 60,     // | ^ &
-  70, 70,         // == !=
-  80, 80, 80, 80, // < > <= >=
-  90, 90,         // << >>
-  100, 100,       // + -
-  110, 110        // * /
+  0, 10,              // EOF =
+  10, 10, 10, 10, 10, // += -= *= /= %=
+  15,                 // \? 三元操作符
+  20, 30,             // || &&
+  40, 50, 60,         // | ^ &
+  70, 70,             // == !=
+  80, 80, 80, 80,     // < > <= >=
+  90, 90,             // << >>
+  100, 100,           // + -
+  110, 110            // * /
 };
 
 static int check_right_associative(int token) {
@@ -34,7 +34,7 @@ static int check_right_associative(int token) {
 
 // 将 token 中的 + - * / 等转换成 ast 中的类型
 static int convert_token_operation_2_ast_operation(int operation_in_token) {
-  if (operation_in_token > TOKEN_EOF && operation_in_token <= TOKEN_DIVIDE)
+  if (operation_in_token > TOKEN_EOF && operation_in_token <= TOKEN_MOD)
     return operation_in_token;
   error_with_message("Syntax error, token", token_string[operation_in_token]);
   return 0;
@@ -43,7 +43,7 @@ static int convert_token_operation_2_ast_operation(int operation_in_token) {
 // 确定操作符的优先级
 static int operation_precedence(int operation_in_token) {
   int precedence = operation_precedence_array[operation_in_token];
-  if (operation_in_token > TOKEN_DIVIDE)
+  if (operation_in_token > TOKEN_MOD)
     error_with_message(
       "Token with no precedence in op_precedence",
        token_string[operation_in_token]);

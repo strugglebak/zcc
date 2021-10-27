@@ -339,7 +339,8 @@ int interpret_ast_with_register(
     case AST_MULTIPLY:
       return register_multiply(left_register, right_register);
     case AST_DIVIDE:
-      return register_divide(left_register, right_register);
+    case AST_MOD:
+      return register_divide_and_mod(left_register, right_register, node->operation);
 
     case AST_COMPARE_EQUALS:
     case AST_COMPARE_NOT_EQUALS:
@@ -379,8 +380,9 @@ int interpret_ast_with_register(
     case AST_ASSIGN_MINUS:
     case AST_ASSIGN_MULTIPLY:
     case AST_ASSIGN_DIVIDE:
+    case AST_ASSIGN_MOD:
     case AST_ASSIGN:
-      // 处理前面 += -= *= /=
+      // 处理前面 += -= *= /= %=
       switch (node->operation) {
         case AST_ASSIGN_PLUS:
           left_register = register_plus(left_register, right_register);
@@ -395,7 +397,11 @@ int interpret_ast_with_register(
           node->right = node->left;
           break;
         case AST_ASSIGN_DIVIDE:
-          left_register = register_divide(left_register, right_register);
+          left_register = register_divide_and_mod(left_register, right_register, AST_DIVIDE);
+          node->right = node->left;
+          break;
+        case AST_ASSIGN_MOD:
+          left_register = register_divide_and_mod(left_register, right_register, AST_MOD);
           node->right = node->left;
           break;
       }

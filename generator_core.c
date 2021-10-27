@@ -268,11 +268,22 @@ int register_multiply(int left_register, int right_register) {
  * 先把值放入 rax 寄存器
  * 进行除法运算后，再从 rax 寄存器中把结果拿出来，放入 left_register
 */
-int register_divide(int left_register, int right_register) {
-  fprintf(output_file, "\tmovq\t%s, %%rax\n", register_list[left_register]);
+int register_divide_and_mod(
+  int left_register,
+  int right_register,
+  int operation
+) {
+  char *l = register_list[left_register];
+  char *r = register_list[right_register];
+
+  fprintf(output_file, "\tmovq\t%s, %%rax\n", l);
   fprintf(output_file, "\tcqo\n");
-  fprintf(output_file, "\tidivq\t%s\n", register_list[right_register]);
-  fprintf(output_file, "\tmovq\t%%rax, %s\n", register_list[left_register]);
+  fprintf(output_file, "\tidivq\t%s\n", r);
+  if (operation == AST_DIVIDE)
+    fprintf(output_file, "\tmovq\t%%rax, %s\n", l);
+  else
+    fprintf(output_file, "\tmovq\t%%rdx, %s\n", l);
+
   clear_register(right_register);
   return left_register;
 }
