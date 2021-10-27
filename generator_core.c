@@ -842,17 +842,15 @@ int register_align(int primitive_type, int offset, int direction) {
   int alignment;
 
   switch (primitive_type) {
-    case PRIMITIVE_CHAR: return offset;
-    case PRIMITIVE_INT: case PRIMITIVE_LONG: break;
+    case PRIMITIVE_CHAR: break;
     default:
-      if (!check_pointer_type(primitive_type))
-        error_with_digital("Bad type in register_align", primitive_type);
+      // 这里也支持 struct 里面声明的 struct 结构体成员
+      // int/long 间隔 4 字节
+      alignment = 4;
+      // direction -1 或者 1
+      offset = (offset + direction * (alignment-1)) & ~(alignment-1);
   }
 
-  // int/long 间隔 4 字节
-  alignment = 4;
-  // direction -1 或者 1
-  offset = (offset + direction * (alignment-1)) & ~(alignment-1);
   return offset;
 }
 

@@ -421,7 +421,10 @@ int interpret_ast_with_register(
 
     // &
     case AST_IDENTIFIER_ADDRESS:
-      return register_load_identifier_address(node->symbol_table);
+      // 这里也有可能是 struct/union 成员的访问
+      if (node->symbol_table)
+        return register_load_identifier_address(node->symbol_table);
+      return left_register;
     // *
     case AST_DEREFERENCE_POINTER:
       if (node->rvalue)
