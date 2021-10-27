@@ -189,7 +189,7 @@ int register_load_variable(struct SymbolTable *t, int operation) {
         t->storage_class == STORAGE_CLASS_FUNCTION_PARAMETER)
       fprintf(output_file, "\tleaq\t%d(%%rbp), %s\n", t->symbol_table_position, r);
     else
-      fprintf(output_file, "\tleaq\t%d(%%rip), %s\n", t->name, r);
+      fprintf(output_file, "\tleaq\t%s(%%rip), %s\n", t->name, r);
 
     switch (t->size) {
       case 1: fprintf(output_file, "\taddb\t$%d,(%s)\n", offset, r); break;
@@ -222,7 +222,7 @@ int register_load_variable(struct SymbolTable *t, int operation) {
         t->storage_class == STORAGE_CLASS_FUNCTION_PARAMETER)
       fprintf(output_file, "\tleaq\t%d(%%rbp), %s\n", t->symbol_table_position, post_r);
     else
-      fprintf(output_file, "\tleaq\t%d(%%rip), %s\n", t->name, post_r);
+      fprintf(output_file, "\tleaq\t%s(%%rip), %s\n", t->name, post_r);
 
     switch (t->size) {
       case 1: fprintf(output_file, "\taddb\t$%d,(%s)\n", offset, post_r); break;
