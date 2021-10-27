@@ -4,6 +4,7 @@
 
 void clear_all_registers(int keep_register_index);
 int allocate_register();
+void register_clear_register(int register_index);
 void spill_all_register();
 
 void register_preamble();
@@ -40,7 +41,8 @@ int register_compare_and_jump(
   int ast_operation,
   int left_register,
   int right_register,
-  int label
+  int label,
+  int primitive_type
 );
 
 void register_label(int label);

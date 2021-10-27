@@ -94,10 +94,9 @@ int allocate_register() {
 /**
  * 清空某个寄存器
 */
-static void clear_register(int register_index) {
+void register_clear_register(int register_index) {
   if (free_registers[register_index]) {
-    fprintf(output_file, "# error trying to free register %d\n", register_index);
-    error_with_digital("Error trying to clear registers\n", register_index);
+    error_with_digital("Error trying to clear register\n", register_index);
   }
 
   if (spilling_register_index <= 0) {
@@ -108,7 +107,6 @@ static void clear_register(int register_index) {
   // 如果是之前匀出来的 register, 现在需要放回去
   spilling_register_index--;
   register_index = spilling_register_index % GET_ARRAY_LENGTH(free_registers);
-  fprintf(output_file, "# unspilling reg %d\n", register_index);
   pop_register(register_index);
 }
 
@@ -230,7 +228,7 @@ int register_load_variable(struct SymbolTable *t, int operation) {
       case 8: fprintf(output_file, "\taddq\t$%d,(%s)\n", offset, post_r); break;
     }
 
-    clear_register(post_register_index);
+    register_clear_register(post_register_index);
   }
 
   return register_index;
@@ -241,7 +239,7 @@ int register_load_variable(struct SymbolTable *t, int operation) {
 */
 int register_plus(int left_register, int right_register) {
   fprintf(output_file, "\taddq\t%s, %s\n", register_list[right_register], register_list[left_register]);
-  clear_register(right_register);
+  register_clear_register(right_register);
   return left_register;
 }
 
@@ -250,7 +248,7 @@ int register_plus(int left_register, int right_register) {
 */
 int register_minus(int left_register, int right_register) {
   fprintf(output_file, "\tsubq\t%s, %s\n", register_list[right_register], register_list[left_register]);
-  clear_register(right_register);
+  register_clear_register(right_register);
   return left_register;
 }
 
@@ -259,7 +257,7 @@ int register_minus(int left_register, int right_register) {
 */
 int register_multiply(int left_register, int right_register) {
   fprintf(output_file, "\timulq\t%s, %s\n", register_list[right_register], register_list[left_register]);
-  clear_register(right_register);
+  register_clear_register(right_register);
   return left_register;
 }
 
@@ -284,7 +282,7 @@ int register_divide_and_mod(
   else
     fprintf(output_file, "\tmovq\t%%rdx, %s\n", l);
 
-  clear_register(right_register);
+  register_clear_register(right_register);
   return left_register;
 }
 
@@ -450,11 +448,6 @@ int register_compare_and_set(
         register_list[left_register]);
   }
 
-  fprintf(output_file, "\tcmpq\t%s, %s\n",
-    register_list[right_register],
-    register_list[left_register]);
-
-
   fprintf(output_file, "\t%s\t%s\n",
     compare_list[ast_operation - AST_COMPARE_EQUALS],
     lower_8_bits_register_list[right_register]);
@@ -463,7 +456,7 @@ int register_compare_and_set(
     lower_8_bits_register_list[right_register],
     register_list[right_register]);
 
-  clear_register(left_register);
+  register_clear_register(left_register);
   return right_register;
 }
 
@@ -474,20 +467,38 @@ int register_compare_and_jump(
   int ast_operation,
   int left_register,
   int right_register,
-  int label
+  int label,
+  int primitive_type
 ) {
+  int primitive_type_size = register_get_primitive_type_size(primitive_type);
+
   if (ast_operation < AST_COMPARE_EQUALS
     || ast_operation > AST_COMPARE_GREATER_EQUALS)
     error("Bad ast operation in register_compare_and_jump function");
 
-  fprintf(output_file, "\tcmpq\t%s, %s\n",
-    register_list[right_register],
-    register_list[left_register]);
+  switch (primitive_type_size) {
+    case 1:
+      fprintf(output_file, "\tcmpb\t%s, %s\n",
+        lower_8_bits_register_list[right_register],
+        lower_8_bits_register_list[left_register]);
+      break;
+    case 4:
+      fprintf(output_file, "\tcmpl\t%s, %s\n",
+        lower_32_bits_register_list[right_register],
+        lower_32_bits_register_list[left_register]);
+      break;
+    default:
+      fprintf(output_file, "\tcmpq\t%s, %s\n",
+        register_list[right_register],
+        register_list[left_register]);
+  }
+
   fprintf(output_file, "\t%s\tL%d\n",
     inverted_compare_list[ast_operation - AST_COMPARE_EQUALS],
     label);
 
-  clear_all_registers(NO_REGISTER);
+  register_clear_register(left_register);
+  register_clear_register(right_register);
   return NO_REGISTER;
 }
 
@@ -724,19 +735,19 @@ int register_load_global_string(int label) {
 
 int register_and(int left_register, int right_register) {
   fprintf(output_file, "\tandq\t%s, %s\n", register_list[right_register], register_list[left_register]);
-  clear_register(right_register);
+  register_clear_register(right_register);
   return left_register;
 }
 
 int register_or(int left_register, int right_register) {
   fprintf(output_file, "\torq\t%s, %s\n", register_list[right_register], register_list[left_register]);
-  clear_register(right_register);
+  register_clear_register(right_register);
   return left_register;
 }
 
 int register_xor(int left_register, int right_register) {
   fprintf(output_file, "\txorq\t%s, %s\n", register_list[right_register], register_list[left_register]);
-  clear_register(right_register);
+  register_clear_register(right_register);
   return left_register;
 }
 
@@ -755,14 +766,14 @@ int register_invert(int register_index) {
 int register_shift_left(int left_register, int right_register) {
   fprintf(output_file, "\tmovb\t%s, %%cl\n", lower_8_bits_register_list[right_register]);
   fprintf(output_file, "\tshlq\t%%cl, %s\n", register_list[left_register]);
-  clear_register(right_register);
+  register_clear_register(right_register);
   return left_register;
 }
 
 int register_shift_right(int left_register, int right_register) {
   fprintf(output_file, "\tmovb\t%s, %%cl\n", lower_8_bits_register_list[right_register]);
   fprintf(output_file, "\tshrq\t%%cl, %s\n", register_list[left_register]);
-  clear_register(right_register);
+  register_clear_register(right_register);
   return left_register;
 }
 
@@ -824,7 +835,7 @@ void register_copy_argument(int register_index, int argument_position) {
       r,
       register_list[FIRST_PARAMETER_REGISTER_NUMBER - argument_position + 1]);
   }
-  clear_register(register_index);
+  register_clear_register(register_index);
 }
 
 int register_align(int primitive_type, int offset, int direction) {

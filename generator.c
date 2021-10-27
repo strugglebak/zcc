@@ -181,7 +181,6 @@ static int interpret_ternary_ast_with_register(struct ASTNode *node) {
     NO_LABEL,
     NO_LABEL,
     node->operation);
-  generate_clearable_registers(NO_REGISTER);
 
   // 弄一个寄存器来保存俩表达式的结果
   register_index = allocate_register();
@@ -195,9 +194,7 @@ static int interpret_ternary_ast_with_register(struct ASTNode *node) {
     NO_LABEL,
     node->operation);
   register_move(expression_register_index, register_index);
-  // 这个时候不要 clear 用来保存俩表达式结果的寄存器
-  generate_clearable_registers(register_index);
-
+  register_clear_register(expression_register_index);
   register_jump(label_end);
   register_label(label_start);
 
@@ -210,9 +207,7 @@ static int interpret_ternary_ast_with_register(struct ASTNode *node) {
     NO_LABEL,
     node->operation);
   register_move(expression_register_index, register_index);
-  // 这个时候不要 clear 用来保存俩表达式结果的寄存器
-  generate_clearable_registers(register_index);
-
+  register_clear_register(expression_register_index);
   register_label(label_end);
 
   return register_index;
@@ -351,7 +346,7 @@ int interpret_ast_with_register(
       if (parent_ast_operation == AST_IF ||
           parent_ast_operation == AST_WHILE ||
           parent_ast_operation == AST_TERNARY)
-        return register_compare_and_jump( node->operation, left_register, right_register, if_label);
+        return register_compare_and_jump( node->operation, left_register, right_register, if_label, node->primitive_type);
       return register_compare_and_set(node->operation, left_register, right_register, node->primitive_type);
     case AST_RETURN:
       register_function_return(left_register, current_function_symbol_id);
