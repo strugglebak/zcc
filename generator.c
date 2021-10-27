@@ -366,7 +366,8 @@ int interpret_ast_with_register(
       if (node->rvalue ||
         parent_ast_operation == AST_DEREFERENCE_POINTER) {
           if (node->symbol_table->storage_class == STORAGE_CLASS_GLOBAL ||
-              node->symbol_table->storage_class == STORAGE_CLASS_STATIC)
+              node->symbol_table->storage_class == STORAGE_CLASS_STATIC ||
+              node->symbol_table->storage_class == STORAGE_CLASS_EXTERN)
             return register_load_value_from_variable(node->symbol_table, node->operation);
           return register_load_local_value_from_variable(node->symbol_table, node->operation);
         }
