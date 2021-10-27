@@ -1,6 +1,8 @@
 #ifndef __DEFINATIONS_H__
 #define __DEFINATIONS_H__
 
+#include "incdir.h"
+
 struct Token {
   int token;
   int integer_value;

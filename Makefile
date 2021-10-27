@@ -13,8 +13,11 @@ TEST_CASE= test/input$(TEST_CASE_NAME).zc
 INCLUDE_DIRECTORY= /tmp/include
 BINARAY_DIRECTORY= /tmp
 
+incdir.h:
+	echo "#define INCDIR \"$(INCLUDE_DIRECTORY)\"" > incdir.h
+
 clean:
-	rm -f parser parser_arm *.o *.s out test/out
+	rm -f parser parser_arm *.o *.s out test/out incdir.h
 
 install: parser
 	sudo mkdir -p $(INCLUDE_DIRECTORY)
@@ -23,10 +26,10 @@ install: parser
 	sudo chmod +x $(BINARAY_DIRECTORY)/parser
 
 parser: $(SRCS)
-	$(CC) -o parser -g -DINCDIR=\"$(INCLUDE_DIRECTORY)\" $(SRCS)
+	$(CC) -o parser -g $(SRCS)
 
 parser_arm: $(ARM_SRCS)
-	$(CC) -o parser -g -DINCDIR=\"$(INCLUDE_DIRECTORY)\" $(ARM_SRCS)
+	$(CC) -o parser -g $(ARM_SRCS)
 	cp parser_arm parser
 
 gen: test/make_test

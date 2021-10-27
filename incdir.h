@@ -1,0 +1,1 @@
+#define INCDIR "/tmp/include"
