@@ -422,15 +422,38 @@ void register_generate_global_string_end() {
 int register_compare_and_set(
   int ast_operation,
   int left_register,
-  int right_register
+  int right_register,
+  int primitive_type
 ) {
+  int primitive_type_size = register_get_primitive_type_size(primitive_type);
+
   if (ast_operation < AST_COMPARE_EQUALS
     || ast_operation > AST_COMPARE_GREATER_EQUALS)
     error("Bad ast operation in register_compare_and_set function");
 
+  // 对于不同的大小的类型比较，要用不同的比较指令，
+  // 因为做 64 位的比较时，32 位的 -1 会被当成一个正数(0xffffffff)
+  switch (primitive_type_size) {
+    case 1:
+      fprintf(output_file, "\tcmpb\t%s, %s\n",
+        lower_8_bits_register_list[right_register],
+        lower_8_bits_register_list[left_register]);
+      break;
+    case 4:
+      fprintf(output_file, "\tcmpl\t%s, %s\n",
+        lower_32_bits_register_list[right_register],
+        lower_32_bits_register_list[left_register]);
+      break;
+    default:
+      fprintf(output_file, "\tcmpq\t%s, %s\n",
+        register_list[right_register],
+        register_list[left_register]);
+  }
+
   fprintf(output_file, "\tcmpq\t%s, %s\n",
     register_list[right_register],
     register_list[left_register]);
+
 
   fprintf(output_file, "\t%s\t%s\n",
     compare_list[ast_operation - AST_COMPARE_EQUALS],

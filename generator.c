@@ -352,7 +352,7 @@ int interpret_ast_with_register(
           parent_ast_operation == AST_WHILE ||
           parent_ast_operation == AST_TERNARY)
         return register_compare_and_jump( node->operation, left_register, right_register, if_label);
-      return register_compare_and_set(node->operation, left_register, right_register);
+      return register_compare_and_set(node->operation, left_register, right_register, node->primitive_type);
     case AST_RETURN:
       register_function_return(left_register, current_function_symbol_id);
       return NO_REGISTER;

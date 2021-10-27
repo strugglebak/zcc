@@ -33,7 +33,8 @@ void register_generate_global_string_end();
 int register_compare_and_set(
   int ast_operation,
   int left_register,
-  int right_register
+  int right_register,
+  int primitive_type
 );
 int register_compare_and_jump(
   int ast_operation,
