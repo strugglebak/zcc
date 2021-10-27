@@ -41,7 +41,7 @@ static int interpret_if_ast_with_register(
   // 开始写 label_start 定义的代码
   register_label(label_start);
   if (node->right) {
-    interpret_ast_with_register(node->right, NO_LABEL, NO_LABEL, NO_LABEL, node->operation);
+    interpret_ast_with_register(node->right, NO_LABEL, NO_LABEL, loop_end_label, node->operation);
     generate_clearable_registers(NO_REGISTER);
     register_label(label_end);
   }
