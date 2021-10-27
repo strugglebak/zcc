@@ -167,6 +167,75 @@ int register_load_interger_literal(int value, int primitive_type) {
   return register_index;
 }
 
+// load global 和 load local 的替代
+int register_load_variable(struct SymbolTable *t, int operation) {
+  int register_index, post_register_index, offset = 1;
+  char *r, *post_r;
+
+  register_index = allocate_register();
+
+  r = register_list[register_index];
+
+  if (check_pointer_type(t->primitive_type))
+    offset = get_primitive_type_size(value_at(t->primitive_type), t->composite_type);
+
+  if (operation == AST_PRE_DECREASE ||
+      operation == AST_POST_DECREASE)
+    offset = -offset;
+
+  if (operation == AST_PRE_INCREASE ||
+      operation == AST_PRE_DECREASE) {
+    if (t->storage_class == STORAGE_CLASS_LOCAL ||
+        t->storage_class == STORAGE_CLASS_FUNCTION_PARAMETER)
+      fprintf(output_file, "\tleaq\t%d(%%rbp), %s\n", t->symbol_table_position, r);
+    else
+      fprintf(output_file, "\tleaq\t%d(%%rip), %s\n", t->name, r);
+
+    switch (t->size) {
+      case 1: fprintf(output_file, "\taddb\t$%d,(%s)\n", offset, r); break;
+      case 4: fprintf(output_file, "\taddl\t$%d,(%s)\n", offset, r); break;
+      case 8: fprintf(output_file, "\taddq\t$%d,(%s)\n", offset, r); break;
+    }
+  }
+
+  if (t->storage_class == STORAGE_CLASS_LOCAL ||
+      t->storage_class == STORAGE_CLASS_FUNCTION_PARAMETER) {
+    switch (t->size) {
+      case 1: fprintf(output_file, "\tmovzbq\t%d(%%rbp), %s\n", t->symbol_table_position, r); break;
+      case 4: fprintf(output_file, "\tmovslq\t%d(%%rbp), %s\n", t->symbol_table_position, r); break;
+      case 8: fprintf(output_file, "\tmovq\t%d(%%rbp), %s\n", t->symbol_table_position, r); break;
+    }
+  } else {
+    switch (t->size) {
+      case 1: fprintf(output_file, "\tmovzbq\t%s(%%rip), %s\n", t->name, r); break;
+      case 4: fprintf(output_file, "\tmovslq\t%s(%%rip), %s\n", t->name, r); break;
+      case 8: fprintf(output_file, "\tmovq\t%s(%%rip), %s\n", t->name, r); break;
+    }
+  }
+
+  if (operation == AST_POST_INCREASE ||
+      operation == AST_POST_DECREASE) {
+    post_register_index = allocate_register();
+    post_r = register_list[post_register_index];
+
+    if (t->storage_class == STORAGE_CLASS_LOCAL ||
+        t->storage_class == STORAGE_CLASS_FUNCTION_PARAMETER)
+      fprintf(output_file, "\tleaq\t%d(%%rbp), %s\n", t->symbol_table_position, post_r);
+    else
+      fprintf(output_file, "\tleaq\t%d(%%rip), %s\n", t->name, post_r);
+
+    switch (t->size) {
+      case 1: fprintf(output_file, "\taddb\t$%d,(%s)\n", offset, post_r); break;
+      case 4: fprintf(output_file, "\taddl\t$%d,(%s)\n", offset, post_r); break;
+      case 8: fprintf(output_file, "\taddq\t$%d,(%s)\n", offset, post_r); break;
+    }
+
+    clear_register(post_register_index);
+  }
+
+  return register_index;
+}
+
 /**
  * 两个寄存器相加，并将其放入其中一个寄存器中
 */
@@ -206,113 +275,6 @@ int register_divide(int left_register, int right_register) {
   fprintf(output_file, "\tmovq\t%%rax, %s\n", register_list[left_register]);
   clear_register(right_register);
   return left_register;
-}
-
-/**
- * 将一个变量的值保存到寄存器中
-*/
-int register_load_value_from_variable(struct SymbolTable *t, int operation) {
-  int register_index = allocate_register();
-  char *r = register_list[register_index];
-  if (register_get_primitive_type_size(t->primitive_type) == 8) {
-    if (operation == AST_PRE_INCREASE)
-      fprintf(output_file, "\tincq\t%s(\%%rip)\n", t->name);
-    if (operation == AST_PRE_DECREASE)
-      fprintf(output_file, "\tdecq\t%s(\%%rip)\n", t->name);
-
-    fprintf(output_file, "\tmovq\t%s(\%%rip), %s\n", t->name, r);
-
-    if (operation == AST_POST_INCREASE)
-      fprintf(output_file, "\tincq\t%s(\%%rip)\n", t->name);
-    if (operation == AST_POST_DECREASE)
-      fprintf(output_file, "\tdecq\t%s(\%%rip)\n", t->name);
-    return register_index;
-  }
-
-  switch (t->primitive_type) {
-    case PRIMITIVE_CHAR:
-      if (operation == AST_PRE_INCREASE)
-        fprintf(output_file, "\tincb\t%s(\%%rip)\n", t->name);
-      if (operation == AST_PRE_DECREASE)
-        fprintf(output_file, "\tdecb\t%s(\%%rip)\n", t->name);
-
-      fprintf(output_file, "\tmovzbq\t%s(\%%rip), %s\n", t->name, r);
-
-      if (operation == AST_POST_INCREASE)
-        fprintf(output_file, "\tincb\t%s(\%%rip)\n", t->name);
-      if (operation == AST_POST_DECREASE)
-        fprintf(output_file, "\tdecb\t%s(\%%rip)\n", t->name);
-      break;
-    case PRIMITIVE_INT:
-      if (operation == AST_PRE_INCREASE)
-        fprintf(output_file, "\tincl\t%s(\%%rip)\n", t->name);
-      if (operation == AST_PRE_DECREASE)
-        fprintf(output_file, "\tdecl\t%s(\%%rip)\n", t->name);
-
-      fprintf(output_file, "\tmovslq\t%s(\%%rip), %s\n", t->name, r);
-
-      if (operation == AST_POST_INCREASE)
-        fprintf(output_file, "\tincl\t%s(\%%rip)\n", t->name);
-      if (operation == AST_POST_DECREASE)
-        fprintf(output_file, "\tdecl\t%s(\%%rip)\n", t->name);
-      break;
-    default:
-      error_with_digital("Bad type in register_load_value_from_variable:", t->primitive_type);
-  }
-  return register_index;
-}
-
-/**
- * 将一个局部变量的值保存到寄存器中
-*/
-int register_load_local_value_from_variable(struct SymbolTable *t, int operation) {
-  int register_index = allocate_register();
-  char *r = register_list[register_index];
-  if (register_get_primitive_type_size(t->primitive_type) == 8) {
-    if (operation == AST_PRE_INCREASE)
-      fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t->symbol_table_position);
-    if (operation == AST_PRE_DECREASE)
-      fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t->symbol_table_position);
-
-    fprintf(output_file, "\tmovq\t%d(\%%rbp), %s\n", t->symbol_table_position, r);
-
-    if (operation == AST_POST_INCREASE)
-      fprintf(output_file, "\tincq\t%d(\%%rbp)\n", t->symbol_table_position);
-    if (operation == AST_POST_DECREASE)
-      fprintf(output_file, "\tdecq\t%d(\%%rbp)\n", t->symbol_table_position);
-    return register_index;
-  }
-  switch (t->primitive_type) {
-    case PRIMITIVE_CHAR:
-      if (operation == AST_PRE_INCREASE)
-        fprintf(output_file, "\tincb\t%d(\%%rbp)\n", t->symbol_table_position);
-      if (operation == AST_PRE_DECREASE)
-        fprintf(output_file, "\tdecb\t%d(\%%rbp)\n", t->symbol_table_position);
-
-      fprintf(output_file, "\tmovzbq\t%d(\%%rbp), %s\n", t->symbol_table_position, r);
-
-      if (operation == AST_POST_INCREASE)
-        fprintf(output_file, "\tincb\t%d(\%%rbp)\n", t->symbol_table_position);
-      if (operation == AST_POST_DECREASE)
-        fprintf(output_file, "\tdecb\t%d(\%%rbp)\n", t->symbol_table_position);
-      break;
-    case PRIMITIVE_INT:
-      if (operation == AST_PRE_INCREASE)
-        fprintf(output_file, "\tincl\t%d(\%%rbp)\n", t->symbol_table_position);
-      if (operation == AST_PRE_DECREASE)
-        fprintf(output_file, "\tdecl\t%d(\%%rbp)\n", t->symbol_table_position);
-
-      fprintf(output_file, "\tmovslq\t%d(\%%rbp), %s\n", t->symbol_table_position, r);
-
-      if (operation == AST_POST_INCREASE)
-        fprintf(output_file, "\tincl\t%d(\%%rbp)\n", t->symbol_table_position);
-      if (operation == AST_POST_DECREASE)
-        fprintf(output_file, "\tdecl\t%d(\%%rbp)\n", t->symbol_table_position);
-      break;
-    default:
-      error_with_digital("Bad type in register_load_local_value_from_variable:", t->primitive_type);
-  }
-  return register_index;
 }
 
 /**
@@ -876,7 +838,6 @@ void register_switch(
     fprintf(output_file, "\t.quad\t%d, L%d\n", case_value[i], case_label[i]);
   fprintf(output_file, "\t.quad\tL%d\n", label_default);
 
-  // Load the specific registers
   register_label(label_jump_start);
   fprintf(output_file, "\tmovq\t%s, %%rax\n", register_list[register_index]);
   fprintf(output_file, "\tleaq\tL%d(%%rip), %%rdx\n", label);

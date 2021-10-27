@@ -364,13 +364,8 @@ int interpret_ast_with_register(
       //                     /  \
       // parent_ast_operation  node
       if (node->rvalue ||
-        parent_ast_operation == AST_DEREFERENCE_POINTER) {
-          if (node->symbol_table->storage_class == STORAGE_CLASS_GLOBAL ||
-              node->symbol_table->storage_class == STORAGE_CLASS_STATIC ||
-              node->symbol_table->storage_class == STORAGE_CLASS_EXTERN)
-            return register_load_value_from_variable(node->symbol_table, node->operation);
-          return register_load_local_value_from_variable(node->symbol_table, node->operation);
-        }
+          parent_ast_operation == AST_DEREFERENCE_POINTER)
+        return register_load_variable(node->symbol_table, node->operation);
       return NO_REGISTER;
     // a += b + c
     // 会被解析成如下
@@ -462,16 +457,10 @@ int interpret_ast_with_register(
       return register_shift_right(left_register, right_register);
     case AST_POST_INCREASE:
     case AST_POST_DECREASE:
-      if (node->symbol_table->storage_class == STORAGE_CLASS_GLOBAL ||
-          node->symbol_table->storage_class == STORAGE_CLASS_STATIC)
-        return register_load_value_from_variable(node->symbol_table, node->operation);
-      return register_load_local_value_from_variable(node->symbol_table, node->operation);
+      return register_load_variable(node->symbol_table, node->operation);
     case AST_PRE_INCREASE:
     case AST_PRE_DECREASE:
-      if (node->left->symbol_table->storage_class == STORAGE_CLASS_GLOBAL ||
-          node->left->symbol_table->storage_class == STORAGE_CLASS_STATIC)
-        return register_load_value_from_variable(node->left->symbol_table, node->operation);
-      return register_load_local_value_from_variable(node->left->symbol_table, node->operation);
+      return register_load_variable(node->left->symbol_table, node->operation);
     case AST_NEGATE:
       return register_negate(left_register);
     case AST_INVERT:
