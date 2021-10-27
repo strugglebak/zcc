@@ -92,7 +92,7 @@ static int operation_precedence(int operation_in_token) {
 //         | multiplicative_expression '/' prefix_expression
 //         | multiplicative_expression '%' prefix_expression
 //         ;
-static struct ASTNode *create_ast_node_from_expression() {
+static struct ASTNode *create_ast_node_from_expression(int previous_token_precedence) {
   struct ASTNode *node;
   struct SymbolTable *composite_type, *var_pointer, *enum_pointer;
   int label;
@@ -210,7 +210,7 @@ static struct ASTNode *create_ast_node_from_expression() {
 
     case TOKEN_LEFT_PAREN:
       // 解析 e= (a+b) * (c+d); 类似的语句
-      return parse_paren_expression();
+      return parse_paren_expression(previous_token_precedence);
 
     default:
       error_with_message("Expecting a primary expression, got token", token_from_file.token_string);
@@ -223,7 +223,7 @@ static struct ASTNode *create_ast_node_from_expression() {
 }
 
 // 解析 (expression) 即括号中的语句
-static struct ASTNode *parse_paren_expression() {
+static struct ASTNode *parse_paren_expression(int previous_token_precedence) {
   struct ASTNode *tree;
   struct SymbolTable *composite_type = NULL;
   int primitive_type = 0;
@@ -249,7 +249,7 @@ static struct ASTNode *parse_paren_expression() {
       // 跳过 ')'
       verify_right_paren();
     default:
-      tree = converse_token_2_ast(0);
+      tree = converse_token_2_ast(previous_token_precedence);
   }
 
   if (!primitive_type)
@@ -329,7 +329,7 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
   int ast_operation_type;
 
   // 初始化左子树
-  left = convert_prefix_expression_2_ast();
+  left = convert_prefix_expression_2_ast(previous_token_precedence);
 
   // 到这里说明已经遍历到文件尾，可以直接 return
   node_operation_type = token_from_file.token;
@@ -550,13 +550,13 @@ struct ASTNode *convert_member_access_2_ast(int with_pointer, struct ASTNode *le
   return left;
 }
 
-struct ASTNode *convert_prefix_expression_2_ast() {
+struct ASTNode *convert_prefix_expression_2_ast(int previous_token_precedence) {
   struct ASTNode *tree;
   switch (token_from_file.token) {
     case TOKEN_AMPERSAND:
       // 解析类似于 x= &&&y;
       scan(&token_from_file);
-      tree = convert_prefix_expression_2_ast();
+      tree = convert_prefix_expression_2_ast(previous_token_precedence);
 
       if (tree->operation != AST_IDENTIFIER)
         error("& operator must be followed by an identifier");
@@ -569,7 +569,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
     case TOKEN_MULTIPLY:
       // 解析类似于 x= ***y;
       scan(&token_from_file);
-      tree = convert_prefix_expression_2_ast();
+      tree = convert_prefix_expression_2_ast(previous_token_precedence);
 
       if (tree->operation != AST_IDENTIFIER &&
           tree->operation != AST_DEREFERENCE_POINTER)
@@ -586,7 +586,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
     case TOKEN_MINUS:
       // 解析类似 x = -y; 这样的表达式
       scan(&token_from_file);
-      tree = convert_prefix_expression_2_ast();
+      tree = convert_prefix_expression_2_ast(previous_token_precedence);
 
       tree->rvalue = 1;
       if (tree->primitive_type == PRIMITIVE_CHAR)
@@ -600,7 +600,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
     case TOKEN_INVERT:
       // 解析类似 x = ~y; 这样的表达式
       scan(&token_from_file);
-      tree = convert_prefix_expression_2_ast();
+      tree = convert_prefix_expression_2_ast(previous_token_precedence);
 
       tree->rvalue = 1;
       tree = create_ast_left_node(AST_INVERT, tree->primitive_type, tree, 0, NULL, tree->composite_type);
@@ -608,7 +608,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
     case TOKEN_LOGIC_NOT:
       // 解析类似 x = !y; 这样的表达式
       scan(&token_from_file);
-      tree = convert_prefix_expression_2_ast();
+      tree = convert_prefix_expression_2_ast(previous_token_precedence);
 
       tree->rvalue = 1;
       tree = create_ast_left_node(AST_LOGIC_NOT, tree->primitive_type, tree, 0, NULL, tree->composite_type);
@@ -616,7 +616,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
     case TOKEN_INCREASE:
       // 解析类似 x = ++y; 这样的表达式
       scan(&token_from_file);
-      tree = convert_prefix_expression_2_ast();
+      tree = convert_prefix_expression_2_ast(previous_token_precedence);
 
       if (tree->operation != AST_IDENTIFIER)
         error("++ operator must be followed by an identifier");
@@ -626,7 +626,7 @@ struct ASTNode *convert_prefix_expression_2_ast() {
     case TOKEN_DECREASE:
       // 解析类似 x = --y; 这样的表达式
       scan(&token_from_file);
-      tree = convert_prefix_expression_2_ast();
+      tree = convert_prefix_expression_2_ast(previous_token_precedence);
 
       if (tree->operation != AST_IDENTIFIER)
         error("-- operator must be followed by an identifier");
@@ -634,14 +634,14 @@ struct ASTNode *convert_prefix_expression_2_ast() {
       tree = create_ast_left_node(AST_PRE_DECREASE, tree->primitive_type, tree, 0, NULL, tree->composite_type);
       break;
     default:
-      tree = convert_postfix_expression_2_ast();
+      tree = convert_postfix_expression_2_ast(previous_token_precedence);
   }
 
   return tree;
 }
 
-struct ASTNode *convert_postfix_expression_2_ast() {
-  struct ASTNode *tree = create_ast_node_from_expression();
+struct ASTNode *convert_postfix_expression_2_ast(int previous_token_precedence) {
+  struct ASTNode *tree = create_ast_node_from_expression(previous_token_precedence);
 
   // 解析类似的语句时需要注意的问题，即区别是变量名还是函数调用还是数组访问
   //  x = fred + jim;

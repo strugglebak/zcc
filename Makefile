@@ -17,7 +17,7 @@ incdir.h:
 	echo "#define INCDIR \"$(INCLUDE_DIRECTORY)\"" > incdir.h
 
 clean:
-	rm -f parser parser_arm *.o *.s out test/out incdir.h
+	rm -f parser parser_arm *.o *.s out test/out
 
 install: parser
 	sudo mkdir -p $(INCLUDE_DIRECTORY)
