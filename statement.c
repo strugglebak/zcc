@@ -316,10 +316,13 @@ struct ASTNode *parse_for_statement() {
 
 static struct ASTNode *parse_return_statement() {
   struct ASTNode *tree = NULL;
+  int has_paren = 0;
 
   verify_return();
 
   if (token_from_file.token == TOKEN_LEFT_PAREN) {
+    has_paren = 1;
+
     if (current_function_symbol_id->primitive_type == PRIMITIVE_VOID)
       error("Can't return from a void function");
 
@@ -334,13 +337,20 @@ static struct ASTNode *parse_return_statement() {
 
     // 检查 )
     verify_right_paren();
-  } else {
-    if (current_function_symbol_id->primitive_type != PRIMITIVE_VOID)
-      error("Must return a value from a non-void function");
   }
 
   // 生成 return_statement 的 node
   tree = create_ast_left_node(AST_RETURN, PRIMITIVE_NONE, tree, 0, NULL, NULL);
+
+  if (!has_paren) {
+    // 这里有两种情况
+    // 看下一个 token 是不是 ;
+    // 是就直接 verify semi
+    if (token_from_file.token != TOKEN_SEMICOLON) {
+      // 不是就 scan
+      scan(&token_from_file);
+    }
+  }
 
   verify_semicolon();
   return tree;

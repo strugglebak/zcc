@@ -46,7 +46,7 @@ int main() {
   printf("%d %d %d\n\n", fred->src2.vreg, fred->src2.intval, fred->jmplabel);
 
   jane.c= (struct Svalue *)malloc(sizeof(struct Svalue));
-  jane.a= 1; jane.b= 2; jane.d= 4; 
+  jane.a= 1; jane.b= 2; jane.d= 4;
   jane.c->thing= "fish";
   jane.c->vreg= 3;
   jane.c->intval= 5;
@@ -54,5 +54,5 @@ int main() {
   printf("%d %d %d\n", jane.a, jane.b, jane.c->vreg);
   printf("%d %d %s\n", jane.d, jane.c->intval, jane.c->thing);
 
-  return(0);
+  return (0);
 }
