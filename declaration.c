@@ -109,7 +109,7 @@ static int parse_param_declaration_list(
   if (old_function_symbol_table && (parameter_count != old_function_symbol_table->element_number))
     error_with_message("Parameter count mismatch for function", old_function_symbol_table->name);
 
-  return parameter_count;
+  return (parameter_count);
 }
 
 static struct SymbolTable *parse_composite_declaration(int primitive_type) {
@@ -137,7 +137,7 @@ static struct SymbolTable *parse_composite_declaration(int primitive_type) {
     // 既然要声明变量，说明之前的 struct/union 声明的类型应该存在
     // 如果此时 composite_type 为空应该要报错
     if (!composite_type) error_with_message("Unknown struct/union type", text_buffer);
-    return composite_type;
+    return (composite_type);
   }
 
   // 如果下一个 token 是 '{'，说明用户要用这个 struct/union 类型去做定义
@@ -197,7 +197,7 @@ static struct SymbolTable *parse_composite_declaration(int primitive_type) {
 
   // 设置 struct 类型总共的大小
   composite_type->size = offset;
-  return composite_type;
+  return (composite_type);
 }
 
 static void parse_enum_declaration() {
@@ -267,7 +267,7 @@ int convert_multiply_token_2_primitive_type(int primitive_type) {
     primitive_type = pointer_to(primitive_type);
     scan(&token_from_file);
   }
-  return primitive_type;
+  return (primitive_type);
 }
 
 int convert_literal_token_2_integer_value(int primitive_type) {
@@ -287,19 +287,19 @@ int convert_literal_token_2_integer_value(int primitive_type) {
   // 如果是 char *
   if (primitive_type == pointer_to(PRIMITIVE_CHAR)) {
     if (tree->operation == AST_STRING_LITERAL)
-      return tree->ast_node_integer_value;
+      return (tree->ast_node_integer_value);
     if (tree->operation == AST_INTEGER_LITERAL &&
         !tree->ast_node_integer_value)
-      return 0;
+      return (0);
   }
 
   if (check_int_type(primitive_type) &&
       (get_primitive_type_size(primitive_type, NULL) >=
         get_primitive_type_size(tree->primitive_type, NULL)))
-    return tree->ast_node_integer_value;
+    return (tree->ast_node_integer_value);
 
   error("Type mismatch: literal vs. variable");
-  return 0;
+  return (0);
 }
 
 int convert_type_casting_token_2_primitive_type(struct SymbolTable **composite_type) {
@@ -319,7 +319,7 @@ int convert_type_casting_token_2_primitive_type(struct SymbolTable **composite_t
   )
     error("Cannot cast to a struct, union or void type");
 
-  return primitive_type;
+  return (primitive_type);
 }
 
 static struct SymbolTable *parse_array_declaration(
@@ -435,7 +435,7 @@ static struct SymbolTable *parse_array_declaration(
       storage_class == STORAGE_CLASS_STATIC)
     generate_global_symbol(t);
 
-  return t;
+  return (t);
 }
 
 static struct SymbolTable *parse_scalar_declaration(
@@ -538,7 +538,7 @@ static struct SymbolTable *parse_scalar_declaration(
       storage_class == STORAGE_CLASS_STATIC)
     generate_global_symbol(t);
 
-  return t;
+  return (t);
 }
 
 // 解析变量或者函数定义
@@ -555,7 +555,9 @@ static struct SymbolTable *parse_symbol_declaration(
 
   // 如果是 '(' 说明是函数定义
   if (token_from_file.token == TOKEN_LEFT_PAREN)
-    return parse_function_declaration(primitive_type, var_name, composite_type, storage_class);
+    return (
+      parse_function_declaration(primitive_type, var_name, composite_type, storage_class)
+    );
 
   // 先判断是否被定义过
   switch(storage_class) {
@@ -579,7 +581,7 @@ static struct SymbolTable *parse_symbol_declaration(
   } else
     t = parse_scalar_declaration(var_name, primitive_type, composite_type, storage_class, tree);
 
-  return t;
+  return (t);
 }
 
 // 这里用于比较同时用 extern 声明的变量和 global 变量
@@ -643,7 +645,7 @@ int parse_typedef_declaration(struct SymbolTable **composite_type) {
 
   // 跳过 ';'
   scan(&token_from_file);
-  return primitive_type;
+  return (primitive_type);
 }
 
 int parse_type_of_typedef_declaration(char *name, struct SymbolTable **composite_type) {
@@ -658,7 +660,7 @@ int parse_type_of_typedef_declaration(char *name, struct SymbolTable **composite
 
   scan(&token_from_file);
   *composite_type = t->composite_type;
-  return t->primitive_type;
+  return (t->primitive_type);
 }
 
 int convert_token_2_primitive_type(
@@ -724,7 +726,7 @@ int convert_token_2_primitive_type(
       error_with_message("Illegal type, token", token_from_file.token_string);
   }
 
-  return new_type;
+  return (new_type);
 }
 
 struct SymbolTable *parse_function_declaration(
@@ -778,7 +780,7 @@ struct SymbolTable *parse_function_declaration(
   // 如果此时的 token 是 ';'，说明只是【声明】函数而不是【定义】函数
   // 可以直接退出
   if (token_from_file.token == TOKEN_SEMICOLON)
-    return old_function_symbol_table;
+    return (old_function_symbol_table);
 
   // 到这一步说明是【定义】一个新函数
   current_function_symbol_id = old_function_symbol_table;
@@ -819,7 +821,7 @@ struct SymbolTable *parse_function_declaration(
 
   clear_local_symbol_table();
 
-  return old_function_symbol_table;
+  return (old_function_symbol_table);
 }
 
 // 解析有初始化变量的地方
@@ -844,7 +846,7 @@ int parse_declaration_list(
   if ((init_primitive_type
     = convert_token_2_primitive_type(
       composite_type, &storage_class)) == -1)
-    return init_primitive_type;
+    return (init_primitive_type);
 
   // 解析定义列表
   while(1) {
@@ -859,7 +861,7 @@ int parse_declaration_list(
       if (storage_class != STORAGE_CLASS_GLOBAL &&
           storage_class != STORAGE_CLASS_STATIC)
         error("Function definition not at global level");
-      return primitive_type;
+      return (primitive_type);
     }
 
     // 解析 local 变量，粘接 ast tree
@@ -869,7 +871,7 @@ int parse_declaration_list(
 
     if (token_from_file.token == end_token ||
         token_from_file.token == end_token_2)
-      return primitive_type;
+      return (primitive_type);
 
     verify_comma();
   }

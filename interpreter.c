@@ -40,15 +40,15 @@ int interpret_ast(struct ASTNode *node) {
 
   switch (node->operation) {
   case AST_PLUS:
-    return left_value + right_value;
+    return (left_value + right_value);
   case AST_MINUS:
-    return left_value - right_value;
+    return (left_value - right_value);
   case AST_MULTIPLY:
-    return left_value * right_value;
+    return (left_value * right_value);
   case AST_DIVIDE:
-    return left_value / right_value;
+    return (left_value / right_value);
   case AST_INTEGER_LITERAL:
-    return node->ast_node_integer_value;
+    return (node->ast_node_integer_value);
   default:
     error_with_digital("Unknown AST operator", node->operation);
   }

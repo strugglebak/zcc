@@ -40,12 +40,12 @@ static int allocate_register() {
   for (int i = 0; i < GET_ARRAY_LENGTH(free_registers); i++) {
     if (free_registers[i]) {
       free_registers[i] = 0;
-      return i;
+      return (i);
     }
   }
 
   error("Out of registers");
-  return NO_REGISTER;
+  return (NO_REGISTER);
 }
 
 /**
@@ -126,7 +126,7 @@ int register_load_interger_literal(int value, int primitive_type) {
     set_large_integer_offset(value);
     fprintf(output_file, "\tldr\t%s, [r3]\n", register_list[register_index]);
   }
-  return register_index;
+  return (register_index);
 }
 
 /**
@@ -139,7 +139,7 @@ int register_plus(int left_register, int right_register) {
     register_list[left_register],
     register_list[right_register]);
   clear_register(left_register);
-  return right_register;
+  return (right_register);
 }
 
 /**
@@ -152,7 +152,7 @@ int register_minus(int left_register, int right_register) {
     register_list[left_register],
     register_list[right_register]);
   clear_register(right_register);
-  return left_register;
+  return (left_register);
 }
 
 /**
@@ -165,7 +165,7 @@ int register_multiply(int left_register, int right_register) {
     register_list[left_register],
     register_list[right_register]);
   clear_register(left_register);
-  return right_register;
+  return (right_register);
 }
 
 /**
@@ -179,7 +179,7 @@ int register_divide(int left_register, int right_register) {
   fprintf(output_file, "\tbl\t__aeabi_idiv\n");
   fprintf(output_file, "\tmov\t%s, r0\n", register_list[left_register]);
   clear_register(right_register);
-  return left_register;
+  return (left_register);
 }
 
 /**
@@ -199,7 +199,7 @@ int register_load_value_from_variable(int symbol_table_index) {
   int register_index = allocate_register();
   set_variable_offset(symbol_table_index);
   fprintf(output_file, "\tldr\t%s, [r3]\n", register_list[register_index]);
-  return register_index;
+  return (register_index);
 }
 
 /**

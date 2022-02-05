@@ -51,7 +51,7 @@ static int spilling_register_index = 0;
 static int register_new_local_offset(int primitive_type_size) {
   // 栈上位置至少间隔为 4 byte
   local_offset += primitive_type_size > 4 ? primitive_type_size : 4;
-  return -local_offset;
+  return (-local_offset);
 }
 
 static void push_register(int register_index) {
@@ -79,7 +79,7 @@ int allocate_register() {
   for (i = 0; i < GET_ARRAY_LENGTH(free_registers); i++) {
     if (free_registers[i]) {
       free_registers[i] = 0;
-      return i;
+      return (i);
     }
   }
 
@@ -88,7 +88,7 @@ int allocate_register() {
   spilling_register_index++;
   fprintf(output_file, "# spilling reg %d\n", i);
   push_register(i);
-  return i;
+  return (i);
 }
 
 /**
@@ -162,7 +162,7 @@ void register_postamble() {
 int register_load_interger_literal(int value, int primitive_type) {
   int register_index = allocate_register();
   fprintf(output_file, "\tmovq\t$%d, %s\n", value, register_list[register_index]);
-  return register_index;
+  return (register_index);
 }
 
 // load global 和 load local 的替代
@@ -231,7 +231,7 @@ int register_load_variable(struct SymbolTable *t, int operation) {
     register_clear_register(post_register_index);
   }
 
-  return register_index;
+  return (register_index);
 }
 
 /**
@@ -240,7 +240,7 @@ int register_load_variable(struct SymbolTable *t, int operation) {
 int register_plus(int left_register, int right_register) {
   fprintf(output_file, "\taddq\t%s, %s\n", register_list[right_register], register_list[left_register]);
   register_clear_register(right_register);
-  return left_register;
+  return (left_register);
 }
 
 /**
@@ -249,7 +249,7 @@ int register_plus(int left_register, int right_register) {
 int register_minus(int left_register, int right_register) {
   fprintf(output_file, "\tsubq\t%s, %s\n", register_list[right_register], register_list[left_register]);
   register_clear_register(right_register);
-  return left_register;
+  return (left_register);
 }
 
 /**
@@ -258,7 +258,7 @@ int register_minus(int left_register, int right_register) {
 int register_multiply(int left_register, int right_register) {
   fprintf(output_file, "\timulq\t%s, %s\n", register_list[right_register], register_list[left_register]);
   register_clear_register(right_register);
-  return left_register;
+  return (left_register);
 }
 
 /**
@@ -283,7 +283,7 @@ int register_divide_and_mod(
     fprintf(output_file, "\tmovq\t%%rdx, %s\n", l);
 
   register_clear_register(right_register);
-  return left_register;
+  return (left_register);
 }
 
 /**
@@ -294,7 +294,7 @@ int register_store_value_2_variable(int register_index, struct SymbolTable *t) {
     fprintf(output_file, "\tmovq\t%s, %s(\%%rip)\n",
     register_list[register_index],
     t->name);
-    return register_index;
+    return (register_index);
   }
   switch (t->primitive_type) {
     case PRIMITIVE_CHAR:
@@ -310,7 +310,7 @@ int register_store_value_2_variable(int register_index, struct SymbolTable *t) {
     default:
       error_with_digital("Bad type in register_store_value_2_variable:", t->primitive_type);
   }
-  return register_index;
+  return (register_index);
 }
 
 /**
@@ -321,7 +321,7 @@ int register_store_local_value_2_variable(int register_index, struct SymbolTable
     fprintf(output_file, "\tmovq\t%s, %d(\%%rbp)\n",
     register_list[register_index],
     t->symbol_table_position);
-    return register_index;
+    return (register_index);
   }
   switch (t->primitive_type) {
     case PRIMITIVE_CHAR:
@@ -337,7 +337,7 @@ int register_store_local_value_2_variable(int register_index, struct SymbolTable
     default:
       error_with_digital("Bad type in register_store_local_value_2_variable:", t->primitive_type);
   }
-  return register_index;
+  return (register_index);
 }
 
 /**
@@ -457,7 +457,7 @@ int register_compare_and_set(
     register_list[right_register]);
 
   register_clear_register(left_register);
-  return right_register;
+  return (right_register);
 }
 
 /**
@@ -499,7 +499,7 @@ int register_compare_and_jump(
 
   register_clear_register(left_register);
   register_clear_register(right_register);
-  return NO_REGISTER;
+  return (NO_REGISTER);
 }
 
 /**
@@ -590,7 +590,7 @@ int register_widen(
   int register_index,
   int old_primitive_type,
   int new_primitive_type) {
-    return register_index;
+    return (register_index);
 }
 
 /**
@@ -626,7 +626,7 @@ int register_function_call(struct SymbolTable *t, int argument_number) {
 
   // 把返回值复制进寄存器
   fprintf(output_file, "\tmovq\t%%rax, %s\n", register_list[out_register_index]);
-  return out_register_index;
+  return (out_register_index);
 }
 
 /**
@@ -671,7 +671,7 @@ int register_load_identifier_address(struct SymbolTable *t) {
     fprintf(output_file, "\tleaq\t%s(%%rip), %s\n", t->name, r);
   else
     fprintf(output_file, "\tleaq\t%d(%%rbp), %s\n", t->symbol_table_position, r);
-  return register_index;
+  return (register_index);
 }
 
 int register_dereference_pointer(int register_index, int primitive_type) {
@@ -691,7 +691,7 @@ int register_dereference_pointer(int register_index, int primitive_type) {
     default:
       error_with_digital("Can't register_dereference_pointer on type:", primitive_type);
   }
-  return register_index;
+  return (register_index);
 }
 
 int register_store_dereference_pointer(int left_register, int right_register, int primitive_type) {
@@ -715,13 +715,13 @@ int register_store_dereference_pointer(int left_register, int right_register, in
     default:
       error_with_digital("Can't register_store_dereference_pointer on type:", primitive_type);
   }
-  return left_register;
+  return (left_register);
 }
 
 int register_shift_left_by_constant(int register_index, int value) {
   char *r = register_list[register_index];
   fprintf(output_file, "\tsalq\t$%d, %s\n", value, r);
-  return register_index;
+  return (register_index);
 }
 
 /**
@@ -730,58 +730,58 @@ int register_shift_left_by_constant(int register_index, int value) {
 int register_load_global_string(int label) {
   int register_index = allocate_register();
   fprintf(output_file, "\tleaq\tL%d(\%%rip), %s\n", label, register_list[register_index]);
-  return register_index;
+  return (register_index);
 }
 
 int register_and(int left_register, int right_register) {
   fprintf(output_file, "\tandq\t%s, %s\n", register_list[right_register], register_list[left_register]);
   register_clear_register(right_register);
-  return left_register;
+  return (left_register);
 }
 
 int register_or(int left_register, int right_register) {
   fprintf(output_file, "\torq\t%s, %s\n", register_list[right_register], register_list[left_register]);
   register_clear_register(right_register);
-  return left_register;
+  return (left_register);
 }
 
 int register_xor(int left_register, int right_register) {
   fprintf(output_file, "\txorq\t%s, %s\n", register_list[right_register], register_list[left_register]);
   register_clear_register(right_register);
-  return left_register;
+  return (left_register);
 }
 
 int register_negate(int register_index) {
   fprintf(output_file, "\tnegq\t%s\n",
     register_list[register_index]);
-  return register_index;
+  return (register_index);
 }
 
 int register_invert(int register_index) {
   fprintf(output_file, "\tnotq\t%s\n",
     register_list[register_index]);
-  return register_index;
+  return (register_index);
 }
 
 int register_shift_left(int left_register, int right_register) {
   fprintf(output_file, "\tmovb\t%s, %%cl\n", lower_8_bits_register_list[right_register]);
   fprintf(output_file, "\tshlq\t%%cl, %s\n", register_list[left_register]);
   register_clear_register(right_register);
-  return left_register;
+  return (left_register);
 }
 
 int register_shift_right(int left_register, int right_register) {
   fprintf(output_file, "\tmovb\t%s, %%cl\n", lower_8_bits_register_list[right_register]);
   fprintf(output_file, "\tshrq\t%%cl, %s\n", register_list[left_register]);
   register_clear_register(right_register);
-  return left_register;
+  return (left_register);
 }
 
 int register_logic_not(int register_index) {
   fprintf(output_file, "\ttest\t%s, %s\n", register_list[register_index], register_list[register_index]);
   fprintf(output_file, "\tsete\t%s\n", lower_8_bits_register_list[register_index]);
   fprintf(output_file, "\tmovzbq\t%s, %s\n", lower_8_bits_register_list[register_index], register_list[register_index]);
-  return register_index;
+  return (register_index);
 }
 
 void register_load_boolean(int register_index, int value) {
@@ -806,7 +806,7 @@ int register_to_be_boolean(int register_index, int operation, int label) {
       fprintf(output_file, "\tmovzbq\t%s, %s\n", lower_r, r);
   }
 
-  return register_index;
+  return (register_index);
 }
 
 void register_reset_local_variables() {
@@ -851,7 +851,7 @@ int register_align(int primitive_type, int offset, int direction) {
       offset = (offset + direction * (alignment-1)) & ~(alignment-1);
   }
 
-  return offset;
+  return (offset);
 }
 
 

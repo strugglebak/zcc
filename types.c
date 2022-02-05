@@ -18,9 +18,11 @@ int get_primitive_type_size(
   int primitive_type,
   struct SymbolTable *composite_type
 ) {
-  return primitive_type == PRIMITIVE_STRUCT || primitive_type == PRIMITIVE_UNION
-    ? composite_type->size
-    : generate_get_primitive_type_size(primitive_type);
+  return (
+    primitive_type == PRIMITIVE_STRUCT || primitive_type == PRIMITIVE_UNION
+      ? composite_type->size
+      : generate_get_primitive_type_size(primitive_type)
+  );
 }
 
 // 修改一个 ast node 的 type 类型，以便与给定的类型兼容
@@ -41,11 +43,11 @@ struct ASTNode *modify_type(
     if (operation == AST_LOGIC_AND || operation == AST_LOGIC_OR) {
       if (!check_int_type(left_primitive_type) &&
           !check_pointer_type(left_primitive_type))
-        return NULL;
+        return (NULL);
       if (!check_int_type(left_primitive_type) &&
           !check_pointer_type(right_primitive_type))
-        return NULL;
-      return tree;
+        return (NULL);
+      return (tree);
     }
 
     // 特殊情况判断
@@ -64,14 +66,14 @@ struct ASTNode *modify_type(
 
     // 比较 char/int/long
     if (check_int_type(left_primitive_type) && check_int_type(right_primitive_type)) {
-      if (left_primitive_type == right_primitive_type) return tree;
+      if (left_primitive_type == right_primitive_type) return (tree);
 
       left_primitive_size = get_primitive_type_size(left_primitive_type, NULL);
       right_primitive_size = get_primitive_type_size(right_primitive_type, NULL);
 
-      if (left_primitive_size > right_primitive_size) return NULL;
+      if (left_primitive_size > right_primitive_size) return (NULL);
       else if (left_primitive_size < right_primitive_size)
-        return create_ast_left_node(AST_WIDEN, right_primitive_type, tree, 0, NULL, NULL);
+        return (create_ast_left_node(AST_WIDEN, right_primitive_type, tree, 0, NULL, NULL));
     }
 
     // 比较 char/int/long 指针
@@ -80,7 +82,7 @@ struct ASTNode *modify_type(
 
       // 如果是比较操作符
       if (operation >= AST_COMPARE_EQUALS && operation <= AST_COMPARE_GREATER_EQUALS)
-        return tree;
+        return (tree);
 
       // 如果 left node 是 (void *)
       // 即 char a = (void *)65536;
@@ -88,7 +90,7 @@ struct ASTNode *modify_type(
         left_primitive_type == right_primitive_type ||
         left_primitive_type == pointer_to(PRIMITIVE_VOID)
       ))
-        return tree;
+        return (tree);
     }
 
     // 指针的地址只允许加和减, +=, -=
@@ -104,30 +106,32 @@ struct ASTNode *modify_type(
         // 比如 int x = *((long *) y + 2)
         // 强制转换
         if (right_primitive_size > 1)
-          return create_ast_left_node(
-            AST_SCALE,
-            right_primitive_type,
-            tree,
-            right_primitive_size,
-            NULL,
-            right_composite_type);
+          return (
+            create_ast_left_node(
+              AST_SCALE,
+              right_primitive_type,
+              tree,
+              right_primitive_size,
+              NULL,
+              right_composite_type)
+          );
         // 如果 size 就是 int，那么就返回这颗树
-        return tree;
+        return (tree);
       }
     }
 
-    return NULL;
+    return (NULL);
 }
 
 
 int pointer_to(int primitive_type) {
   if ((primitive_type & 0xf) == 0xf)
     error_with_digital("Unrecognised in pointer_to: primitive type", primitive_type);
-  return primitive_type + 1;
+  return (primitive_type + 1);
 }
 
 int value_at(int primitive_type) {
   if ((primitive_type & 0xf) == 0x0)
     error_with_digital("Unrecognised in value_at: primitive type", primitive_type);
-  return primitive_type - 1;
+  return (primitive_type - 1);
 }

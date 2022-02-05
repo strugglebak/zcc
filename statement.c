@@ -17,7 +17,7 @@ static struct ASTNode *parse_break_statement() {
     error("no loop or switch to break out from");
   scan(&token_from_file);
   verify_semicolon();
-  return create_ast_leaf(AST_BREAK, PRIMITIVE_NONE, 0, NULL, NULL);
+  return (create_ast_leaf(AST_BREAK, PRIMITIVE_NONE, 0, NULL, NULL));
 }
 static struct ASTNode *parse_continue_statement() {
   // 解析类似 continue; 这样的语句
@@ -25,7 +25,7 @@ static struct ASTNode *parse_continue_statement() {
     error("no loop to continue out from");
   scan(&token_from_file);
   verify_semicolon();
-  return create_ast_leaf(AST_CONTINUE, PRIMITIVE_NONE, 0, NULL, NULL);
+  return (create_ast_leaf(AST_CONTINUE, PRIMITIVE_NONE, 0, NULL, NULL));
 }
 
 static struct ASTNode *parse_switch_statement() {
@@ -119,7 +119,7 @@ static struct ASTNode *parse_switch_statement() {
   // 跳过 '}'
   verify_right_brace();
 
-  return node;
+  return (node);
 }
 
 static struct ASTNode *parse_single_statement() {
@@ -135,13 +135,13 @@ static struct ASTNode *parse_single_statement() {
       verify_left_brace();
       statement = parse_compound_statement(0);
       verify_right_brace();
-      return statement;
+      return (statement);
     case TOKEN_IDENTIFIER:
       // 检查是否被 typedef 定义过
       if (!find_typedef_symbol(text_buffer)) {
         statement = converse_token_2_ast(0);
         verify_semicolon();
-        return statement;
+        return (statement);
       }
     case TOKEN_CHAR:
     case TOKEN_INT:
@@ -157,28 +157,28 @@ static struct ASTNode *parse_single_statement() {
         TOKEN_EOF,
         &statement);
       verify_semicolon();
-      return statement;
+      return (statement);
     case TOKEN_IF:
-      return parse_if_statement();
+      return (parse_if_statement());
     case TOKEN_WHILE:
-      return parse_while_statement();
+      return (parse_while_statement());
     case TOKEN_FOR:
-      return parse_for_statement();
+      return (parse_for_statement());
     case TOKEN_RETURN:
-      return parse_return_statement();
+      return (parse_return_statement());
     case TOKEN_SWITCH:
-      return parse_switch_statement();
+      return (parse_switch_statement());
     case TOKEN_BREAK:
-      return parse_break_statement();
+      return (parse_break_statement());
     case TOKEN_CONTINUE:
-      return parse_continue_statement();
+      return (parse_continue_statement());
     default:
       statement = converse_token_2_ast(0);
       verify_semicolon();
-      return statement;
+      return (statement);
   }
 
-  return NULL;
+  return (NULL);
 }
 struct ASTNode *parse_if_statement() {
   struct ASTNode *condition_node, *true_node, *false_node = NULL;
@@ -211,15 +211,17 @@ struct ASTNode *parse_if_statement() {
     false_node = parse_single_statement();
   }
 
-  return create_ast_node(
-    AST_IF,
-    PRIMITIVE_NONE,
-    condition_node,
-    true_node,
-    false_node,
-    0,
-    NULL,
-    NULL);
+  return (
+    create_ast_node(
+      AST_IF,
+      PRIMITIVE_NONE,
+      condition_node,
+      true_node,
+      false_node,
+      0,
+      NULL,
+      NULL)
+  );
 }
 
 struct ASTNode *parse_while_statement() {
@@ -249,15 +251,17 @@ struct ASTNode *parse_while_statement() {
   loop_level++;
   statement_node = parse_single_statement();
   loop_level--;
-  return create_ast_node(
-    AST_WHILE,
-    PRIMITIVE_NONE,
-    condition_node,
-    NULL,
-    statement_node,
-    0,
-    NULL,
-    NULL);
+  return (
+    create_ast_node(
+      AST_WHILE,
+      PRIMITIVE_NONE,
+      condition_node,
+      NULL,
+      statement_node,
+      0,
+      NULL,
+      NULL)
+  );
 }
 
 struct ASTNode *parse_for_statement() {
@@ -311,7 +315,7 @@ struct ASTNode *parse_for_statement() {
   //                 compound_stmt  postop
   tree = create_ast_node(AST_GLUE, PRIMITIVE_NONE, statement_node, NULL, post_operation_statement_node, 0, NULL, NULL);
   tree = create_ast_node(AST_WHILE, PRIMITIVE_NONE, condition_node, NULL, tree, 0, NULL, NULL);
-  return create_ast_node(AST_GLUE, PRIMITIVE_NONE, pre_operation_statement_node, NULL, tree, 0, NULL, NULL);
+  return (create_ast_node(AST_GLUE, PRIMITIVE_NONE, pre_operation_statement_node, NULL, tree, 0, NULL, NULL));
 }
 
 static struct ASTNode *parse_return_statement() {
@@ -355,7 +359,7 @@ static struct ASTNode *parse_return_statement() {
   }
 
   verify_semicolon();
-  return tree;
+  return (tree);
 }
 
 /**
@@ -444,11 +448,11 @@ struct ASTNode *parse_compound_statement(int in_switch_statement) {
 
   while (1) {
     // 可以允许 {} 里面的空语句
-    if (token_from_file.token == TOKEN_RIGHT_BRACE) return left;
+    if (token_from_file.token == TOKEN_RIGHT_BRACE) return (left);
     if (in_switch_statement && (
       token_from_file.token == TOKEN_CASE ||
       token_from_file.token == TOKEN_DEFAULT
-    )) return left;
+    )) return (left);
 
     // 这里主要兼容对 for 语句的处理
     tree = parse_single_statement();
@@ -469,5 +473,5 @@ struct ASTNode *parse_compound_statement(int in_switch_statement) {
     }
   }
 
-  return NULL;
+  return (NULL);
 }

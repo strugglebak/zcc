@@ -29,15 +29,15 @@ static int operation_precedence_array[] = {
 };
 
 static int check_right_associative(int token) {
-  return token >= TOKEN_ASSIGN && token <= TOKEN_ASSGIN_DIVIDE ? 1 : 0;
+  return (token >= TOKEN_ASSIGN && token <= TOKEN_ASSGIN_DIVIDE ? 1 : 0);
 }
 
 // 将 token 中的 + - * / 等转换成 ast 中的类型
 static int convert_token_operation_2_ast_operation(int operation_in_token) {
   if (operation_in_token > TOKEN_EOF && operation_in_token <= TOKEN_MOD)
-    return operation_in_token;
+    return (operation_in_token);
   error_with_message("Syntax error, token", token_string[operation_in_token]);
-  return 0;
+  return (0);
 }
 
 // 确定操作符的优先级
@@ -51,7 +51,7 @@ static int operation_precedence(int operation_in_token) {
     error_with_message(
       "Syntax error, token",
        token_string[operation_in_token]);
-  return precedence;
+  return (precedence);
 }
 
 // 逐个字的读取文件，并将文件中读取到的数字字符构建成一颗树
@@ -122,12 +122,14 @@ static struct ASTNode *create_ast_node_from_expression(int previous_token_preced
         );
       primitive_type_size = get_primitive_type_size(primitive_type, composite_type);
       verify_right_paren();
-      return create_ast_leaf(
-        AST_INTEGER_LITERAL,
-        PRIMITIVE_INT,
-        primitive_type_size,
-        NULL,
-        NULL);
+      return (
+        create_ast_leaf(
+          AST_INTEGER_LITERAL,
+          PRIMITIVE_INT,
+          primitive_type_size,
+          NULL,
+          NULL)
+      );
 
     case TOKEN_STRING_LITERAL:
       // 先生成全局 string 的汇编代码，然后再解析 ast，因为这个 string 是要放在 .s 文件的最前面
@@ -202,7 +204,7 @@ static struct ASTNode *create_ast_node_from_expression(int previous_token_preced
           scan(&token_from_file);
           if (token_from_file.token != TOKEN_LEFT_PAREN)
             error_with_message("Function name used without parentheses", text_buffer);
-          return convert_function_call_2_ast();
+          return (convert_function_call_2_ast());
         default:
           error_with_message("Identifier not a scalar or array variable", text_buffer);
       }
@@ -210,7 +212,7 @@ static struct ASTNode *create_ast_node_from_expression(int previous_token_preced
 
     case TOKEN_LEFT_PAREN:
       // 解析 e= (a+b) * (c+d); 类似的语句
-      return parse_paren_expression(previous_token_precedence);
+      return (parse_paren_expression(previous_token_precedence));
 
     default:
       error_with_message("Expecting a primary expression, got token", token_from_file.token_string);
@@ -219,7 +221,7 @@ static struct ASTNode *create_ast_node_from_expression(int previous_token_preced
   // 扫描下一个，继续判断
   scan(&token_from_file);
 
-  return node;
+  return (node);
 }
 
 // 解析 (expression) 即括号中的语句
@@ -259,7 +261,7 @@ static struct ASTNode *parse_paren_expression(int previous_token_precedence) {
     // 否则创建一个 强制类型转换的 tree
     tree = create_ast_left_node(AST_TYPE_CASTING, primitive_type, tree, 0, NULL, composite_type);
 
-  return tree;
+  return (tree);
 }
 
 // expression_list: <null>
@@ -306,7 +308,7 @@ struct ASTNode *parse_expression_list(int end_token) {
     verify_comma();
   }
 
-  return tree;
+  return (tree);
 }
 
 /**
@@ -344,7 +346,7 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
     TOKEN_RIGHT_BRACE == node_operation_type
     ) {
       left->rvalue = 1;
-      return left;
+      return (left);
     }
 
   // 如果这次扫描得到的操作符比之前的优先级高，
@@ -371,15 +373,17 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
         // ;
         verify_colon();
         left_temp = converse_token_2_ast(0);
-        return create_ast_node(
-          AST_TERNARY,
-          right->primitive_type,
-          left, // logical_expression
-          right, // true_expression
-          left_temp, // false_expression
-          0,
-          NULL,
-          right->composite_type);
+        return (
+          create_ast_node(
+            AST_TERNARY,
+            right->primitive_type,
+            left, // logical_expression
+            right, // true_expression
+            left_temp, // false_expression
+            0,
+            NULL,
+            right->composite_type)
+        );
       case AST_ASSIGN:
         right->rvalue = 1;
 
@@ -440,7 +444,7 @@ struct ASTNode *converse_token_2_ast(int previous_token_precedence) {
 
   // 返回这颗构建的树
   left->rvalue = 1;
-  return left;
+  return (left);
 }
 
 struct ASTNode *convert_function_call_2_ast() {
@@ -471,7 +475,7 @@ struct ASTNode *convert_function_call_2_ast() {
   // 解析右 )
   verify_right_paren();
 
-  return tree;
+  return (tree);
 }
 
 struct ASTNode *convert_array_access_2_ast(struct ASTNode *left) {
@@ -504,7 +508,7 @@ struct ASTNode *convert_array_access_2_ast(struct ASTNode *left) {
   // 这个时候也必须要解除引用，因为可能后面会有 a[12] = 100; 这样的语句出现，所以把它看作左值 lvalue
   left = create_ast_left_node(AST_DEREFERENCE_POINTER, value_at(left->primitive_type), left, 0, NULL, left->composite_type);
 
-  return left;
+  return (left);
 }
 
 struct ASTNode *convert_member_access_2_ast(int with_pointer, struct ASTNode *left) {
@@ -547,7 +551,7 @@ struct ASTNode *convert_member_access_2_ast(int with_pointer, struct ASTNode *le
   left = create_ast_node(AST_PLUS, pointer_to(member->primitive_type), left, NULL, right, 0, NULL, member->composite_type);
   // 这个时候也必须要解除引用，因为可能后面会有 xxx.a = 100; 这样的语句出现，所以把它看作左值 lvalue
   left = create_ast_left_node(AST_DEREFERENCE_POINTER, member->primitive_type, left, 0, NULL, member->composite_type);
-  return left;
+  return (left);
 }
 
 struct ASTNode *convert_prefix_expression_2_ast(int previous_token_precedence) {
@@ -634,7 +638,7 @@ struct ASTNode *convert_prefix_expression_2_ast(int previous_token_precedence) {
       tree = convert_postfix_expression_2_ast(previous_token_precedence);
   }
 
-  return tree;
+  return (tree);
 }
 
 struct ASTNode *convert_postfix_expression_2_ast(int previous_token_precedence) {
@@ -682,9 +686,9 @@ struct ASTNode *convert_postfix_expression_2_ast(int previous_token_precedence) 
         tree->operation = AST_POST_DECREASE;
         break;
 
-      default: return tree;
+      default: return (tree);
     }
   }
 
-  return NULL;
+  return (NULL);
 }

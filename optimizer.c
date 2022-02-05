@@ -20,14 +20,14 @@ static struct ASTNode *fold_2_children(struct ASTNode *node) {
       value = left_value * right_value;
       break;
     case AST_DIVIDE:
-      if (!right_value) return node;
+      if (!right_value) return (node);
       value = left_value / right_value;
       break;
     default:
-      return node;
+      return (node);
   }
 
-  return create_ast_leaf(AST_INTEGER_LITERAL, node->primitive_type, value, NULL, NULL);
+  return (create_ast_leaf(AST_INTEGER_LITERAL, node->primitive_type, value, NULL, NULL));
 }
 
 static struct ASTNode *fold_1_children(struct ASTNode *node) {
@@ -39,14 +39,14 @@ static struct ASTNode *fold_1_children(struct ASTNode *node) {
     case AST_WIDEN: break;
     case AST_INVERT: value = ~value; break;
     case AST_LOGIC_NOT: value = !value; break;
-    default: return node;
+    default: return (node);
   }
 
-  return create_ast_leaf(AST_INTEGER_LITERAL, node->primitive_type, value, NULL, NULL);
+  return (create_ast_leaf(AST_INTEGER_LITERAL, node->primitive_type, value, NULL, NULL));
 }
 
 static struct ASTNode *fold(struct ASTNode *node) {
-  if (!node) return NULL;
+  if (!node) return (NULL);
 
   node->left = fold(node->left);
   node->right = fold(node->right);
@@ -57,9 +57,9 @@ static struct ASTNode *fold(struct ASTNode *node) {
     else
       node = fold_1_children(node);
 
-  return node;
+  return (node);
 }
 
 struct ASTNode *optimise(struct ASTNode *node) {
-  return fold(node);
+  return (fold(node));
 }

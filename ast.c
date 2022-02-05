@@ -30,7 +30,7 @@ struct ASTNode *create_ast_node(
   node->symbol_table = symbol_table;
   node->composite_type = composite_type;
 
-  return node;
+  return (node);
 }
 
 // 创建一个子节点
@@ -41,13 +41,15 @@ struct ASTNode *create_ast_leaf(
   struct SymbolTable *symbol_table,
   struct SymbolTable *composite_type
 ) {
-  return create_ast_node(
-    operation,
-    primitive_type,
-    NULL, NULL, NULL,
-    integer_value,
-    symbol_table,
-    composite_type
+  return (
+    create_ast_node(
+      operation,
+      primitive_type,
+      NULL, NULL, NULL,
+      integer_value,
+      symbol_table,
+      composite_type
+    )
   );
 }
 
@@ -59,12 +61,14 @@ struct ASTNode *create_ast_left_node(
   struct SymbolTable *symbol_table,
   struct SymbolTable *composite_type
 ) {
-  return create_ast_node(
-    operation,
-    primitive_type,
-    left, NULL, NULL,
-    integer_value,
-    symbol_table,
-    composite_type
+  return (
+    create_ast_node(
+      operation,
+      primitive_type,
+      left, NULL, NULL,
+      integer_value,
+      symbol_table,
+      composite_type
+    )
   );
 }

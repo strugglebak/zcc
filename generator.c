@@ -12,7 +12,7 @@
 // 比如 jmp L1, jmp L2 之类去执行
 int generate_label() {
   static int id = 1;
-  return id++;
+  return (id++);
 }
 
 static int interpret_if_ast_with_register(
@@ -46,7 +46,7 @@ static int interpret_if_ast_with_register(
     register_label(label_end);
   }
 
-  return NO_REGISTER;
+  return (NO_REGISTER);
 }
 
 /**
@@ -85,7 +85,7 @@ static int interpret_while_ast_with_register(struct ASTNode *node) {
   // 最后生成一个 Lend
   register_label(label_end);
 
-  return NO_REGISTER;
+  return (NO_REGISTER);
 }
 
 static int interpret_function_call_with_register(struct ASTNode *node) {
@@ -117,7 +117,7 @@ static int interpret_function_call_with_register(struct ASTNode *node) {
     glue_node = glue_node->left;
   }
 
-  return register_function_call(node->symbol_table, function_argument_number);
+  return (register_function_call(node->symbol_table, function_argument_number));
 }
 
 static int interpret_switch_ast_with_register(struct ASTNode *node) {
@@ -164,7 +164,7 @@ static int interpret_switch_ast_with_register(struct ASTNode *node) {
   // 生成 switch 表和 end label
   register_switch(register_index, case_count, label_jump_start, case_label, case_value, label_default);
   register_label(label_end);
-  return NO_REGISTER;
+  return (NO_REGISTER);
 }
 
 // 生成三元运算符语句的汇编代码
@@ -210,7 +210,7 @@ static int interpret_ternary_ast_with_register(struct ASTNode *node) {
   register_clear_register(expression_register_index);
   register_label(label_end);
 
-  return register_index;
+  return (register_index);
 }
 
 static int interpret_logic_and_or_ast_with_register(struct ASTNode *node) {
@@ -249,7 +249,7 @@ static int interpret_logic_and_or_ast_with_register(struct ASTNode *node) {
   }
 
   register_label(label_end);
-  return register_index;
+  return (register_index);
 }
 
 /**
@@ -266,8 +266,7 @@ int interpret_ast_with_register(
 ) {
   int left_register = NO_REGISTER, right_register = NO_REGISTER;
 
-  if (!node)
-    return NO_REGISTER;
+  if (!node) return (NO_REGISTER);
 
   /**
    * 对于两种 ast 做特殊处理
@@ -294,7 +293,7 @@ int interpret_ast_with_register(
   */
   switch (node->operation) {
     case AST_IF:
-      return interpret_if_ast_with_register(node, loop_start_label, loop_end_label);
+      return (interpret_if_ast_with_register(node, loop_start_label, loop_end_label));
     case AST_GLUE:
       if (node->left)
         interpret_ast_with_register(node->left, if_label, loop_start_label, loop_end_label, node->operation);
@@ -302,23 +301,23 @@ int interpret_ast_with_register(
       if (node->right)
         interpret_ast_with_register(node->right, if_label, loop_start_label, loop_end_label, node->operation);
       generate_clearable_registers(NO_REGISTER);
-      return NO_REGISTER;
+      return (NO_REGISTER);
     case AST_WHILE:
-      return interpret_while_ast_with_register(node);
+      return (interpret_while_ast_with_register(node));
     case AST_FUNCTION_CALL:
-      return interpret_function_call_with_register(node);
+      return (interpret_function_call_with_register(node));
     case AST_FUNCTION:
       register_function_preamble(node->symbol_table);
       interpret_ast_with_register(node->left, NO_LABEL, NO_LABEL, NO_LABEL, node->operation);
       register_function_postamble(node->symbol_table);
-      return NO_REGISTER;
+      return (NO_REGISTER);
     case AST_SWITCH:
-      return interpret_switch_ast_with_register(node);
+      return (interpret_switch_ast_with_register(node));
     case AST_TERNARY:
-      return interpret_ternary_ast_with_register(node);
+      return (interpret_ternary_ast_with_register(node));
     case AST_LOGIC_AND:
     case AST_LOGIC_OR:
-      return interpret_logic_and_or_ast_with_register(node);
+      return (interpret_logic_and_or_ast_with_register(node));
   }
 
   if (node->left)
@@ -328,14 +327,14 @@ int interpret_ast_with_register(
 
   switch (node->operation) {
     case AST_PLUS:
-      return register_plus(left_register, right_register);
+      return (register_plus(left_register, right_register));
     case AST_MINUS:
-      return register_minus(left_register, right_register);
+      return (register_minus(left_register, right_register));
     case AST_MULTIPLY:
-      return register_multiply(left_register, right_register);
+      return (register_multiply(left_register, right_register));
     case AST_DIVIDE:
     case AST_MOD:
-      return register_divide_and_mod(left_register, right_register, node->operation);
+      return (register_divide_and_mod(left_register, right_register, node->operation));
 
     case AST_COMPARE_EQUALS:
     case AST_COMPARE_NOT_EQUALS:
@@ -346,14 +345,14 @@ int interpret_ast_with_register(
       if (parent_ast_operation == AST_IF ||
           parent_ast_operation == AST_WHILE ||
           parent_ast_operation == AST_TERNARY)
-        return register_compare_and_jump( node->operation, left_register, right_register, if_label, node->primitive_type);
-      return register_compare_and_set(node->operation, left_register, right_register, node->primitive_type);
+        return (register_compare_and_jump( node->operation, left_register, right_register, if_label, node->primitive_type));
+      return (register_compare_and_set(node->operation, left_register, right_register, node->primitive_type));
     case AST_RETURN:
       register_function_return(left_register, current_function_symbol_id);
-      return NO_REGISTER;
+      return (NO_REGISTER);
 
     case AST_INTEGER_LITERAL:
-      return register_load_interger_literal(node->ast_node_integer_value, node->primitive_type);
+      return (register_load_interger_literal(node->ast_node_integer_value, node->primitive_type));
     case AST_IDENTIFIER:
       //               类似于 * y 这种情况
       //                     | |
@@ -361,8 +360,8 @@ int interpret_ast_with_register(
       // parent_ast_operation  node
       if (node->rvalue ||
           parent_ast_operation == AST_DEREFERENCE_POINTER)
-        return register_load_variable(node->symbol_table, node->operation);
-      return NO_REGISTER;
+        return (register_load_variable(node->symbol_table, node->operation));
+      return (NO_REGISTER);
     // a += b + c
     // 会被解析成如下
     //       AST_PLUS
@@ -411,10 +410,10 @@ int interpret_ast_with_register(
           if (node->right->symbol_table->storage_class == STORAGE_CLASS_GLOBAL ||
               node->right->symbol_table->storage_class == STORAGE_CLASS_EXTERN ||
               node->right->symbol_table->storage_class == STORAGE_CLASS_STATIC)
-            return register_store_value_2_variable(left_register, node->right->symbol_table);
-          return register_store_local_value_2_variable(left_register, node->right->symbol_table);
+            return (register_store_value_2_variable(left_register, node->right->symbol_table));
+          return (register_store_local_value_2_variable(left_register, node->right->symbol_table));
         case AST_DEREFERENCE_POINTER:
-          return register_store_dereference_pointer(left_register, right_register, node->right->primitive_type);
+          return (register_store_dereference_pointer(left_register, right_register, node->right->primitive_type));
         default:
           error_with_digital("Can't AST_ASSIGN in interpret_ast_with_register, operation", node->operation);
       }
@@ -423,71 +422,71 @@ int interpret_ast_with_register(
     case AST_IDENTIFIER_ADDRESS:
       // 这里也有可能是 struct/union 成员的访问
       if (node->symbol_table)
-        return register_load_identifier_address(node->symbol_table);
-      return left_register;
+        return (register_load_identifier_address(node->symbol_table));
+      return (left_register);
     // *
     case AST_DEREFERENCE_POINTER:
       if (node->rvalue)
-        return register_dereference_pointer(left_register, node->left->primitive_type);
+        return (register_dereference_pointer(left_register, node->left->primitive_type));
       // 返回上一个回调交给 AST_ASSIGN 处理
-      return left_register;
+      return (left_register);
 
     // 对 char/int/long 类型转换的处理
     case AST_WIDEN:
-      return register_widen(left_register, node->left->primitive_type, node->primitive_type);
+      return (register_widen(left_register, node->left->primitive_type, node->primitive_type));
     // 对 char*/int*/long* 指针类型转换的处理
     case AST_SCALE:
       switch (node->ast_node_scale_size) {
-        case 2: return register_shift_left_by_constant(left_register, 1); // 左移 1 位
-        case 4: return register_shift_left_by_constant(left_register, 2); // 左移 2 位
-        case 8: return register_shift_left_by_constant(left_register, 3); // 左移 3 位
+        case 2: return (register_shift_left_by_constant(left_register, 1)); // 左移 1 位
+        case 4: return (register_shift_left_by_constant(left_register, 2)); // 左移 2 位
+        case 8: return (register_shift_left_by_constant(left_register, 3)); // 左移 3 位
         default:
-          right_register = register_load_interger_literal(node->ast_node_scale_size, PRIMITIVE_INT);
-          return register_multiply(left_register, right_register);
+          right_register = (register_load_interger_literal(node->ast_node_scale_size, PRIMITIVE_INT));
+          return (register_multiply(left_register, right_register));
       }
 
     // 处理 string
     case AST_STRING_LITERAL:
-      return register_load_global_string(node->ast_node_integer_value);
+      return (register_load_global_string(node->ast_node_integer_value));
 
     case AST_AMPERSAND:
-      return register_and(left_register, right_register);
+      return (register_and(left_register, right_register));
     case AST_OR:
-      return register_or(left_register, right_register);
+      return (register_or(left_register, right_register));
     case AST_XOR:
-      return register_xor(left_register, right_register);
+      return (register_xor(left_register, right_register));
     case AST_LEFT_SHIFT:
-      return register_shift_left(left_register, right_register);
+      return (register_shift_left(left_register, right_register));
     case AST_RIGHT_SHIFT:
-      return register_shift_right(left_register, right_register);
+      return (register_shift_right(left_register, right_register));
     case AST_POST_INCREASE:
     case AST_POST_DECREASE:
-      return register_load_variable(node->symbol_table, node->operation);
+      return (register_load_variable(node->symbol_table, node->operation));
     case AST_PRE_INCREASE:
     case AST_PRE_DECREASE:
-      return register_load_variable(node->left->symbol_table, node->operation);
+      return (register_load_variable(node->left->symbol_table, node->operation));
     case AST_NEGATE:
-      return register_negate(left_register);
+      return (register_negate(left_register));
     case AST_INVERT:
-      return register_invert(left_register);
+      return (register_invert(left_register));
     case AST_LOGIC_NOT:
-      return register_logic_not(left_register);
+      return (register_logic_not(left_register));
     case AST_TO_BE_BOOLEAN:
-      return register_to_be_boolean(left_register, parent_ast_operation, if_label);
+      return (register_to_be_boolean(left_register, parent_ast_operation, if_label));
     case AST_BREAK:
       register_jump(loop_end_label);
-      return NO_REGISTER;
+      return (NO_REGISTER);
     case AST_CONTINUE:
       register_jump(loop_start_label);
-      return NO_REGISTER;
+      return (NO_REGISTER);
     case AST_TYPE_CASTING:
-      return left_register;
+      return (left_register);
 
     default:
       error_with_digital("Unknown AST operator", node->operation);
   }
 
-  return NO_REGISTER;
+  return (NO_REGISTER);
 }
 
 void generate_global_symbol(struct SymbolTable *t) {
@@ -509,7 +508,7 @@ void generate_clearable_registers(int keep_register_index) {
 int generate_global_string_code(char *string_value, int is_append_string) {
   int label = generate_label();
   register_generate_global_string(label, string_value, is_append_string);
-  return label;
+  return (label);
 }
 
 void generate_global_string_code_end() {
@@ -521,9 +520,9 @@ void generate_reset_local_variables() {
 }
 
 int generate_get_primitive_type_size(int primitive_type) {
-  return register_get_primitive_type_size(primitive_type);
+  return (register_get_primitive_type_size(primitive_type));
 }
 
 int generate_align(int primitive_type, int offset, int direction) {
-  return register_align(primitive_type, offset, direction);
+  return (register_align(primitive_type, offset, direction));
 }

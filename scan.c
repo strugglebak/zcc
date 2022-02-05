@@ -23,7 +23,7 @@ static int next(void) {
   if (putback_buffer) {
     c = putback_buffer;
     putback_buffer = 0;
-    return c;
+    return (c);
   }
 
   // 返回了上一次读取后的值之后，再次从文件刚刚的位置的下一位读取
@@ -79,7 +79,7 @@ static int next(void) {
     start_line = 1;
   }
 
-  return c;
+  return (c);
 }
 
 // 把一个不需要的字符放回去
@@ -111,8 +111,8 @@ static int get_the_position_of_the_charater(char *s, int c) {
   int i;
   for (i = 0; s[i] != '\0'; i++)
     if (s[i] == (char) c)
-      return i;
-  return -1;
+      return (i);
+  return (-1);
 }
 
 // 从输入的 file 中扫描并返回一个 integer 字符
@@ -142,7 +142,7 @@ static int scan_integer(char c) {
   // 准备下一次读取
   // put buffer 在这里可以理解为一个读取完一个 interger 之后的状态
   put_back(c);
-  return value;
+  return (value);
 }
 
 // 扫描标识符，并将其存入 buffer 中，最终返回是这个标识符的长度
@@ -165,7 +165,7 @@ static int scan_identifier(int c, char *buffer, int limit_length) {
   // 在最后要加结尾符
   buffer[length] = '\0';
 
-  return length;
+  return (length);
 }
 
 // 解析类似于 \0x41 这样的字符
@@ -184,7 +184,7 @@ static int hex_character() {
   if (!flag) error("missing digits after '\\x'");
   if (n > 255) error("value out of range after '\\x'");
 
-  return n;
+  return (n);
 }
 
 // 扫描单引号中的字符
@@ -196,16 +196,16 @@ static int escape_character() {
   if (c == '\\') {
     // 符号 'r'、'n' 等
     switch (c = next()) {
-      case 'a': return '\a';
-      case 'b': return '\b';
-      case 'f': return '\f';
-      case 'n': return '\n';
-      case 'r': return '\r';
-      case 't': return '\t';
-      case 'v': return '\v';
-      case '\\': return '\\';
-      case '"': return '"' ;
-      case '\'': return '\'';
+      case 'a': return ('\a');
+      case 'b': return ('\b');
+      case 'f': return ('\f');
+      case 'n': return ('\n');
+      case 'r': return ('\r');
+      case 't': return ('\t');
+      case 'v': return ('\v');
+      case '\\': return ('\\');
+      case '"': return ('"');
+      case '\'': return ('\'');
       case '0':
       case '1':
       case '2':
@@ -219,14 +219,14 @@ static int escape_character() {
           c2 = c2 * 8 + (c - '0');
         }
         put_back(c);
-        return c2;
+        return (c2);
       case 'x':
-        return hex_character();
+        return (hex_character());
       default:
         error_with_character("unknown escape sequence", c);
     }
   }
-  return c;
+  return (c);
 }
 
 // 扫描 sting，并存入 text_buffer 中
@@ -236,64 +236,64 @@ static int scan_string(char *buffer) {
   for (int i = 0; i < TEXT_LENGTH-1; i++) {
     if ((c = escape_character()) == '"') {
       buffer[i] = 0;
-      return i;
+      return (i);
     }
     buffer[i] = c;
   }
   error("String literal too long");
-  return 0;
+  return (0);
 }
 
 // 这里只做简单的判断，如果首字母是对应关键字的首字母，则直接返回关键字
 static int get_keyword(char *s) {
   switch (*s) {
     case 'c':
-      if (!strcmp(s, "char")) return TOKEN_CHAR;
-      else if (!strcmp(s, "continue")) return TOKEN_CONTINUE;
-      else if (!strcmp(s, "case")) return TOKEN_CASE;
+      if (!strcmp(s, "char")) return (TOKEN_CHAR);
+      else if (!strcmp(s, "continue")) return (TOKEN_CONTINUE);
+      else if (!strcmp(s, "case")) return (TOKEN_CASE);
       break;
     case 'l':
-      if (!strcmp(s, "long")) return TOKEN_LONG;
+      if (!strcmp(s, "long")) return (TOKEN_LONG);
     case 'i':
-      if (!strcmp(s, "if")) return TOKEN_IF;
-      else if (!strcmp(s, "int")) return TOKEN_INT;
+      if (!strcmp(s, "if")) return (TOKEN_IF);
+      else if (!strcmp(s, "int")) return (TOKEN_INT);
       break;
     case 'e':
-      if (!strcmp(s, "else")) return TOKEN_ELSE;
-      else if (!strcmp(s, "enum")) return TOKEN_ENUM;
-      else if (!strcmp(s, "extern")) return TOKEN_EXTERN;
+      if (!strcmp(s, "else")) return (TOKEN_ELSE);
+      else if (!strcmp(s, "enum")) return (TOKEN_ENUM);
+      else if (!strcmp(s, "extern")) return (TOKEN_EXTERN);
       break;
     case 'w':
-      if (!strcmp(s, "while")) return TOKEN_WHILE;
+      if (!strcmp(s, "while")) return (TOKEN_WHILE);
       break;
     case 'f':
-      if (!strcmp(s, "for")) return TOKEN_FOR;
+      if (!strcmp(s, "for")) return (TOKEN_FOR);
       break;
     case 'r':
-      if (!strcmp(s, "return")) return TOKEN_RETURN;
+      if (!strcmp(s, "return")) return (TOKEN_RETURN);
     case 'v':
-      if (!strcmp(s, "void")) return TOKEN_VOID;
+      if (!strcmp(s, "void")) return (TOKEN_VOID);
       break;
     case 's':
-      if (!strcmp(s, "struct")) return TOKEN_STRUCT;
-      else if (!strcmp(s, "switch")) return TOKEN_SWITCH;
-      else if (!strcmp(s, "sizeof")) return TOKEN_SIZEOF;
-      else if (!strcmp(s, "static")) return TOKEN_STATIC;
+      if (!strcmp(s, "struct")) return (TOKEN_STRUCT);
+      else if (!strcmp(s, "switch")) return (TOKEN_SWITCH);
+      else if (!strcmp(s, "sizeof")) return (TOKEN_SIZEOF);
+      else if (!strcmp(s, "static")) return (TOKEN_STATIC);
       break;
     case 'u':
-      if (!strcmp(s, "union")) return TOKEN_UNION;
+      if (!strcmp(s, "union")) return (TOKEN_UNION);
       break;
     case 't':
-      if (!strcmp(s, "typedef")) return TOKEN_TYPEDEF;
+      if (!strcmp(s, "typedef")) return (TOKEN_TYPEDEF);
       break;
     case 'b':
-      if (!strcmp(s, "break")) return TOKEN_BREAK;
+      if (!strcmp(s, "break")) return (TOKEN_BREAK);
       break;
     case 'd':
-      if (!strcmp(s, "default")) return TOKEN_DEFAULT;
+      if (!strcmp(s, "default")) return (TOKEN_DEFAULT);
       break;
   }
-  return 0;
+  return (0);
 }
 
 // 扫描 tokens
@@ -308,7 +308,7 @@ int scan(struct Token *t) {
     t->token_string = look_ahead_token.token_string;
     t->integer_value = look_ahead_token.integer_value;
     look_ahead_token.token = 0;
-    return 1;
+    return (1);
   }
 
   // 去掉不需要的字符
@@ -317,7 +317,7 @@ int scan(struct Token *t) {
   switch (c) {
     case EOF:
       t->token = TOKEN_EOF;
-      return 0;
+      return (0);
     case '+':
       if ((c = next()) == '+') {
         t->token = TOKEN_INCREASE;
@@ -496,5 +496,5 @@ int scan(struct Token *t) {
 
   t->token_string = token_string[t->token];
   // printf("scan '%s' -> (%s)\n", t->token_string, text_buffer);
-  return 1;
+  return (1);
 }

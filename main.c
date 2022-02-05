@@ -44,16 +44,16 @@ static void usage_info(char *info) {
 char *modify_string_suffix(char *string, char suffix) {
   char *p;
   char *new_string = strdup(string);
-  if (!new_string) return NULL;
+  if (!new_string) return (NULL);
   // 找出 '.' 的位置
   p = strrchr(new_string, '.');
-  if (!p) return NULL;
+  if (!p) return (NULL);
   // 边界判断
-  if (*(++p) == '\0') return NULL;
+  if (*(++p) == '\0') return (NULL);
   // 更改 suffix
   *(p++) = suffix;
   *p = '\0';
-  return new_string;
+  return (new_string);
 }
 
 void clear_all_static_symbol() {
@@ -137,7 +137,7 @@ static char *do_compile(char *filename) {
 
   clear_all_static_symbol();
 
-  return global_output_filename;
+  return (global_output_filename);
 }
 
 char *do_assemble(char *filename) {
@@ -157,7 +157,7 @@ char *do_assemble(char *filename) {
     fprintf(stderr, "Assembly of %s failed\n", filename);
     exit(1);
   }
-  return output_filename;
+  return (output_filename);
 }
 
 // link 文件
@@ -252,5 +252,5 @@ int main(int argc, char *argv[]) {
         do_unlink(object_file_list[i]);
   }
 
-  return 0;
+  return (0);
 }
