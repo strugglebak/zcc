@@ -346,6 +346,8 @@ static struct ASTNode *parse_return_statement() {
     // 这里有两种情况
     // 看下一个 token 是不是 ;
     // 是就直接 verify semi
+    // 目前仅支持 'return;' 以及 'return x;' 或者 'return 0;'
+    // 这种情况
     if (token_from_file.token != TOKEN_SEMICOLON) {
       // 不是就 scan
       scan(&token_from_file);
