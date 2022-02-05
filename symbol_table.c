@@ -131,7 +131,10 @@ struct SymbolTable *new_symbol_table(
   if (!node)
     error("Unable to malloc a symbol table node in update_symbol_table");
 
-  node->name = strdup(name);
+  if (name == NULL || !name)
+    node->name = NULL;
+  else
+    node->name = strdup(name);
   node->primitive_type = primitive_type;
   node->structural_type = structural_type;
   node->element_number = element_number;
