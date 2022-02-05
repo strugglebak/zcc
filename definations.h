@@ -75,7 +75,7 @@ enum {
   TOKEN_COMMA, // ,
   TOKEN_DOT, // .
   TOKEN_ARROW, // ->
-  TOKEN_COLON, // :
+  TOKEN_COLON // :
 };
 
 struct Token {
@@ -129,7 +129,7 @@ enum {
   AST_NEGATE,
   AST_INVERT,
   AST_LOGIC_NOT,
-  AST_TO_BE_BOOLEAN,
+  AST_TO_BE_BOOLEAN
 };
 
 // Primitive types 原始类型
@@ -140,7 +140,7 @@ enum {
   PRIMITIVE_INT = 48,
   PRIMITIVE_LONG = 64,
   PRIMITIVE_STRUCT = 80,
-  PRIMITIVE_UNION = 96,
+  PRIMITIVE_UNION = 96
 };
 
 // Structural types 结构类型
@@ -161,7 +161,7 @@ enum {
   STORAGE_CLASS_MEMBER,
   STORAGE_CLASS_ENUM_TYPE,
   STORAGE_CLASS_ENUM_VALUE,
-  STORAGE_CLASS_TYPEDEF,
+  STORAGE_CLASS_TYPEDEF
 };
 
 // 符号表，目前作用是支持变量
