@@ -3,58 +3,10 @@
 
 #include "incdir.h"
 
-struct Token {
-  int token;
-  int integer_value;
-  char *token_string;
-};
-
-struct ASTNode {
-  // 操作符  + - * /
-  int operation;
-  int primitive_type; // 对应 void/char/int...
-  int rvalue; // boolean, 是否是右值节点，1 为 true, 0 为 false
-  struct ASTNode *left;
-  struct ASTNode *middle;
-  struct ASTNode *right;
-  struct SymbolTable *symbol_table;
-  struct SymbolTable *composite_type; // 指向复合类型 symbol table 的指针
-
-#define ast_node_integer_value ast_node_scale_size
-int ast_node_scale_size;
-};
-
-// 符号表，目前作用是支持变量
-// 组成单向链表
-// 1. 全局变量以及函数(global variable/function)
-// 2. 对于当前函数来说的局部变量(local variable)
-// 3. 对于当前函数来说的局部参数(local parameter)
-// 4. 定义的结构体(struct)
-// 5. 定义的联合体(union)
-// 6. 定义的枚举以及其对应的值(enum)
-struct SymbolTable {
-  char *name;         // 每个变量的名字
-  int primitive_type; // 每个变量的原始类型
-  int structural_type;// 每个变量的结构类型
-  int storage_class;
-  int size; // 在 symbol 中元素的个数
-
-  // 对于函数，为参数的个数
-  // 对于结构体，为结构体的 field 的个数
-  int element_number;
-
-// 对于 STRUCTURAL_FUNCTION 来说的 end label
-#define symbol_table_end_label symbol_table_position
-
-  // 本地变量相对于栈基指针的负向距离
-  int symbol_table_position;
-
-  int *init_value_list; // 初始化值列表
-  struct SymbolTable *next; // 下一个 symbol table 的指针
-  struct SymbolTable *member; // 指向第一个函数、结构体、联合体、枚举的成员的 symbol table 的指针
-  struct SymbolTable *composite_type; // 指向复合类型 symbol table 的指针
-};
-
+#define A_OUT "a.out"
+#define AS_CMD "as -o "
+#define LD_CMD "cc -o "
+#define CPP_CMD "cpp -nostdinc -isystem "
 
 enum {
   TOKEN_EOF,
@@ -124,6 +76,12 @@ enum {
   TOKEN_DOT, // .
   TOKEN_ARROW, // ->
   TOKEN_COLON, // :
+};
+
+struct Token {
+  int token;
+  int integer_value;
+  char *token_string;
 };
 
 // AST 节点类型
@@ -206,17 +164,57 @@ enum {
   STORAGE_CLASS_TYPEDEF,
 };
 
+// 符号表，目前作用是支持变量
+// 组成单向链表
+// 1. 全局变量以及函数(global variable/function)
+// 2. 对于当前函数来说的局部变量(local variable)
+// 3. 对于当前函数来说的局部参数(local parameter)
+// 4. 定义的结构体(struct)
+// 5. 定义的联合体(union)
+// 6. 定义的枚举以及其对应的值(enum)
+struct SymbolTable {
+  char *name;         // 每个变量的名字
+  int primitive_type; // 每个变量的原始类型
+  int structural_type;// 每个变量的结构类型
+  int storage_class;
+  int size; // 在 symbol 中元素的个数
+
+  // 对于函数，为参数的个数
+  // 对于结构体，为结构体的 field 的个数
+  int element_number;
+
+// 对于 STRUCTURAL_FUNCTION 来说的 end label
+#define symbol_table_end_label symbol_table_position
+
+  // 本地变量相对于栈基指针的负向距离
+  int symbol_table_position;
+
+  int *init_value_list; // 初始化值列表
+  struct SymbolTable *next; // 下一个 symbol table 的指针
+  struct SymbolTable *member; // 指向第一个函数、结构体、联合体、枚举的成员的 symbol table 的指针
+  struct SymbolTable *composite_type; // 指向复合类型 symbol table 的指针
+};
+
+struct ASTNode {
+  // 操作符  + - * /
+  int operation;
+  int primitive_type; // 对应 void/char/int...
+  int rvalue; // boolean, 是否是右值节点，1 为 true, 0 为 false
+  struct ASTNode *left;
+  struct ASTNode *middle;
+  struct ASTNode *right;
+  struct SymbolTable *symbol_table;
+  struct SymbolTable *composite_type; // 指向复合类型 symbol table 的指针
+
+#define ast_node_integer_value ast_node_scale_size
+int ast_node_scale_size;
+};
+
 // 如果在 generator.c 中的 interpret_ast_with_register
 // 函数没有 register id 返回了，就用这个标志位
 enum {
   NO_REGISTER = -1,
   NO_LABEL = 0
 };
-
-
-#define A_OUT "a.out"
-#define AS_CMD "as -o "
-#define LD_CMD "cc -o "
-#define CPP_CMD "cpp -nostdinc -isystem "
 
 #endif
