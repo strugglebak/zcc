@@ -76,28 +76,28 @@ void verify_comma() {
 
 
 void error(char *string) {
-  fprintf(stderr, "%s on line %d\n", string, line);
+  fprintf(stderr, "%s on line %d of %s\n", string, line, global_input_filename);
   fclose(output_file);
   unlink(global_output_filename);
   exit(1);
 }
 
 void error_with_message(char *string, char *message) {
-  fprintf(stderr, "%s:%s on line %d\n", string, message, line);
+  fprintf(stderr, "%s:%s on line %d of %s\n", string, message, line, global_input_filename);
   fclose(output_file);
   unlink(global_output_filename);
   exit(1);
 }
 
 void error_with_digital(char *string, int digital) {
-  fprintf(stderr, "%s:%d on line %d\n", string, digital, line);
+  fprintf(stderr, "%s:%d on line %d of %s\n", string, digital, line, global_input_filename);
   fclose(output_file);
   unlink(global_output_filename);
   exit(1);
 }
 
 void error_with_character(char *string, char character) {
-  fprintf(stderr, "%s:%c on line %d\n", string, character, line);
+  fprintf(stderr, "%s:%c on line %d of %s\n", string, character, line, global_input_filename);
   fclose(output_file);
   unlink(global_output_filename);
   exit(1);
