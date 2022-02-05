@@ -1,7 +1,17 @@
-#!/bin/sh
+#!/bin/bash
 
-if [ ! -f ../parser ]
-  then (cd ..; make clean && make);
+PARSER=../parser
+PARSER_NAME=parser
+
+if [[ $1 = 0  ||  $1 = 2  ||  $1 = 2 ]]; then
+  PARSER=../parser$1
+  PARSER_NAME=parser$1
+fi
+
+echo "Use $PARSER"
+
+if [ ! -f $PARSER ];
+  then (cd ..; make clean && make $PARSER_NAME);
 fi
 
 for i in input*
@@ -12,7 +22,7 @@ for i in input*
       else if [ -f "assert/out.$i" ];
       then
         echo -n "test $i..."
-        ../parser -o out $i
+        $PARSER -o out $i
         ./out > assert/trial.$i
         cmp -s "assert/out.$i" "assert/trial.$i"
         if [ "$?" -eq "1" ];
@@ -27,7 +37,7 @@ for i in input*
         else if [ -f "error/error.$i" ];
         then
           echo -n "gen $i error file..."
-          ../parser $i 2> "assert/trial.$i"
+          $PARSER $i 2> "assert/trial.$i"
           cmp -s "error/error.$i" "assert/trial.$i"
           if [ "$?" -eq "1" ];
           then
