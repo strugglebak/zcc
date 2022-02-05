@@ -203,7 +203,7 @@ static struct SymbolTable *parse_composite_declaration(int primitive_type) {
 static void parse_enum_declaration() {
   // 解析类似于 enum xxx { a = 1, b } var1; 这样的语句
   struct SymbolTable *t = NULL;
-  char *name;
+  char *name = NULL;
   int value = 0;
 
   // 跳过 enum 关键字
