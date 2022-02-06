@@ -538,9 +538,9 @@ static struct SymbolTable *parse_scalar_declaration(
   }
 
   // 全局变量应该要先生成对应的汇编代码
-  if (storage_class == STORAGE_CLASS_GLOBAL ||
-      storage_class == STORAGE_CLASS_STATIC)
+  if (storage_class == STORAGE_CLASS_GLOBAL || storage_class == STORAGE_CLASS_STATIC) {
     generate_global_symbol(t);
+  }
 
   return (t);
 }
