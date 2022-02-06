@@ -31,9 +31,8 @@ static int operation_precedence_array[] = {
 static int check_right_associative(int token) {
   if (token >= TOKEN_ASSIGN && token <= TOKEN_ASSGIN_DIVIDE) {
     return (1);
-  } else {
-    return (0);
   }
+  return (0);
 }
 
 // 将 token 中的 + - * / 等转换成 ast 中的类型
