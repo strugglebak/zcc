@@ -141,11 +141,11 @@ void register_preamble() {
   "        movq    %%rax, %%rdx\n"
   "        lodsq\n"
   "        cmpq    %%rdx, %%rbx\n"
-  "        jnz     no\n"
+  "        jnz     __no\n"
   "        popq    %%rsi\n"
   "        jmp     *%%rax\n"
   "__no:\n"
-  "        loop    next\n"
+  "        loop    __next\n"
   "        lodsq\n"
   "        popq    %%rsi\n" "        jmp     *%%rax\n" "\n");
 }
@@ -885,7 +885,7 @@ void register_switch(
   register_label(label_jump_start);
   fprintf(output_file, "\tmovq\t%s, %%rax\n", register_list[register_index]);
   fprintf(output_file, "\tleaq\tL%d(%%rip), %%rdx\n", label);
-  fprintf(output_file, "\tjmp\tswitch\n");
+  fprintf(output_file, "\tjmp\t__switch\n");
 }
 
 void register_move(int left_register, int right_register) {
