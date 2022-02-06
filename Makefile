@@ -1,7 +1,7 @@
 CC= cc
 DEBUG= -T
 
-COMMON= data.c parser.c interpreter.c main.c \
+COMMON= parser.c interpreter.c main.c \
 	scan.c ast.c generator.c  statement.c \
 	helper.c symbol_table.c types.c declaration.c \
 	optimizer.c

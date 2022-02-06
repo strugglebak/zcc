@@ -7,6 +7,21 @@
 #include "scan.h"
 #include "helper.h"
 
+char *token_strings[] = {
+  "EOF", "=", "+=", "-=", "*=", "/=", "%=", "?",
+  "&&", "||", "|", "^", "&",
+  "==", "!=", ",", ">", "<=", ">=", "<<", ">>",
+  "+", "-", "*", "/", "%", "++", "--", "~", "!",
+  "void", "char", "int", "long",
+  "if", "else", "while", "for", "return",
+  "struct", "union", "enum", "typedef",
+  "extern", "break", "continue", "switch",
+  "case", "default", "sizeof", "static",
+  "integer_literal", "string_literal", ";", "identifier",
+  "{", "}", "(", ")", "[", "]", ",", ".",
+  "->", ":"
+};
+
 // 从文件中读取下一个字符
 static int next(void) {
   int c;

@@ -12,8 +12,7 @@
 #define SYMBOL_TABLE_ENTRIES_NUMBER 1024
 #define TOKEN_STRING_NUMBER 128
 
-extern_ char *token_strings[TOKEN_STRING_NUMBER];
-
+extern char *token_strings[];
 extern_ int line;
 extern_ int start_line;
 extern_ int putback_buffer;

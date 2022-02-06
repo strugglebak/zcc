@@ -25,7 +25,7 @@ static int operation_precedence_array[] = {
   80, 80, 80, 80,     // < > <= >=
   90, 90,             // << >>
   100, 100,           // + -
-  110, 110            // * /
+  110, 110, 110       // \* / %
 };
 
 static int check_right_associative(int token) {
@@ -42,15 +42,15 @@ static int convert_token_operation_2_ast_operation(int operation_in_token) {
 
 // 确定操作符的优先级
 static int operation_precedence(int operation_in_token) {
-  int precedence = operation_precedence_array[operation_in_token];
+  int precedence;
   if (operation_in_token > TOKEN_MOD)
     error_with_message(
       "Token with no precedence in op_precedence",
        token_strings[operation_in_token]);
-  if (!precedence)
-    error_with_message(
-      "Syntax error, token",
-       token_strings[operation_in_token]);
+  precedence = operation_precedence_array[operation_in_token];
+  if (precedence == 0) {
+    error_with_message("Syntax error, token", token_strings[operation_in_token]);
+  }
   return (precedence);
 }
 
