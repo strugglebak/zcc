@@ -4,6 +4,8 @@ out.s
 out
 scanner
 parser
+parser0
+parser1
 parser2
 parser.dSYM/
 .vscode/

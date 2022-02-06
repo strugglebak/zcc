@@ -7,9 +7,9 @@
 #include "definations.h"
 #include "helper.h"
 
-static int label_id = 1;
+static int dump_label_id = 1;
 static int generate_dump_label(void) {
-  return (label_id++);
+  return (dump_label_id++);
 }
 
 /**
