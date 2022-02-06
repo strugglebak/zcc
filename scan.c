@@ -496,8 +496,6 @@ int scan(struct Token *t) {
   }
 
   t->token_string = token_string[t->token];
-#define DEBUG 1
-#if DEBUG == 1
   printf(
     "scan '%s' '%s' -> (%s), line = %d\n",
     global_input_filename,
@@ -505,6 +503,5 @@ int scan(struct Token *t) {
     text_buffer,
     line
   );
-#endif
   return (1);
 }
