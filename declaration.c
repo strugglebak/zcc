@@ -435,9 +435,9 @@ static struct SymbolTable *parse_array_declaration(
   t->element_number = element_number;
   t->size = t->element_number * get_primitive_type_size(primitive_type, composite_type);
 
-  if (storage_class == STORAGE_CLASS_GLOBAL ||
-      storage_class == STORAGE_CLASS_STATIC)
+  if (storage_class == STORAGE_CLASS_GLOBAL || storage_class == STORAGE_CLASS_STATIC) {
     generate_global_symbol(t);
+  }
 
   return (t);
 }

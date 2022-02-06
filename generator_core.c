@@ -346,12 +346,14 @@ int register_store_local_value_2_variable(int register_index, struct SymbolTable
  * 创建全局变量
 */
 void register_generate_global_symbol(struct SymbolTable *t) {
-  if (!t || t->structural_type == STRUCTURAL_FUNCTION) return;
-  // int primitive_type_size = get_primitive_type_size(t->primitive_type, t->composite_type);
   int primitive_type,
       primitive_type_size,
       init_value,
-      i;
+      i, j;
+  if (t == NULL)
+    return;
+  if (t->structural_type == STRUCTURAL_FUNCTION)
+    return;
 
   // 区分是数组还是普通变量
   if (t->structural_type == STRUCTURAL_ARRAY) {
@@ -393,7 +395,7 @@ void register_generate_global_symbol(struct SymbolTable *t) {
         }
         break;
       default:
-        for (i = 0; i < primitive_type_size; i++)
+        for (j = 0; j < primitive_type_size; j++)
           fprintf(output_file, "\t.byte\t0\n");
     }
   }
