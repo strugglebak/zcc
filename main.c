@@ -161,7 +161,7 @@ char *do_assemble(char *filename) {
 }
 
 // link 文件
-void do_link(char *output_filename, char *object_file_list[]) {
+void do_link(char *output_filename, char **object_file_list) {
   int count, size = TEXT_LENGTH;
   char cmd[TEXT_LENGTH], *p;
   int error;
@@ -192,18 +192,18 @@ void do_unlink(char *filename) {
 
 
 
-int main(int argc, char *argv[]) {
+int main(int argc, char **argv) {
   char *output_filename = A_OUT;
   char *assembly_file, *object_file;
   char *object_file_list[MAX_OBJECT_FILE_NUMBER];
-  int i, object_file_count = 0;
+  int i, j, object_file_count = 0;
 
   init();
 
   // 扫描命令行输入
   for (i = 1; i < argc; i++) {
     if (*argv[i] != '-') break;
-    for (int j = 1; (*argv[i] == '-') && argv[i][j]; j++) {
+    for (j = 1; (*argv[i] == '-') && argv[i][j]; j++) {
       switch (argv[i][j]) {
         case 'T': output_dump_ast = 1; break;
         case 'o': output_filename = argv[++i]; break;

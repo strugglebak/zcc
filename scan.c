@@ -7,17 +7,9 @@
 #include "scan.h"
 #include "helper.h"
 
-static struct Token *rejected_token = NULL;
-
-void reject_token(struct Token *t) {
-  if (rejected_token)
-    error("Can't reject token twice");
-  rejected_token = t;
-}
-
 // 从文件中读取下一个字符
 static int next(void) {
-  char c;
+  int c;
   int l;
 
   // 由于上一次读取到了不是数字的字符，所以这里相当于一个 buffer，直接返回上一次读取后的值即可
@@ -90,7 +82,7 @@ static void put_back(int c) {
 
 // 白名单，遇到如下的字符就跳过
 static int skip(void) {
-  char c = next();
+  int c = next();
 
   while (
     ' ' == c ||
@@ -117,7 +109,7 @@ static int get_the_position_of_the_charater(char *s, int c) {
 }
 
 // 从输入的 file 中扫描并返回一个 integer 字符
-static int scan_integer(char c) {
+static int scan_integer(int c) {
   // 默认 10 进制
   int k, value = 0, radix = 10;
 
@@ -156,7 +148,7 @@ static int scan_identifier(int c, char *buffer, int limit_length) {
     if (length >= limit_length - 1) {
       error("identifier too long on line");
     }
-    buffer[length ++] = c;
+    buffer[length ++] = (char)c;
     c = next();
   }
 
@@ -233,13 +225,13 @@ static int escape_character() {
 // 扫描 sting，并存入 text_buffer 中
 // 返回 string 的长度
 static int scan_string(char *buffer) {
-  int c;
-  for (int i = 0; i < TEXT_LENGTH-1; i++) {
+  int i, c;
+  for (i = 0; i < TEXT_LENGTH - 1; i++) {
     if ((c = escape_character()) == '"') {
       buffer[i] = 0;
       return (i);
     }
-    buffer[i] = c;
+    buffer[i] = (char)c;
   }
   error("String literal too long");
   return (0);
@@ -301,7 +293,7 @@ static int get_keyword(char *s) {
 // 只有扫描到文件尾时返回 0，表示扫描结束
 // 其他情况均在扫描中
 int scan(struct Token *t) {
-  char c, token_type;
+  int c, token_type;
 
   // 如果提前找到了 token，就直接返回这个 token
   if (look_ahead_token.token) {
@@ -496,12 +488,12 @@ int scan(struct Token *t) {
   }
 
   t->token_string = token_string[t->token];
-  printf(
-    "scan '%s' '%s' -> (%s), line = %d\n",
-    global_input_filename,
-    t->token_string,
-    text_buffer,
-    line
-  );
+  // printf(
+  //   "scan '%s' '%s' -> (%s), line = %d\n",
+  //   global_input_filename,
+  //   t->token_string,
+  //   text_buffer,
+  //   line
+  // );
   return (1);
 }

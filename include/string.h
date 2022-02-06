@@ -1,6 +1,8 @@
 #ifndef _STRING_H_
 # define _STRING_H_
 
+#include <stddef.h>
+
 char *strdup(char *s);
 char *strchr(char *s, int c);
 char *strrchr(char *s, int c);

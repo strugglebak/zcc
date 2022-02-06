@@ -52,4 +52,6 @@ int interpret_ast(struct ASTNode *node) {
   default:
     error_with_digital("Unknown AST operator", node->operation);
   }
+
+  return NO_REGISTER;
 }
