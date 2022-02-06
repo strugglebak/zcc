@@ -598,7 +598,7 @@ int is_new_symbol(
   int primitive_type,
   struct SymbolTable *composite_type
 ) {
-  if (!t) return 1;
+  if (!t) return (1);
 
   if ((t->storage_class == STORAGE_CLASS_GLOBAL && storage_class == STORAGE_CLASS_EXTERN) ||
       (t->storage_class == STORAGE_CLASS_EXTERN && storage_class == STORAGE_CLASS_GLOBAL)) {
@@ -614,11 +614,11 @@ int is_new_symbol(
 
     // 如果类型比较后一样，将 extern 转为 global
     t->storage_class = STORAGE_CLASS_GLOBAL;
-    return 0;
+    return (0);
   }
 
   error_with_message("Duplicate global variable declaration", t->name);
-  return -1;
+  return (-1);
 }
 
 // typedef_declaration: 'typedef' identifier existing_type
