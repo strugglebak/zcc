@@ -10,9 +10,9 @@
 // 这个 label 是为了在汇编 code 中生成类似 L1, L2 的代码用的
 // 目的是为了代码间的跳转
 // 比如 jmp L1, jmp L2 之类去执行
+static int label_id = 1;
 int generate_label() {
-  static int id = 1;
-  return (id++);
+  return (label_id++);
 }
 
 static int interpret_if_ast_with_register(

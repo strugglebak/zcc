@@ -16,10 +16,9 @@ struct ASTNode *create_ast_node(
 ) {
   struct ASTNode *node;
 
-  node = (struct ASTNode *)malloc(sizeof(struct ASTNode));
-  if (NULL == node) {
+  node = (struct ASTNode *) malloc(sizeof(struct ASTNode));
+  if (node == NULL)
     error("Unable to malloc in function make_ast_node");
-  }
 
   node->operation = operation;
   node->primitive_type = primitive_type;

@@ -36,7 +36,7 @@ static int check_right_associative(int token) {
 static int convert_token_operation_2_ast_operation(int operation_in_token) {
   if (operation_in_token > TOKEN_EOF && operation_in_token <= TOKEN_MOD)
     return (operation_in_token);
-  error_with_message("Syntax error, token", token_string[operation_in_token]);
+  error_with_message("Syntax error, token", token_strings[operation_in_token]);
   return (0);
 }
 
@@ -46,11 +46,11 @@ static int operation_precedence(int operation_in_token) {
   if (operation_in_token > TOKEN_MOD)
     error_with_message(
       "Token with no precedence in op_precedence",
-       token_string[operation_in_token]);
+       token_strings[operation_in_token]);
   if (!precedence)
     error_with_message(
       "Syntax error, token",
-       token_string[operation_in_token]);
+       token_strings[operation_in_token]);
   return (precedence);
 }
 

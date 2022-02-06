@@ -32,6 +32,6 @@ int parse_declaration_list(
   int end_token_2,
   struct ASTNode **glue_tree
 );
-void parse_global_declaration();
+void parse_global_declaration(void);
 
 #endif

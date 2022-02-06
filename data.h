@@ -8,12 +8,11 @@
   #define extern_ extern
 #endif
 
-#define GET_ARRAY_LENGTH(x)(sizeof(x) / sizeof((x)[0]))
 #define TEXT_LENGTH 512
 #define SYMBOL_TABLE_ENTRIES_NUMBER 1024
 #define TOKEN_STRING_NUMBER 128
 
-extern_ char *token_string[TOKEN_STRING_NUMBER];
+extern_ char *token_strings[TOKEN_STRING_NUMBER];
 
 extern_ int line;
 extern_ int start_line;

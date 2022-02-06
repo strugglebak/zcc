@@ -736,18 +736,18 @@ struct SymbolTable *parse_function_declaration(
   int storage_class
 ) {
   struct ASTNode *tree, *final_statement;
-  int end_label = 0, parameter_count = 0;
-  struct SymbolTable *old_function_symbol_table = find_symbol(function_name),
+  struct SymbolTable *old_function_symbol_table,
                      *new_function_symbol_table = NULL;
+  int end_label = 0, parameter_count = 0;
 
   // 如果之前有相同的 identifier，但是这个 identifier 不是函数
-  if (old_function_symbol_table)
+  if ((old_function_symbol_table = find_symbol(function_name)) != NULL)
     if (old_function_symbol_table->structural_type != STRUCTURAL_FUNCTION)
       old_function_symbol_table = NULL;
 
   // 满足上述情况，那么说明这个 identifier 是要被声明成函数的
   // 把它加入 symbol table
-  if (!old_function_symbol_table) {
+  if (old_function_symbol_table == NULL) {
     end_label = generate_label();
     new_function_symbol_table = add_global_symbol(
       function_name,
@@ -794,10 +794,10 @@ struct SymbolTable *parse_function_declaration(
 
   // 确保非 void 返回的函数始终有返回一个值
   if (primitive_type != PRIMITIVE_VOID) {
-    if (!tree) error("No statements in function with non-void type");
-    final_statement = tree->operation == AST_GLUE ? tree->right : tree;
-    if (!final_statement ||
-      final_statement->operation != AST_RETURN)
+    if (tree == NULL)
+      error("No statements in function with non-void type");
+    final_statement = (tree->operation == AST_GLUE) ? tree->right : tree;
+    if (final_statement == NULL || final_statement->operation != AST_RETURN)
       error("No return for function with non-void type");
   }
 
@@ -875,10 +875,12 @@ int parse_declaration_list(
 
     verify_comma();
   }
+
+  return (0);
 }
 
-void parse_global_declaration() {
-  struct SymbolTable *composite_type;
+void parse_global_declaration(void) {
+  struct SymbolTable *composite_type = NULL;
   struct ASTNode *tree;
 
   // 解析声明的全局变量/函数

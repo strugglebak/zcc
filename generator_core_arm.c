@@ -37,7 +37,7 @@ void clear_all_registers(NO_REGISTER) {
  * 如果已经没有寄存器分配，则抛出异常
 */
 static int allocate_register() {
-  for (int i = 0; i < GET_ARRAY_LENGTH(free_registers); i++) {
+  for (int i = 0; i < 4; i++) {
     if (free_registers[i]) {
       free_registers[i] = 0;
       return (i);
@@ -334,7 +334,7 @@ void register_function_preamble(int symbol_table_index) {
   fprintf(output_file,
           "\t.text\n"
           "\t.globl\t%s\n"
-          "\t.type\t%s, \%%function\n"
+          "\t.type\t%s, %%function\n"
           "%s:\n" "\tpush\t{fp, lr}\n"
           "\tadd\tfp, sp, #4\n"
           "\tsub\tsp, sp, #8\n"
@@ -445,6 +445,6 @@ int register_shift_left_by_constant(int register_index, int value) {
 */
 int register_load_global_string(int label) {
   int register_index = allocate_register();
-  // fprintf(output_file, "\tleaq\tL%d(\%%rip), %s\n", label, register_list[register_index]);
+  // fprintf(output_file, "\tleaq\tL%d(%%rip), %s\n", label, register_list[register_index]);
   return register_index;
 }

@@ -1,6 +1,6 @@
 #include "data.h"
 
-char *token_string[TOKEN_STRING_NUMBER] = {
+char *token_strings[TOKEN_STRING_NUMBER] = {
   "EOF", "=", "+=", "-=", "*=", "/=", "%=", "?",
   "&&", "||", "|", "^", "&",
   "==", "!=", ",", ">", "<=", ">=", "<<", ">>",

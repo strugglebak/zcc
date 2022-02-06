@@ -7,6 +7,11 @@
 #include "definations.h"
 #include "helper.h"
 
+static int label_id = 1;
+static int generate_dump_label(void) {
+  return (label_id++);
+}
+
 /**
  * 检查当前 token 是否为给到的标识符，如果不是则报错
  * 如果是则扫描下一个 token
@@ -103,19 +108,16 @@ void error_with_character(char *string, char character) {
   exit(1);
 }
 
-static int generate_dump_label(void) {
-  static int id = 1;
-  return (id++);
-}
 // 递归打印 ast
 void dump_ast(struct ASTNode *n, int label, int level) {
   int label_false, label_start, label_end;
   struct SymbolTable *t = n->symbol_table;
+  int i;
 
   switch (n->operation) {
     case AST_IF:
       label_false = generate_dump_label();
-      for (int i = 0; i < level; i++) fprintf(stdout, " ");
+      for (i = 0; i < level; i++) fprintf(stdout, " ");
       fprintf(stdout, "AST_IF");
       if (n->right) {
         label_end = generate_dump_label();
@@ -128,7 +130,7 @@ void dump_ast(struct ASTNode *n, int label, int level) {
       return;
     case AST_WHILE:
       label_start = generate_dump_label();
-      for (int i = 0; i < level; i++) fprintf(stdout, " ");
+      for (i = 0; i < level; i++) fprintf(stdout, " ");
       fprintf(stdout, "AST_WHILE, start L%d\n", label_start);
       label_end = generate_dump_label();
       dump_ast(n->left, label_end, level+2);
@@ -142,7 +144,7 @@ void dump_ast(struct ASTNode *n, int label, int level) {
   if (n->right) dump_ast(n->right, NO_LABEL, level+2);
 
 
-  for (int i = 0; i < level; i++) fprintf(stdout, " ");
+  for (i = 0; i < level; i++) fprintf(stdout, " ");
   switch (n->operation) {
     case AST_GLUE:
       fprintf(stdout, "\n\n"); return;

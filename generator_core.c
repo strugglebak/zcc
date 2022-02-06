@@ -14,7 +14,7 @@
 enum {
   NO_SECTION_FLAG,
   TEXT_SECTION_FLAG,
-  DATA_SECTION_FLAG,
+  DATA_SECTION_FLAG
 } current_section_flag = NO_SECTION_FLAG;
 
 static int free_registers[FREE_REGISTER_NUMBER] = { 1 };
@@ -76,7 +76,7 @@ void clear_all_registers(int keep_register_index) {
 */
 int allocate_register() {
   int i;
-  for (i = 0; i < GET_ARRAY_LENGTH(free_registers); i++) {
+  for (i = 0; i < FREE_REGISTER_NUMBER; i++) {
     if (free_registers[i]) {
       free_registers[i] = 0;
       return (i);
@@ -84,7 +84,7 @@ int allocate_register() {
   }
 
   // 如果没有 register，就匀一个出来
-  i = spilling_register_index % GET_ARRAY_LENGTH(free_registers);
+  i = spilling_register_index % FREE_REGISTER_NUMBER;
   spilling_register_index++;
   fprintf(output_file, "# spilling reg %d\n", i);
   push_register(i);
@@ -106,17 +106,19 @@ void register_clear_register(int register_index) {
 
   // 如果是之前匀出来的 register, 现在需要放回去
   spilling_register_index--;
-  register_index = spilling_register_index % GET_ARRAY_LENGTH(free_registers);
+  register_index = spilling_register_index % FREE_REGISTER_NUMBER;
   pop_register(register_index);
 }
 
 void spill_all_register() {
-  for (int i = 0; i < GET_ARRAY_LENGTH(free_registers); i++)
+  int i;
+  for (i = 0; i < FREE_REGISTER_NUMBER; i++)
     push_register(i);
 }
 
 static void unspill_all_register() {
-  for (int i = GET_ARRAY_LENGTH(free_registers) - 1; i >= 0; i--)
+  int i;
+  for (i = FREE_REGISTER_NUMBER - 1; i >= 0; i--)
     pop_register(i);
 }
 
@@ -291,19 +293,19 @@ int register_divide_and_mod(
 */
 int register_store_value_2_variable(int register_index, struct SymbolTable *t) {
   if (register_get_primitive_type_size(t->primitive_type) == 8) {
-    fprintf(output_file, "\tmovq\t%s, %s(\%%rip)\n",
+    fprintf(output_file, "\tmovq\t%s, %s(%%rip)\n",
     register_list[register_index],
     t->name);
     return (register_index);
   }
   switch (t->primitive_type) {
     case PRIMITIVE_CHAR:
-      fprintf(output_file, "\tmovb\t%s, %s(\%%rip)\n",
+      fprintf(output_file, "\tmovb\t%s, %s(%%rip)\n",
        lower_8_bits_register_list[register_index],
        t->name);
       break;
     case PRIMITIVE_INT:
-      fprintf(output_file, "\tmovl\t%s, %s(\%%rip)\n",
+      fprintf(output_file, "\tmovl\t%s, %s(%%rip)\n",
        lower_32_bits_register_list[register_index],
        t->name);
       break;
@@ -318,19 +320,19 @@ int register_store_value_2_variable(int register_index, struct SymbolTable *t) {
 */
 int register_store_local_value_2_variable(int register_index, struct SymbolTable *t) {
   if (register_get_primitive_type_size(t->primitive_type) == 8) {
-    fprintf(output_file, "\tmovq\t%s, %d(\%%rbp)\n",
+    fprintf(output_file, "\tmovq\t%s, %d(%%rbp)\n",
     register_list[register_index],
     t->symbol_table_position);
     return (register_index);
   }
   switch (t->primitive_type) {
     case PRIMITIVE_CHAR:
-      fprintf(output_file, "\tmovb\t%s, %d(\%%rbp)\n",
+      fprintf(output_file, "\tmovb\t%s, %d(%%rbp)\n",
        lower_8_bits_register_list[register_index],
        t->symbol_table_position);
       break;
     case PRIMITIVE_INT:
-      fprintf(output_file, "\tmovl\t%s, %d(\%%rbp)\n",
+      fprintf(output_file, "\tmovl\t%s, %d(%%rbp)\n",
        lower_32_bits_register_list[register_index],
        t->symbol_table_position);
       break;
@@ -390,7 +392,7 @@ void register_generate_global_symbol(struct SymbolTable *t) {
           init_value);
         break;
       default:
-        for (int i=0; i < primitive_type_size; i++)
+        for (i = 0; i < primitive_type_size; i++)
           fprintf(output_file, "\t.byte\t0\n");
     }
   }
@@ -404,8 +406,9 @@ void register_generate_global_string(
   char *string_value,
   int is_append_string
 ) {
+  char *p;
   if (!is_append_string) register_label(label);
-  for (char *p = string_value; *p; p++) {
+  for (p = string_value; *p; p++) {
     fprintf(output_file, "\t.byte\t%d\n", *p);
   }
 }
@@ -729,7 +732,7 @@ int register_shift_left_by_constant(int register_index, int value) {
 */
 int register_load_global_string(int label) {
   int register_index = allocate_register();
-  fprintf(output_file, "\tleaq\tL%d(\%%rip), %s\n", label, register_list[register_index]);
+  fprintf(output_file, "\tleaq\tL%d(%%rip), %s\n", label, register_list[register_index]);
   return (register_index);
 }
 
@@ -848,7 +851,7 @@ int register_align(int primitive_type, int offset, int direction) {
       // int/long 间隔 4 字节
       alignment = 4;
       // direction -1 或者 1
-      offset = (offset + direction * (alignment-1)) & ~(alignment-1);
+      offset = (offset + direction * (alignment - 1)) & ~(alignment - 1);
   }
 
   return (offset);

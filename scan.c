@@ -208,7 +208,8 @@ static int escape_character() {
       case '6':
       case '7':
         for (i = c2 = 0; isdigit(c) && c < '8'; c = next()) {
-          if (++i > 3) break;
+          if (++i > 3)
+            break;
           c2 = c2 * 8 + (c - '0');
         }
         put_back(c);
@@ -487,7 +488,7 @@ int scan(struct Token *t) {
       error_with_character("Unrecognised character", c);
   }
 
-  t->token_string = token_string[t->token];
+  t->token_string = token_strings[t->token];
   // printf(
   //   "scan '%s' '%s' -> (%s), line = %d\n",
   //   global_input_filename,
