@@ -123,10 +123,11 @@ static struct SymbolTable *parse_composite_declaration(int primitive_type) {
 
   // 判断 struct/union 后面的类型名字是否被定义过
   if (token_from_file.token == TOKEN_IDENTIFIER) {
-    composite_type =
-      primitive_type == PRIMITIVE_STRUCT
-        ? find_struct_symbol(text_buffer)
-        : find_union_symbol(text_buffer);
+    if (primitive_type == PRIMITIVE_STRUCT) {
+      composite_type = find_struct_symbol(text_buffer);
+    } else {
+      composite_type = find_union_symbol(text_buffer);
+    }
     // 跳过类型名字
     scan(&token_from_file);
   }
@@ -145,10 +146,11 @@ static struct SymbolTable *parse_composite_declaration(int primitive_type) {
   if (composite_type) error_with_message("Previously defined struct/union", text_buffer);
 
   // 开始构建 struct/union node
-  composite_type =
-    primitive_type == PRIMITIVE_STRUCT
-      ? add_struct_symbol(text_buffer)
-      : add_union_symbol(text_buffer);
+  if (primitive_type == PRIMITIVE_STRUCT) {
+    composite_type = add_struct_symbol(text_buffer);
+  } else {
+    composite_type = add_union_symbol(text_buffer);
+  }
   // 跳过 '{'
   scan(&token_from_file);
 
@@ -187,11 +189,11 @@ static struct SymbolTable *parse_composite_declaration(int primitive_type) {
   // 再设置剩下的成员变量
   member = member->next;
   for (; member; member = member->next) {
-    member->symbol_table_position =
-      primitive_type == PRIMITIVE_STRUCT
-        ? generate_align(member->primitive_type, offset, 1)
-        // union 是共享变量地址，所以这里是 0
-        : 0;
+    if (primitive_type == PRIMITIVE_STRUCT) {
+      member->symbol_table_position = generate_align(member->primitive_type, offset, 1);
+    } else {
+      member->symbol_table_position = 0;
+    }
     offset += get_primitive_type_size(member->primitive_type, member->composite_type);
   }
 
@@ -386,9 +388,11 @@ static struct SymbolTable *parse_array_declaration(
 
 #define DEFAULT_TABLE_INCREMENT 10
 
-    max_element_number = element_number != -1
-      ? element_number
-      : DEFAULT_TABLE_INCREMENT;
+    if (element_number != -1) {
+      max_element_number = element_number;
+    } else {
+      max_element_number = DEFAULT_TABLE_INCREMENT;
+    }
 
     init_value_list = (int *)malloc(max_element_number * sizeof(int));
 
@@ -865,9 +869,11 @@ int parse_declaration_list(
     }
 
     // 解析 local 变量，粘接 ast tree
-    *glue_tree = (*glue_tree)
-      ? create_ast_node(AST_GLUE, PRIMITIVE_NONE, *glue_tree, NULL, tree, 0, NULL, NULL)
-      : tree;
+    if (*glue_tree != NULL) {
+      *glue_tree = create_ast_node(AST_GLUE, PRIMITIVE_NONE, *glue_tree, NULL, tree, 0, NULL, NULL);
+    } else {
+      *glue_tree = tree;
+    }
 
     if (token_from_file.token == end_token ||
         token_from_file.token == end_token_2)

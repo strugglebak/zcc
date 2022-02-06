@@ -180,18 +180,22 @@ void dump_ast(struct ASTNode *n, int label, int level) {
     case AST_STRING_LITERAL:
       fprintf(stdout, "AST_STRLIT rval label L%d\n", n->ast_node_integer_value); return;
     case AST_IDENTIFIER:
-      n->rvalue
-        ? fprintf(stdout, "AST_IDENT rval %s\n", t->name)
-        : fprintf(stdout, "AST_IDENT %s\n", t->name);
+      if (n->rvalue) {
+        fprintf(stdout, "AST_IDENT rval %s\n", t->name);
+      } else {
+        fprintf(stdout, "AST_IDENT %s\n", t->name);
+      }
       return;
     case AST_ASSIGN:
       fprintf(stdout, "AST_ASSIGN\n"); return;
     case AST_IDENTIFIER_ADDRESS:
       fprintf(stdout, "AST_ADDR %s\n", t->name); return;
     case AST_DEREFERENCE_POINTER:
-      n->rvalue
-        ? fprintf(stdout, "AST_DEREF rval\n")
-        : fprintf(stdout, "AST_DEREF\n");
+      if (n->rvalue) {
+        fprintf(stdout, "AST_DEREF rval\n");
+      } else {
+        fprintf(stdout, "AST_DEREF\n");
+      }
       return;
     case AST_WIDEN:
       fprintf(stdout, "AST_WIDEN\n"); return;
@@ -242,8 +246,20 @@ static void dump_single_symbol(struct SymbolTable *t, int indent) {
     case PRIMITIVE_CHAR: printf("char "); break;
     case PRIMITIVE_INT: printf("int "); break;
     case PRIMITIVE_LONG: printf("long "); break;
-    case PRIMITIVE_STRUCT: printf("struct %s ", t->composite_type ? t->composite_type->name : t->name); break;
-    case PRIMITIVE_UNION: printf("union %s ", t->composite_type ? t->composite_type->name : t->name); break;
+    case PRIMITIVE_STRUCT:
+      if (t->composite_type != NULL) {
+        printf("struct %s ", t->composite_type->name);
+      } else {
+        printf("struct %s ", t->name);
+      }
+      break;
+    case PRIMITIVE_UNION:
+      if (t->composite_type != NULL) {
+        printf("union %s ", t->composite_type->name);
+      } else {
+        printf("union %s ", t->name);
+      }
+      break;
     default: printf("unknown primitive type ");
   }
 

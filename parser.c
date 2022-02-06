@@ -29,7 +29,11 @@ static int operation_precedence_array[] = {
 };
 
 static int check_right_associative(int token) {
-  return (token >= TOKEN_ASSIGN && token <= TOKEN_ASSGIN_DIVIDE ? 1 : 0);
+  if (token >= TOKEN_ASSIGN && token <= TOKEN_ASSGIN_DIVIDE) {
+    return (1);
+  } else {
+    return (0);
+  }
 }
 
 // 将 token 中的 + - * / 等转换成 ast 中的类型
@@ -158,14 +162,21 @@ static struct ASTNode *create_ast_node_from_expression(int previous_token_preced
     // 解析类似   char j; j= 2; 这样的语句需要考虑的情况
     // 即把 2 这个 int 数值转换成 char 类型的
     case TOKEN_INTEGER_LITERAL:
-      node = create_ast_leaf(
-        AST_INTEGER_LITERAL,
-        token_from_file.integer_value >= 0 && token_from_file.integer_value < 256
-          ? PRIMITIVE_CHAR
-          : PRIMITIVE_INT,
-        token_from_file.integer_value,
-        NULL,
-        NULL);
+      if (token_from_file.integer_value >= 0 && token_from_file.integer_value < 256) {
+        node = create_ast_leaf(
+          AST_INTEGER_LITERAL,
+          PRIMITIVE_CHAR,
+          token_from_file.integer_value,
+          NULL,
+          NULL);
+      } else {
+        node = create_ast_leaf(
+          AST_INTEGER_LITERAL,
+          PRIMITIVE_INT,
+          token_from_file.integer_value,
+          NULL,
+          NULL);
+      }
       break;
 
     case TOKEN_IDENTIFIER:

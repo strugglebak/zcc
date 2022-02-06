@@ -50,7 +50,7 @@ static int spilling_register_index = 0;
 
 static int register_new_local_offset(int primitive_type_size) {
   // 栈上位置至少间隔为 4 byte
-  local_offset += primitive_type_size > 4 ? primitive_type_size : 4;
+  local_offset += (primitive_type_size > 4) ? primitive_type_size : 4;
   return (-local_offset);
 }
 
@@ -378,18 +378,19 @@ void register_generate_global_symbol(struct SymbolTable *t) {
       // char a[2] = {'1', '2'}
       // 这种定义
       case 8:
-        fprintf(
-          output_file,
+        // char *s = NULL;
+        // 会被解析成
+        // str: .quad L0
+        // 所以这里需要判断 init_value
+        if (
           t->init_value_list &&
           primitive_type == pointer_to(PRIMITIVE_CHAR) &&
-          // char *s = NULL;
-          // 会被解析成
-          // str: .quad L0
-          // 所以这里需要判断 init_value
           init_value != 0
-            ? "\t.quad\tL%d\n"
-            : "\t.quad\t%d\n",
-          init_value);
+        ) {
+          fprintf(output_file, "\t.quad\tL%d\n", init_value);
+        } else {
+          fprintf(output_file, "\t.quad\t%d\n", init_value);
+        }
         break;
       default:
         for (i = 0; i < primitive_type_size; i++)
