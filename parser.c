@@ -13,7 +13,7 @@
 #include "generator.h"
 #include "declaration.h"
 
-static struct ASTNode *parse_paren_expression();
+static struct ASTNode *parse_paren_expression(int previous_token_precedence);
 
 static int operation_precedence_array[] = {
   0, 10,              // EOF =
