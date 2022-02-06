@@ -17,7 +17,8 @@ void reject_token(struct Token *t) {
 
 // 从文件中读取下一个字符
 static int next(void) {
-  char c, l;
+  char c;
+  int l;
 
   // 由于上一次读取到了不是数字的字符，所以这里相当于一个 buffer，直接返回上一次读取后的值即可
   if (putback_buffer) {
@@ -495,6 +496,12 @@ int scan(struct Token *t) {
   }
 
   t->token_string = token_string[t->token];
-  // printf("scan '%s' '%s' -> (%s)\n", global_input_filename, t->token_string, text_buffer);
+  printf(
+    "scan '%s' '%s' -> (%s), line = %d\n",
+    global_input_filename,
+    t->token_string,
+    text_buffer,
+    line
+  );
   return (1);
 }

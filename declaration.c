@@ -106,7 +106,7 @@ static int parse_param_declaration_list(
   // 如果
   // 1. 已经【声明】过的函数/struct
   // 2. 解析完的参数个数跟已经【声明】过的函数/struct的参数/member个数不一致
-  if (old_function_symbol_table && (parameter_count != old_function_symbol_table->element_number))
+  if (old_function_symbol_table && parameter_count != old_function_symbol_table->element_number)
     error_with_message("Parameter count mismatch for function", old_function_symbol_table->name);
 
   return (parameter_count);
