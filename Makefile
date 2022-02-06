@@ -52,7 +52,6 @@ t: parser $(TEST_CASE)
 
 t0: parser0 $(TEST_CASE)
 	./parser0 -o out $(TEST_CASE)
-	./parser0 -S $(TEST_CASE)
 	./out
 
 t_arm: parser_arm $(TEST_CASE) $(LIB)
