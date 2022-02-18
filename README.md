@@ -17,12 +17,12 @@ zero c compiler，一个从零开始写的编译器，不仅仅为了学习编�
 
 - [x] 支持基本的汇编代码生成
 - [x] 支持 全局/局部 变量解析
-- [x] 支持 if/while/for/switch 语句的解析
-- [x] 支持 struct/union/sizeof/static/extern 等关键字声明的语句的解析
+- [x] 支持 `if`/`while`/`for`/`switch` 语句的解析
+- [x] 支持 `struct`/`union`/`sizeof`/`static`/`extern` 等关键字声明的语句的解析
 - [x] 支持 全局/局部 的 数组/指针 变量的赋值与被赋值
 - [x] 支持 函数声明/定义
 - [x] 支持 函数参数的解析
-- [x] 支持 部分不带括号的 return 语句
+- [x] 支持 部分不带括号的 `return` 语句
 - [x] 支持 first time 自举编译
 
 ## 用法和调试
@@ -45,7 +45,7 @@ make clean && make test
 ## Roadmaps
 
 - [ ] 完善 ARM 后端相关汇编代码生成
-- [ ] 完善 BNF 语法（这里可能会使用一些 BNF 工具来做）
+- [ ] 完善 `BNF` 语法（这里可能会使用一些 ``BNF` 工具来做）
 - [ ] 支持 `...` token 的解析，用来检查函数的实参和形参个数
 - [ ] 支持 `short` 类型解析
 - [ ] 优化寄存器分配策略
