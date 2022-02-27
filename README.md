@@ -34,7 +34,7 @@ cd zcc
 # make install 需要权限
 make clean && make install
 
-./parser your_c_code.c
+./parser your_c_code.zc
 ```
 
 ## 测试
