@@ -31,6 +31,8 @@ zero c compiler，一个从零开始写的编译器，不仅仅为了学习编�
 ```bash
 git clone git@github.com:strugglebak/zcc.git
 cd zcc
+# 先安装 build 依赖
+sudo apt-get install build-essential
 # make install 需要权限
 make clean && make install
 
