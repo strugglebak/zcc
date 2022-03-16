@@ -191,7 +191,7 @@ struct SymbolTable {
 
   int *init_value_list; // 初始化值列表
   struct SymbolTable *next; // 下一个 symbol table 的指针
-  struct SymbolTable *member; // 指向第一个函数、结构体、联合体、枚举的成员的 symbol table 的指针
+  struct SymbolTable *member; // 指向第一个函数参数、第一个 struct/union/enum 的 member 成员的 symbol table 指针
   struct SymbolTable *composite_type; // 指向复合类型 symbol table 的指针
 };
 
