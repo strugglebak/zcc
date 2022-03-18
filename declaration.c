@@ -495,7 +495,7 @@ static struct SymbolTable *parse_scalar_declaration(
   }
 
   // 如果变量要执行赋值操作
-  // 比如 int x = (long)5;
+  // 比如 int x = 5;
   if (token_from_file.token == TOKEN_ASSIGN) {
     if (storage_class != STORAGE_CLASS_GLOBAL &&
         storage_class != STORAGE_CLASS_STATIC &&
