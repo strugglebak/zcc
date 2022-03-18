@@ -92,7 +92,7 @@ struct ASTNode *modify_type(
           check_pointer_type(right_primitive_type)) {
         right_primitive_size =
           generate_get_primitive_type_size(value_at(right_primitive_type));
-        // size 比 int 大的
+        // size 比 char 大的
         // 强制转换
         if (right_primitive_size > 1)
           return (
@@ -104,7 +104,7 @@ struct ASTNode *modify_type(
               NULL,
               right_composite_type)
           );
-        // 如果 size 就是 int，那么就返回这颗树
+        // 如果 size 就是 char，那么就返回这颗树
         return (tree);
       }
     }
