@@ -84,7 +84,6 @@ struct ASTNode *modify_type(
         return (tree);
     }
 
-    // 指针的地址只允许加和减, +=, -=
     if (operation == AST_PLUS ||
         operation == AST_MINUS ||
         operation == AST_ASSIGN_PLUS ||
