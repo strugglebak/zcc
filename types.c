@@ -57,12 +57,6 @@ struct ASTNode *modify_type(
         right_primitive_type == PRIMITIVE_UNION)
       error("Does not support this type casting yet");
 
-    // 左右改变类似于如下的计算
-    // x= *ptr;	        // OK
-    // x= *(ptr + 2);   // 取从 ptr 指向的地址 + 两个整数的地方的值
-    // x= *(ptr * 4);   // 无意义
-    // x= *(ptr / 13);  // 无意义
-
     // 比较 char/int/long
     if (check_int_type(left_primitive_type) && check_int_type(right_primitive_type)) {
       if (left_primitive_type == right_primitive_type) return (tree);
@@ -83,8 +77,6 @@ struct ASTNode *modify_type(
       if (operation >= AST_COMPARE_EQUALS && operation <= AST_COMPARE_GREATER_EQUALS)
         return (tree);
 
-      // 如果 left node 是 (void *)
-      // 即 char a = (void *)65536;
       if (!operation && (
         left_primitive_type == right_primitive_type ||
         left_primitive_type == pointer_to(PRIMITIVE_VOID)
@@ -102,7 +94,6 @@ struct ASTNode *modify_type(
         right_primitive_size =
           generate_get_primitive_type_size(value_at(right_primitive_type));
         // size 比 int 大的
-        // 比如 int x = *((long *) y + 2)
         // 强制转换
         if (right_primitive_size > 1)
           return (
