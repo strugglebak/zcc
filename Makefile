@@ -22,7 +22,7 @@ incdir.h:
 	echo "#define INCDIR \"$(INCLUDE_DIRECTORY)\"" > incdir.h
 
 clean:
-	rm -f parser parser0 parser1 parser2 parser_arm *.o *.s out test/out
+	rm -f parser parser0 parser1 parser2 parser_arm *.o *.s out test/out *.out
 
 install: parser
 	sudo mkdir -p $(INCLUDE_DIRECTORY)

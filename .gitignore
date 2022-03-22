@@ -2,6 +2,7 @@
 *.s
 out.s
 out
+*.out
 scanner
 parser
 parser0
