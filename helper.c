@@ -168,7 +168,7 @@ void dump_ast(struct ASTNode *n, int label, int level) {
     case AST_COMPARE_NOT_EQUALS:
       fprintf(stdout, "AST_NE\n"); return;
     case AST_COMPARE_LESS_THAN:
-      fprintf(stdout, "AST_LE\n"); return;
+      fprintf(stdout, "AST_LT\n"); return;
     case AST_COMPARE_GREATER_THAN:
       fprintf(stdout, "AST_GT\n"); return;
     case AST_COMPARE_LESS_EQUALS:
