@@ -13,7 +13,7 @@ HSRCS= data.h parser.h interpreter.h  \
 
 SRCS= $(COMMON) generator_core.c
 ARM_SRCS= $(COMMON) generator_core_arm.c
-TEST_CASE_NAME= 151
+TEST_CASE_NAME= 152
 TEST_CASE= test/input$(TEST_CASE_NAME).zc
 INCLUDE_DIRECTORY= /tmp/include
 BINARAY_DIRECTORY= /tmp

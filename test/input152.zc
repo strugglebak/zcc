@@ -1,0 +1,17 @@
+#include <stdio.h>
+
+int fib(int n) {
+    if (n <= 1) {
+        return (n);
+    } else {
+        int x = fib(n - 1);
+        int y = fib(n - 2);
+        return (x + y);
+    }
+    return (-1);
+}
+
+int main() {
+  printf("fib(10) = %d\n", fib(10));
+  return (0);
+}
