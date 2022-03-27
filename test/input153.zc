@@ -1,0 +1,20 @@
+#include <stdio.h>
+
+int main() {
+  int x = 2;
+  switch(x) {
+    case 0:
+      x = 777;
+      break;
+    case 1:
+    case 2:
+      x = 888;
+      break;
+    default:
+      x = 999;
+      break;
+  }
+
+  printf("x = %d\n", x);
+  return (0);
+}

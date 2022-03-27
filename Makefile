@@ -13,7 +13,7 @@ HSRCS= data.h parser.h interpreter.h  \
 
 SRCS= $(COMMON) generator_core.c
 ARM_SRCS= $(COMMON) generator_core_arm.c
-TEST_CASE_NAME= 152
+TEST_CASE_NAME= 153
 TEST_CASE= test/input$(TEST_CASE_NAME).zc
 INCLUDE_DIRECTORY= /tmp/include
 BINARAY_DIRECTORY= /tmp
@@ -22,7 +22,7 @@ incdir.h:
 	echo "#define INCDIR \"$(INCLUDE_DIRECTORY)\"" > incdir.h
 
 clean:
-	rm -f parser parser0 parser1 parser2 parser_arm *.o *.s out test/out *.out
+	rm -f parser parser0 parser1 parser2 parser_arm *.o *.s out test/out *.out test/*.s
 
 install: parser
 	sudo mkdir -p $(INCLUDE_DIRECTORY)
