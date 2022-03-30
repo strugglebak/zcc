@@ -28,7 +28,7 @@ extern_ int switch_level; // 嵌套的 switch 的层级
 
 extern_ int output_dump_ast;
 extern_ int output_keep_assembly_file;
-extern_ int output_assemble_assembly_file;
+extern_ int output_keep_link_object_file;
 extern_ int output_link_object_file;
 extern_ int output_verbose;
 extern_ int output_dump_symbol_table;
