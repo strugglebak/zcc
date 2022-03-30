@@ -22,9 +22,9 @@
 
 static void init() {
   output_dump_ast = 0;
-  output_keep_link_object_file = 0;
+  output_keep_object_file = 0;
   output_keep_assembly_file = 0;
-  output_link_object_file = 1;
+  output_binary_file = 1;
   output_verbose = 0;
   output_dump_symbol_table = 0;
 }
@@ -208,14 +208,14 @@ int main(int argc, char **argv) {
         case 'T': output_dump_ast = 1; break;
         case 'o': output_filename = argv[++i]; break;
         case 'c':
-          output_keep_link_object_file = 1;
+          output_keep_object_file = 1;
           output_keep_assembly_file = 0;
-          output_link_object_file = 0;
+          output_binary_file = 0;
           break;
         case 'S':
-          output_keep_link_object_file = 0;
+          output_keep_object_file = 0;
           output_keep_assembly_file = 1;
-          output_link_object_file = 0;
+          output_binary_file = 0;
           break;
         case 'v': output_verbose = 1; break;
         case 'M': output_dump_symbol_table = 1; break;
@@ -230,7 +230,7 @@ int main(int argc, char **argv) {
   while (i < argc) {
     assembly_file = do_compile(argv[i]);
 
-    if (output_link_object_file || output_keep_link_object_file) {
+    if (output_binary_file || output_keep_object_file) {
       object_file = do_assemble(assembly_file);
       if (object_file_count == (MAX_OBJECT_FILE_NUMBER - 2)) {
         fprintf(stderr, "Too many object files for the compiler to handle\n");
@@ -244,10 +244,10 @@ int main(int argc, char **argv) {
     i++;
   }
 
-  if (output_link_object_file) {
+  if (output_binary_file) {
     do_link(output_filename, object_file_list);
 
-    if (!output_keep_link_object_file)
+    if (!output_keep_object_file)
       for(i = 0; object_file_list[i]; i++)
         do_unlink(object_file_list[i]);
   }
