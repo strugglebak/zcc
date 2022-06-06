@@ -1,5 +1,13 @@
 # zcc
 
+以下是该项目的总结文章
+
+- [zcc-编译器开发总结-part1-前言](https://strugglebak.github.io/2022/06/05/zcc-%E7%BC%96%E8%AF%91%E5%99%A8%E5%BC%80%E5%8F%91%E6%80%BB%E7%BB%93-part1-%E5%89%8D%E8%A8%80/)
+- [zcc-编译器开发总结-part2-Front-End](https://strugglebak.github.io/2022/06/06/zcc-%E7%BC%96%E8%AF%91%E5%99%A8%E5%BC%80%E5%8F%91%E6%80%BB%E7%BB%93-part2-Front-End/)
+- [zcc-编译器开发总结-part3-Back-End](https://strugglebak.github.io/2022/06/06/zcc-%E7%BC%96%E8%AF%91%E5%99%A8%E5%BC%80%E5%8F%91%E6%80%BB%E7%BB%93-part3-Back-End/)
+- [zcc-编译器开发总结-part4-Middle-End](https://strugglebak.github.io/2022/06/06/zcc-%E7%BC%96%E8%AF%91%E5%99%A8%E5%BC%80%E5%8F%91%E6%80%BB%E7%BB%93-part4-Middle-End/)
+- [zcc-编译器开发总结-part5-链接和加载流程](https://strugglebak.github.io/2022/06/06/zcc-%E7%BC%96%E8%AF%91%E5%99%A8%E5%BC%80%E5%8F%91%E6%80%BB%E7%BB%93-part5-%E9%93%BE%E6%8E%A5%E5%92%8C%E5%8A%A0%E8%BD%BD%E6%B5%81%E7%A8%8B/)
+
 zero c compiler，一个从零开始写的编译器，不仅仅为了学习编译原理
 
 > 命名规范如下
